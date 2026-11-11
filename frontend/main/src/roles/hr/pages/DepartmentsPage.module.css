@@ -1,0 +1,48 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.card h4 {
+  font-size: 16px;
+  font-weight: 700;
+}
+.icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin-block-end: 6px;
+  border-radius: var(--radius-md);
+  background: var(--red-50);
+  color: var(--red-600);
+}
+.location {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--ink-500);
+}
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-block-start: 10px;
+  padding-block-start: 12px;
+  border-block-start: 1px solid var(--ink-100);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-700);
+}
+.footer strong {
+  padding: 2px 10px;
+  background: var(--red-50);
+  color: var(--red-700);
+  border-radius: 6px;
+}

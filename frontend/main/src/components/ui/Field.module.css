@@ -1,0 +1,17 @@
+.field { display: flex; flex-direction: column; gap: 6px; }
+.label { font-size: 13px; font-weight: 700; color: var(--ink-700); }
+.control {
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--surface);
+  border: 1px solid var(--ink-300);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.control:focus {
+  outline: none;
+  border-color: var(--red-600);
+  box-shadow: 0 0 0 3px var(--red-100);
+}
+textarea.control { resize: vertical; }

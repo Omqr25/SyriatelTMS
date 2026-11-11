@@ -1,0 +1,16 @@
+.bloc-area{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    
+}
+
+.lable{
+    color: var(--ink-500);
+    font-weight: bold;
+}
+
+.value{
+    color: var(--ink-900);
+    font-weight: bold;
+}

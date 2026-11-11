@@ -1,0 +1,27 @@
+<?php
+
+return [
+    'not_trainer'=>'You are not authorized to manage this program tasks.',
+    'unauthorized_management'=>'You are not authorized to manage tasks in this training program.',
+    'unauthorized_view'=>'You are not authorized to view this task.',
+    'unauthorized_update'=>'You are not authorized to update this task.',
+    'completed_task_update'=>'You cannot update a task that has a completed or overdue status.',
+    'completed_task_delete'=>'You cannot delete a task that has a completed status.',
+    'unauthorized_delete'=>'You are not authorized to delete this task.',
+    'assigned_task'=>'You cannot remove a task that has been assigned to trainees.',
+    'unauthorized_manage_feedback'=>'You are not authorized to manage feedback for this task.',
+    'unauthorized_manage_attachment'=>'You are not authorized to manage attachments for this task.',
+    'unauthorized_manage_attachment_completed'=>'You cannot modify attachments for a task with completed assignments.',
+    'not_found'=>'Task not found.',
+    'deleted_task'=>'Task deleted successfully.',
+    'attacment_store_error'=>'The attachment could not be stored.',
+    'attachment_removed'=>'The attachment was removed successfully.',
+    'attachment_not_for_task'=>'This attachment does not belong to the task.',
+    'trainee_not_assigned'=>'This trainee is not assigned to the task.',
+    'feedback_error'=>'Feedback can only be added to a task in For-Review status.',
+    'trainee_not_in_team'=>'This trainee is not in this team , cannot assign task to this trainee.',
+    'evidence_add_error'=> 'Evidence can only be submitted for In-Progress or Need-Fix tasks.',
+    'unauthorized_manage_evidence'=>'You are not authorized to manage evidence for this task.',
+    'task_status_error'=>'Task status cannot be changed.',
+    'evidence_not_found' => "Evidence for task couldn't be found",
+];

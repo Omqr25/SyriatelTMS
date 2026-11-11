@@ -1,0 +1,158 @@
+.shell { display: flex; min-height: 100vh; }
+
+/* ---------- Sidebar ---------- */
+.sidebar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  width: var(--sidebar-w);
+  height: 100vh;
+  background: var(--surface);
+  border-inline-end: 1px solid var(--ink-200);
+}
+
+.brand {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 22px 22px 18px;
+  border-block-end: 1px solid var(--ink-100);
+  position: relative;
+}
+/* شريط أحمر قصير يوقّع الهوية أسفل الشعار */
+.brand::after {
+  content: '';
+  position: absolute;
+  inset-inline-start: 22px;
+  inset-block-end: -1px;
+  width: 44px;
+  height: 3px;
+  background: var(--red-600);
+  border-radius: 3px;
+}
+.brandName { font-size: 13px; font-weight: 600; color: var(--ink-500); }
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  padding: 16px 12px;
+  overflow-y: auto;
+}
+
+.link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  color: var(--ink-700);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s;
+}
+.link:hover { background: var(--ink-100); color: var(--ink-900); }
+
+.active,
+.active:hover { background: var(--red-600); color: #fff; box-shadow: var(--shadow-red); }
+
+.logout {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 12px 16px;
+  padding: 10px 14px;
+  background: transparent;
+  border: 0;
+  border-block-start: 1px solid var(--ink-100);
+  border-radius: 0;
+  color: var(--red-700);
+  font-size: 14px;
+  font-weight: 700;
+  text-align: start;
+}
+.logout:hover { color: var(--red-800); }
+
+/* ---------- Main ---------- */
+.main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 28px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(8px);
+  border-block-end: 1px solid var(--ink-200);
+}
+.titleGroup { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.titleGroup h2 { font-size: 20px; font-weight: 800; }
+.tools { display: flex; align-items: center; gap: 14px; }
+
+.user { display: flex; align-items: center; gap: 10px; padding-inline-start: 14px; border-inline-start: 1px solid var(--ink-200); }
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--red-600);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+}
+.userName { font-size: 13.5px; font-weight: 700; }
+
+.content { flex: 1; padding: 28px; display: flex; flex-direction: column; gap: 20px; }
+
+.menuBtn {
+  display: none;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  background: var(--surface);
+  border: 1px solid var(--ink-200);
+  border-radius: var(--radius-sm);
+}
+.backdrop { display: none; }
+
+.BellRing{
+  color: #737780;
+  background: transparent;
+  border: none;
+    
+
+}
+.BellRing :hover {
+  color:#e60000;
+  
+  
+}
+/* ---------- Mobile ---------- */
+@media (max-width: 960px) {
+  .sidebar {
+    position: fixed;
+    inset-block: 0;
+    inset-inline-start: 0;
+    transform: translateX(calc(-100% * var(--dir)));
+    transition: transform 0.22s ease;
+    box-shadow: var(--shadow-md);
+  }
+  .sidebarOpen { transform: none; }
+  .backdrop { display: block; position: fixed; inset: 0; z-index: 40; background: rgba(27, 31, 42, 0.45); }
+  .menuBtn { display: grid; }
+  .topbar { padding: 12px 16px; }
+  .content { padding: 16px; }
+  .userName { display: none; }
+  .user { padding-inline-start: 0; border-inline-start: 0; }
+}

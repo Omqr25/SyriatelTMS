@@ -1,0 +1,102 @@
+{   "profile":{
+            "personal": "المعلومات الشخصية",
+            "email": "البريد الإلكتروني:",
+            "phone": "رقم الهاتف:",
+            "birthDate": "تاريخ الميلاد:",
+            "city": "المدينة:",
+            "address": "العنوان:",
+            "education": "التعليم",
+            "university": "الجامعة:",
+            "field": "المجال:",
+            "academicMajor": "التخصص الأكاديمي:",
+            "yearOfStudy": "السنة الدراسية:",
+            "gpa": "المعدل التراكمي:",
+            "skills": "المهارات",
+            "technicalSkills": "المهارات التقنية:",
+            "otherInformation": "معلومات أخرى",
+            "commitment": "الالتزام:",
+            "previousTraining": "التدريب السابق:",
+            "howDidYouHearAboutUs": "كيف سمعت عنا؟",
+            "attachments": "المرفقات",
+            "cv": "السيرة الذاتية",
+            "idAttachment": "مرفق الهوية الشخصية",
+        "academicCertification": "الشهادة الأكاديمية",
+        "yes":"نعم",
+        "no":"لا",
+        "universityWorkshop":"ورشة عمل الجامعة",
+        "socialMedia":"وسائل التواصل الاجتماعي",
+        "previousInternship":"التدريب السابق",
+        "hi-TechExhibition":"معرض التكنولوجيا المتقدمة"
+            },
+    "evaluation":{
+            "reEvaluationRequest": "طلب إعادة التقييم",
+            "reason": "السبب",
+            "send": "إرسال",
+            "generalEvaluation": "التقييم العام",
+            "attendance": "الحضور",
+            "performance": "الأداء",
+            "teamWork": "العمل الجماعي",
+            "reEvaluate": "إعادة التقييم"
+            },
+    "vacation":{
+        "vacationRequests": "طلبات الإجازة",
+        "vacationRequest":"طلب اجازة",
+        "vacationRequestsSubtitle": "راجع طلبات الإجازة الخاصة بك وحالتها الحالية.",
+        "requests": "طلبات",
+        "submitted": "تاريخ التقديم",
+        "pending": "قيد الانتظار",
+        "accepted": "مقبول",
+        "rejected": "مرفوض",
+        "addRequest":"اضافة طلب",
+        "startDate":"تاريخ البدء",
+        "endDate":"تاريخ الانتهاء",
+        "incorrectDate":"تاريخ غير صحيح",
+        "cancelVacation":"الغاء الاجازة",
+        "cancel":"الغاء",
+        "areYouSure":"هل انت واثق",
+        "cancelRequest":"الغاء الاجازة",
+        "update":"تعديل"
+
+
+
+        },
+        "announcement":{
+        "announcement":"اعلان"
+        },
+        "dashboard":{
+                "completed_tasks_count":"عدد المهام المنجزة",
+                "assigned_tasks_count":"عدد المهام المسندة"
+        },
+  "settings": {
+    "title": "الإعدادات",
+    "description": "إدارة أمان حسابك وكلمة المرور.",
+    "account": "الحساب",
+    "changePassword": "تغيير كلمة المرور",
+    "passwordDescription": "قم بتحديث كلمة المرور للحفاظ على أمان حسابك.",
+    "currentPassword": "كلمة المرور الحالية",
+    "currentPlaceholder": "أدخل كلمة المرور الحالية",
+    "newPassword": "كلمة المرور الجديدة",
+    "newPlaceholder": "أدخل كلمة المرور الجديدة",
+    "confirmPassword": "تأكيد كلمة المرور الجديدة",
+    "confirmPlaceholder": "أعد إدخال كلمة المرور الجديدة",
+    "hidePassword": "إخفاء كلمة المرور",
+    "showPassword": "إظهار كلمة المرور",
+    "passwordHint": "استخدم 8 أحرف على الأقل. تجنب إعادة استخدام كلمة المرور الحالية.",
+    "saveChanges": "حفظ التغييرات",
+    "apiNotConnected": "لم يتم ربط تحديث كلمة المرور بواجهة API حتى الآن.",
+    "success": "تم تغيير كلمة المرور بنجاح.",
+    "failure": "تعذر تغيير كلمة المرور. يرجى المحاولة مرة أخرى.",
+    "validation": {
+      "currentRequired": "كلمة المرور الحالية مطلوبة.",
+      "newRequired": "كلمة المرور الجديدة مطلوبة.",
+      "minLength": "يجب أن تتكون كلمة المرور من 8 أحرف على الأقل.",
+      "samePassword": "يجب أن تختلف كلمة المرور الجديدة عن كلمة المرور الحالية.",
+      "confirmRequired": "يرجى تأكيد كلمة المرور الجديدة.",
+      "passwordMismatch": "كلمتا المرور غير متطابقتين."
+    }
+  },
+  "common": {
+    "cancel": "إلغاء",
+    "saving": "جارٍ الحفظ..."
+  }
+}

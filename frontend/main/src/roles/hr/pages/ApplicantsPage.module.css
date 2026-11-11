@@ -1,0 +1,33 @@
+.filters {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1.2fr 1fr auto;
+  gap: 12px;
+  padding: 16px;
+}
+.nameBtn {
+  padding: 0;
+  background: none;
+  border: 0;
+  font-weight: 700;
+  color: var(--ink-900);
+  text-align: start;
+}
+.nameBtn:hover {
+  color: var(--red-600);
+}
+.actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 1100px) {
+  .filters {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+@media (max-width: 560px) {
+  .filters {
+    grid-template-columns: 1fr;
+  }
+}

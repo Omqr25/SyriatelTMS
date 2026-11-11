@@ -1,0 +1,156 @@
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  min-width: 0;
+}
+
+.intro {
+  margin-top: -8px;
+}
+
+.intro p {
+  margin: 0;
+  color: #666;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.descriptionField,
+.noticeField {
+  min-width: 0;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: -8px;
+}
+
+.sectionHeader h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #262626;
+}
+
+.sectionHeader > span {
+  color: #777;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.indicators {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.indicator {
+  padding: 18px;
+  border: 1px solid #e8e8e8;
+  border-radius: 10px;
+  background: #fff;
+  transition: border-color 0.2s ease;
+}
+
+.indicator:focus-within {
+  border-color: #e60000;
+}
+
+.indicatorTitle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.indicatorTitle h5 {
+  margin: 0;
+  color: #262626;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.number {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  background: #fff0f0;
+  color: #e60000;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.scoreField {
+  position: relative;
+}
+
+.scoreSuffix {
+  position: absolute;
+  right: 12px;
+  bottom: 13px;
+  color: #777;
+  font-size: 12px;
+  pointer-events: none;
+}
+
+.scoreField input {
+  padding-right: 55px;
+}
+
+.noticeField {
+  margin-top: 16px;
+}
+
+.error {
+  margin: 6px 0 0;
+  color: #c62828;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 16px;
+  border-top: 1px solid #eee;
+}
+
+.footer button {
+  min-width: 110px;
+}
+
+@media (max-width: 480px) {
+  .form {
+    gap: 16px;
+  }
+
+  .indicator {
+    padding: 14px;
+  }
+
+  .sectionHeader {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .footer {
+    flex-wrap: wrap;
+  }
+
+  .footer button {
+    flex: 1;
+    min-width: 0;
+  }
+}

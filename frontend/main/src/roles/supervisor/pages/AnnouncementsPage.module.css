@@ -1,0 +1,28 @@
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-block-end: 8px;
+}
+.top h4 {
+  font-size: 16px;
+  font-weight: 700;
+}
+.details {
+  color: var(--ink-700);
+  font-size: 14px;
+  margin-block-end: 12px;
+}
+.date {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  color: var(--ink-500);
+}

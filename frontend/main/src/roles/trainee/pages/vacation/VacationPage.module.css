@@ -1,0 +1,272 @@
+.page {    
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    width: 100%;
+    min-width: 0;
+}
+
+.subtitle {
+    margin: 6px 0 0;
+    color: var(--ink-500);
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.count {
+    display: inline-flex;
+    align-items: center;
+    padding: 7px 12px;
+    border: 1px solid var(--ink-200);
+    border-radius: 999px;
+    color: var(--ink-700);
+    background: var(--surface, #fff);
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-width: 0;
+    padding-bottom: 20px;
+}
+.container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.card {
+    position: relative;
+    min-width: 0;
+    padding: 20px;
+    overflow: hidden;
+    border: 1px solid var(--ink-200, #e5e7eb);
+    border-left: 4px solid var(--ink-300, #d1d5db);
+    border-radius: 12px;
+    background: var(--surface, #fff);
+    box-shadow: 0 2px 8px rgb(15 23 42 / 3%);
+    transition:
+        box-shadow 180ms ease,
+        transform 180ms ease;
+}
+
+.card:hover {
+    box-shadow: 0 6px 18px rgb(15 23 42 / 7%);
+    transform: translateY(-4px);
+    transition: 300ms;
+}
+
+.card:not(:hover ){
+    box-shadow: 0 6px 18px rgb(15 23 42 / 7%);
+    transform: translateY(0);
+    transition: 300ms
+}
+
+.pending {
+    border-left-color: var(--amber-700, #b7791f);
+}
+
+.accepted {
+    border-left-color: var(--green-700, #15803d);
+}
+
+.rejected {
+    border-left-color: var(--red-500, #ef4444);
+}
+
+.cardHeader {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.reasonGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 0;
+}
+
+.reason {
+    margin: 0;
+    color: var(--ink-900);
+    font-size: 16px;
+    font-weight: 650;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+
+
+.dateSection {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 16px;
+    border: 1px solid var(--ink-200);
+    border-radius: 10px;
+    background: var(--ink-100);
+}
+
+.dateBlock {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    flex: 1;
+    min-width: 0;
+}
+
+.dateLabel {
+    color: var(--ink-500);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+}
+
+.dateValue {
+    color: var(--ink-900);
+    font-size: 14px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 34px;
+    height: 34px;
+    border: 1px solid var(--ink-200,);
+    border-radius: 50%;
+    color: var(--ink-500);
+    background: var(--surface, );
+}
+
+.footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px 20px;
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 1px solid var(--ink-200);
+}
+
+.meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    color: var(--ink-500);
+    font-size: 12px;
+    line-height: 1.5;
+}
+.addReqeust {
+    position:  fixed;
+    inset-inline-end: 30px;
+    bottom: 30px;
+
+}
+.addReqeust:hover{
+    transform: translateY(-4px);
+    transition: 300ms;
+}
+.addReqeust:not(:hover) {
+    transform: translateY(0);
+    transition: 300ms;
+}
+
+.addReqeust:active {
+    transform: scale(0.98);
+    transition: 300ms;
+}
+
+.sendRequest:hover {
+    transform: translateY(-4px);
+    transition: 300ms;
+}
+
+.sendRequest:not(:hover) {
+    transform: translateY(0);
+    transition: 300ms;
+}
+
+.sendRequest:active {
+    transform: scale(0.98);
+    transition: 300ms;
+}
+
+.vacationDate{
+    display: flex;
+    justify-content: space-between;
+}
+.vacationDateField{
+    width: 100%;
+}
+.cancelVacation{
+    display: flex;
+    justify-content: space-around;
+}
+
+
+@media (max-width: 480px) {
+    .page {
+        gap: 18px;
+    }
+
+    .card {
+        padding: 15px;
+    }
+
+    .cardHeader {
+        gap: 10px;
+        margin-bottom: 16px;
+    }
+
+    .reason {
+        font-size: 14px;
+    }
+
+    .dateSection {
+        gap: 8px;
+        padding: 12px 10px;
+    }
+
+    .dateValue {
+        font-size: 12px;
+        white-space: normal;
+    }
+
+    .dateLabel {
+        font-size: 9px;
+        letter-spacing: 0.4px;
+    }
+
+    .arrow {
+        width: 28px;
+        height: 28px;
+    }
+
+    .footer {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 10px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .card {
+        transition: none;
+    }
+
+    .card:hover {
+        transform: none;
+    }
+}

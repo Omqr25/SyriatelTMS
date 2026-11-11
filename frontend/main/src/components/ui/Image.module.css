@@ -1,0 +1,28 @@
+/* Container to center and frame the profile image */
+.profile-container {
+    display: inline-block;
+    position: relative;
+    width: 200px;
+    height: 200px;
+    border-radius: 30%;
+    padding: 5px;
+    background: rgba(252, 142, 142, 0.254);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2),
+        0 8px 10px -6px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: 2px solid rgba(255, 0, 0, 0.673);
+}
+
+.profile-container:hover {
+    transform: scale(0.98);
+    box-shadow: 0 20px 30px -10px rgba(99, 102, 241, 0.4);
+}
+
+.profile-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 28%;
+    display: block;
+    /* Inner white border for contrast */
+}

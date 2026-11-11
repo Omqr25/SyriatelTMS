@@ -1,0 +1,7 @@
+/* أنماط مشتركة بين صفحات جداول HR */
+.strong { font-weight: 700; color: var(--ink-900); }
+.accent { font-weight: 700; color: var(--red-700); }
+.good { font-weight: 700; color: var(--green-700); }
+.muted { color: var(--ink-500); }
+.id { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-weight: 700; color: var(--red-700); }
+.searchCard { padding: 16px; }

@@ -1,0 +1,55 @@
+﻿# Environment variables and secrets
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Dependencies
+**/vendor/
+**/node_modules/
+
+# Frontend build output
+**/dist/
+**/build/
+**/.vite/
+
+# Laravel generated files
+/backend/bootstrap/cache/*.php
+/backend/storage/logs/*
+/backend/storage/framework/cache/data/*
+/backend/storage/framework/sessions/*
+/backend/storage/framework/views/*
+/backend/storage/framework/testing/*
+
+# Firebase credentials and private configuration
+/backend/storage/app/firebase/
+/**/*service-account*.json
+/**/firebase-adminsdk-*.json
+
+# Local databases
+*.sqlite
+*.sqlite3
+*.db
+
+# Private keys and certificates
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Logs and temporary files
+*.log
+*.tmp
+*.bak
+
+# IDE files
+.idea/
+.vscode/
+.fleet/
+*.suo
+*.user
+
+# Operating system files
+.DS_Store
+Thumbs.db
+desktop.ini

@@ -1,0 +1,205 @@
+.evaluation {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+.finalEvaluation {
+    display: flex;
+    width: 100%;
+    min-width: 0;
+}
+
+.blocArea {
+    flex: 1;
+    min-width: 0;
+    padding: 24px;
+    background: var(--surface);
+    border: 1px solid var(--canvas);
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgb(15 23 42 / 4%);
+    box-sizing: border-box;
+}
+
+.scoreSection {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.scoreHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    color: var(--ink-500);
+    font-size: 14px;
+}
+
+.scoreHeader strong {
+    color: var(--red-600);
+    font-size: 24px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Long feedback */
+.feedback {
+    margin: 0;
+    color: var(--ink-500);
+    font-size: 14px;
+    line-height: 1.85;
+    overflow-wrap: anywhere;
+    max-width: 90ch;
+}
+
+.indicatorsSection {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-width: 0;
+}
+
+.sectionHeader {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.sectionHeader h3 {
+    margin: 0;
+    color: var(--ink-900);
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.sectionHeader p {
+    margin: 0;
+    color: var(--ink-500);
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+
+.pieCharts {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
+    width: 100%;
+    min-width: 0;
+    align-items: stretch;
+}
+
+.chartCard {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    padding: 20px;
+    background: var(--surface);
+    border: 1px solid var(--canvas);
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgb(15 23 42 / 4%);
+    box-sizing: border-box;
+    transition:
+        box-shadow 180ms ease,
+        border-color 180ms ease,
+        transform 180ms ease;
+}
+
+.chartCard:hover {
+    transform: translateY(-3px);
+    border-color: var(--red-200);
+    box-shadow: 0 8px 20px rgb(15 23 42 / 7%);
+}
+
+
+.actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding-top: 4px;
+}
+
+.reEvaluateRequest {
+    position: relative;
+    transform: none;
+    transition:
+        transform 160ms ease,
+        box-shadow 160ms ease;
+}
+
+.reEvaluateRequest:hover {
+    transform: translateY(-2px);
+}
+
+.reEvaluateRequest:active {
+    transform: scale(0.98);
+}
+
+.reEvaluateRequest:focus-visible {
+    outline: 3px solid var(--red-200);
+    outline-offset: 3px;
+}
+
+.modalContent {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+    min-width: 0;
+}
+
+@media (max-width: 1000px) {
+    .pieCharts {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 650px) {
+    .evaluation {
+        gap: 20px;
+    }
+
+    .blocArea {
+        padding: 18px;
+    }
+
+    .pieCharts {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 14px;
+    }
+
+    .chartCard {
+        padding: 16px;
+    }
+
+    .scoreHeader strong {
+        font-size: 21px;
+    }
+
+    .actions {
+        justify-content: stretch;
+    }
+
+    .reEvaluateRequest {
+        width: 100%;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    .chartCard,
+    .reEvaluateRequest {
+        transition: none;
+    }
+
+    .chartCard:hover,
+    .reEvaluateRequest:hover,
+    .reEvaluateRequest:active {
+        transform: none;
+    }
+}

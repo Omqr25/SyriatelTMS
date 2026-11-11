@@ -1,0 +1,24 @@
+.progress {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    min-width: 0;
+    pointer-events: none;
+}
+
+.progress-track {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    border-radius: 8px;
+}
+
+.progress-value {
+    flex-shrink: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink-700);
+}
+
+

@@ -1,0 +1,21 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+.flex {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.bold{
+    font-weight: 700;
+}
+.value{
+    font-weight: 400;
+    color: var(--ink-500);
+}
+.card{
+    min-width: 320px;
+    /* width: fit-content; */
+}

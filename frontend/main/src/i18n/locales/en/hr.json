@@ -1,0 +1,228 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "applicants": "Applicants",
+    "assignedRequests": "Assigned requests",
+    "interviews": "Interviews",
+    "trainees": "Trainees",
+    "departments": "Departments",
+    "supervisors": "Supervisors",
+    "attendance": "Attendance",
+    "announcements": "Announcements",
+    "reports": "Reports",
+    "evaluations": "Evaluations",
+    "registration": "Registration",
+    "profile": "Profile",
+    "trainingPrograms": "Training Program",
+    "vacations": "Vacations",
+    "evaluation": "Evaluations",
+    "notifications": "Notifications",
+    "programs": "Programs",
+    "re_evaluation":"Revaluation",
+    "tasks":"Tasks",
+    "vacationRequest":"Vacation Request",
+    "notification":"Notification",
+    "settings":"Settings"
+
+  },
+  "dashboard": {
+    "latestApplicants": "Latest applicants",
+    "upcomingInterviews": "Upcoming interviews",
+    "supervisorLine": "Supervisor: {{name}}",
+    "noUpcoming": "No interviews scheduled"
+  },
+  "applicants": {
+    "reject": "Reject",
+    "assignToDept": "Assign to department",
+    "scheduleInterview": "Schedule interview",
+    "detailsTitle": "Applicant: {{name}}",
+    "attachments": "Attachments",
+    "assignTitle": "Assign {{name}} to a department",
+    "chooseDept": "Department",
+    "chooseSupervisor": "Responsible supervisor",
+    "interviewTitle": "Schedule an interview for {{name}}",
+    "supervisorName": "Supervisor",
+    "interviewDate": "Interview date",
+    "interviewTime": "Interview time",
+    "interviewLocation": "Location",
+    "defaultLocation": "Syriatel HQ ",
+    "empty": "No applicants match your search",
+    "toast": {
+      "rejected": "Application rejected",
+      "assigned": "Applicant assigned to the department",
+      "interviewScheduled": "Interview scheduled"
+    },
+    "chooseDepartment": "Choose Department",
+    "emptyDepartment": "No supervisors in this department",
+    "loadingSupervisors": "Loading supervisors..."
+  },
+  "assigned": {
+    "applicant": "Applicant",
+    "supervisor": "Responsible supervisor",
+    "remind": "Remind supervisor",
+    "unassigned": "Not set",
+    "empty": "No assigned requests right now",
+    "reminderSent": "Reminder sent to {{name}} to schedule the interview"
+  },
+  "interviews": {
+    "applicant": "Applicant",
+    "supervisor": "Supervisor",
+    "dateTime": "Date & time",
+    "location": "Location",
+    "rating": "Rating",
+    "pendingRating": "Awaiting rating",
+    "finalAccept": "Final accept",
+    "accepted": "Accepted & enrolled",
+    "empty": "No interviews yet",
+    "toast": {
+      "accepted": "Applicant accepted and enrolled as a trainee"
+    }
+  },
+  "trainees": {
+    "traineeId": "Trainee ID",
+    "startDate": "Start date",
+    "empty": "No trainees yet"
+  },
+  "departments": {
+    "listTitle": "Approved departments",
+    "add": "Add department",
+    "name": "Department name",
+    "location": "Department location",
+    "supervisorsCount": "Supervisors",
+    "toast": {
+      "added": "Department added"
+    }
+  },
+  "supervisors": {
+    "listTitle": "Supervisors",
+    "add": "Add supervisor",
+    "name": "Supervisor name",
+    "toast": {
+      "added": "Supervisor added"
+    }
+  },
+  "attendance": {
+    "attendanceRegister":"Attendance Register",
+    "searchPlaceholder": "Search a trainee to see their absence record...",
+    "trainee": "Trainee",
+    "absenceDate": "Absence date",
+    "reason": "Reason",
+    "empty": "No matching records",
+    "add":"Add absence"
+  },
+  "announcements": {
+    "listTitle": "General announcements",
+    "send": "Send announcement",
+    "target": "Audience",
+    "title": "Title",
+    "details": "Details",
+    "toast": {
+      "sent": "Announcement sent"
+    }
+  },
+  "reports": {
+    "title": "System reports & analytics",
+    "acceptanceRate": "Acceptance rate",
+    "totalInterviews": "Total interviews",
+    "exportPdf": "Export full report (PDF)",
+    "exporting": "Exporting the PDF report...",
+     
+    "subtitle": "View training cycle statistics and download them as PDF",
+    "generate": "Fetch Report & Download PDF",
+    "refresh": "Refresh & Download Report",
+    "generating": "Generating report...",
+    "loading": "Fetching data and generating PDF...",
+    "emptyTitle": "No Report Available",
+    "emptyDescription": "Click the button to fetch training cycle statistics and generate a PDF.",
+    "downloadSuccess": "Report generated and downloaded successfully",
+    "downloadError": "Failed to fetch the report or generate the PDF",
+    "trainingProgram": "Training Program",
+    "generatedAt": "Report Generation Date",
+    "pdfTitle": "Training Cycle Report",
+    "pdfSubtitle": "Statistical Report for the Current Training Program",
+    "pdfFooter": "This report was generated electronically by the TMS Training Management System.",
+    "notSpecified": "Not specified",
+    "indicator": "Metric",
+    "count": "Count",
+    "groups": {
+      "applications": "Applications",
+      "trainees": "Trainees",
+      "organization": "Organization"
+    },
+    "fields": {
+      "total_applications": "Total Applications",
+      "accepted_applications": "Accepted Applications",
+      "rejected_applications": "Rejected Applications",
+      "participating_trainees": "Participating Trainees",
+      "completed_trainees": "Completed Trainees",
+      "fired_trainees": "Dismissed Trainees",
+      "total_departments": "Total Departments",
+      "active_supervisor_accounts": "Active Supervisor Accounts"
+    }
+  },
+  "registration": {
+    "title": "Create a new course",
+    "add": "Add new course",
+    "startDate": "Start date",
+    "endDate": "End date",
+    "startDateRegistration": "Registration start date",
+    "endDateRegistration": "Registration end date",
+    "openRegistration": "Open",
+    "closeRegistration": "Closed",
+    "name": "Course name"
+  },
+  "program": {
+    "listTitle": "Programs List",
+    "add": "Add New Program",
+    "name": "Program Name",
+    "endDate": "End Date",
+    "description": "Description",
+    "phasesTitle": "Program Phases",
+    "addPhase": "Add Phase",
+    "phasesDescription": "Phase Description",
+    "phaseName": "Phase Name"
+  },
+   "evaluation": {
+    "evaluation": "Evaluation",
+    "createTitle": "Create Trainee Evaluation",
+    "editTitle": "Edit Trainee Evaluation",
+    "subtitle": "Evaluate the trainee's performance and record feedback on their progress.",
+    "description": "Overall Evaluation Description",
+    "descriptionPlaceholder": "Write a summary of the trainee's performance...",
+    "indicatorsTitle": "Evaluation Indicators",
+    "scoreRange": "Score out of 100",
+    "score": "Score",
+    "notice": "Feedback",
+    "noticePlaceholder": "Write your feedback on this indicator...",
+    "cancel": "Cancel",
+    "create": "Create Evaluation",
+    "saveChanges": "Save Changes",
+    "indicators": {
+      "taskPerformance": "Task Performance",
+      "attendance": "Attendance",
+      "progress": "Progress"
+    },
+    "errors": {
+      "description": "The overall description is required.",
+      "score": "The score must be a number between 0 and 100.",
+      "notice": "Feedback is required."
+    },
+    "viewAndREvaluation":"View and Revaluation"
+  },
+
+  "notificationsPage": {
+    "title": "Notifications",
+    "subtitle": "Stay up to date with your latest alerts",
+    "listTitle": "All Notifications",
+    "totalCount": "Total notifications: {{count}}",
+    "loading": "Loading notifications...",
+    "emptyTitle": "No notifications",
+    "emptyDescription": "New notifications will appear here.",
+    "loadError": "Failed to load notifications. Please try again.",
+    "retry": "Retry",
+    "previous": "Previous",
+    "next": "Next",
+    "pageInfo": "Page {{current}} of {{total}}"
+  }
+
+}

@@ -1,0 +1,54 @@
+services:
+  syriatel_tms_webserver:
+    build:
+      context: .
+      dockerfile: dockerfiles/nginx.dockerfile
+    ports:
+      - "8000:80"
+    depends_on:
+      - syriatel_tms_app
+  syriatel_tms_app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      - syriatel_tms_db
+    env_file:
+      - ./.env
+    volumes:
+      - syriatel_app_attach:/var/www/html/storage/app/private
+
+  syriatel_tms_worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    command: php artisan queue:work --sleep=3 --tries=3 --timeout=90
+    depends_on:
+      - syriatel_tms_db
+    env_file:
+      - ./.env
+
+  syriatel_tms_sched:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    command: php artisan schedule:work
+    depends_on:
+      - syriatel_tms_db
+    env_file:
+      - ./.env
+
+  syriatel_tms_db:
+    image: mysql
+    restart: unless-stopped
+    env_file:
+      - ./env/mysql.env
+    volumes:
+      - syriatel_app_data:/var/lib/mysql
+
+volumes:
+  syriatel_app_data:
+  syriatel_app_attach:

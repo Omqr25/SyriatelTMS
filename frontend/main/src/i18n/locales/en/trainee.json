@@ -1,0 +1,106 @@
+{   "profile":{
+                "personal": "Personal",
+                "email": "Email:",
+                "phone": "Phone:",
+                "birthDate": "Birth Date:",
+                "city": "City:",
+                "address": "Address:",
+                "education": "Education",
+                "university": "University:",
+                "field": "Field:",
+                "academicMajor": "Academic Major:",
+                "yearOfStudy": "Year of Study:",
+                "gpa": "GPA:",
+                "skills": "Skills",
+                "technicalSkills": "Technical Skills:",
+                "otherInformation": "Other Information",
+                "commitment": "Commitment:",
+                "previousTraining": "Previous Training:",
+                "howDidYouHearAboutUs": "How did you hear about us?",
+                "attachments": "Attachments",
+                "cv": "CV",
+                "idAttachment": "ID Attachment",
+                "academicCertification": "Academic Certification",
+                "yes":"Yes",
+                "no":"No",
+                "universityWorkshop":" University Workshop",
+                "socialMedia":"Social Media",
+                "previousInternship":"Previous Internship",
+                "hi-TechExhibition":"Hi-TechExhibition"
+                },
+    "evaluation":{
+            "reEvaluationRequest": "Re-Evaluation Request",
+            "reason": "Reason",
+            "send": "Send",
+            "generalEvaluation": "General Evaluation",
+            "attendance": "Attendance",
+            "taskPerformance": "Performance",
+            "teamWork": "Teamwork",
+            "reEvaluate": "Re-Evaluate"
+            },
+        "vacation":
+        {
+        "vacationRequests": "Vacation Requests",
+        "vacationRequest":"Vacation Request",
+        "vacationRequestsSubtitle": "Review your vacation requests and their current status.",
+        "requests": "requests",
+        "submitted": "Submitted",
+        "pending": "Pending",
+        "accepted": "Accepted",
+        "rejected": "Rejected",
+        "addRequest":"Add Request",
+        "startDate":"Start Date",
+        "endDate":"End Date",
+        "incorrectDate":"Incorrect Date",
+        "cancelVacation":"Cancel Vacation",
+        "cancel":"cancel",
+        "areYouSure":"Are you Sure?",
+        "cancelRequest":"Cancel Request",
+        "update":"Update"
+
+
+
+        }   ,
+        "announcement":{
+        "announcement":"Announcement"
+        },     
+        "dashboard":{
+                "completed_tasks_count":"Completed Tasks Count",
+                "assigned_tasks_count":"Assigned Tasks Count"
+
+        },
+  "settings": {
+    "title": "Settings",
+    "description": "Manage your account security and password.",
+    "account": "Account",
+    "changePassword": "Change Password",
+    "passwordDescription": "Update your password to keep your account secure.",
+    "currentPassword": "Current password",
+    "currentPlaceholder": "Enter your current password",
+    "newPassword": "New password",
+    "newPlaceholder": "Enter your new password",
+    "confirmPassword": "Confirm new password",
+    "confirmPlaceholder": "Re-enter your new password",
+    "hidePassword": "Hide password",
+    "showPassword": "Show password",
+    "passwordHint": "Use at least 8 characters. Avoid reusing your current password.",
+    "saveChanges": "Save Changes",
+    "apiNotConnected": "Password update is not connected to the API yet.",
+    "success": "Your password has been changed successfully.",
+    "failure": "Unable to change your password. Please try again.",
+    "validation": {
+      "currentRequired": "Current password is required.",
+      "newRequired": "New password is required.",
+      "minLength": "Password must contain at least 8 characters.",
+      "samePassword": "New password must differ from current password.",
+      "confirmRequired": "Please confirm your new password.",
+      "passwordMismatch": "Passwords do not match."
+    }
+  },
+  "common": {
+    "cancel": "Cancel",
+    "saving": "Saving..."
+  }
+
+
+}

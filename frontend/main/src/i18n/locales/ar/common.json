@@ -1,0 +1,265 @@
+{
+  "appName": "سيريتل",
+  "appTitle": "نظام إدارة التدريب",
+  "action": {
+    "save": "حفظ البيانات",
+    "close": "إغلاق",
+    "reset": "إعادة ضبط",
+    "viewDetails": "عرض التفاصيل",
+    "logout": "تسجيل الخروج",
+    "openMenu": "فتح القائمة",
+    "search": "بحث",
+    "create": "إنشاء",
+    "cancel":"الغاء",
+    "update":"تعديل",
+    "add":"اضافة"
+  },
+  "label": {
+    "name": "الاسم",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "role": "الدور الوظيفي",
+    "status": "الحالة",
+    "actions": "الإجراءات",
+    "gpa": "المعدل",
+    "academicYear": "سنة الدراسة",
+    "major": "الاختصاص",
+    "city": "المدينة",
+    "department": "القسم",
+    "all": "الكل",
+    "search": "بحث...",
+    "age": "العمر",
+    "reason": "السبب",
+    "attachments": "المرفقات",
+    "cv": "السيرة الذاتية",
+    "academicQualification": "المؤهل الأكاديمي",
+    "nationalID": "الهوية الوطنية",
+    "personalPhoto": "الصورة الشخصية",
+    "fieldOfStudy": "مجال الدراسة",
+    "address": "العنوان",
+    "phoneNumber": "رقم الهاتف",
+    "university": "الجامعة",
+    "technicalSkills": "المهارات التقنية",
+    "SubmissionDate": "تاريخ التقديم",
+    "note": "الملاحظات",
+    "rating":"التقيم",
+    "fire":"فصل",
+    "additionalInfo":"معلومات اضافية"
+    
+    
+  },
+  "language": { "switchTo": "English" },
+  "role": {
+    "HR": "مسؤول الموارد البشرية",
+    "SUPERVISOR": "مشرف قسم",
+    "TRAINEE": "متدرب"
+  },
+  "status": {
+    "applicant": {
+      "new": "جديد",
+      "assigned": "مسند لقسم",
+      "interviewScheduled": "مقابلة مجدولة",
+      "accepted": "مقبول نهائياً",
+      "rejected": "مرفوض",
+      "pending": "قيد الانتظار",
+      "qualified": "مؤهل",
+      "for interview": "مقابلة مجدولة",
+      "interviewed": "تمت المقابلة",
+      "active": "نشط",
+      "completed": "مكتملة",
+      "fired": "مفصول",
+      "refreshing": "جارٍ تحديث البيانات..."
+
+    },
+    "interview": {
+      "scheduled": "مجدولة",
+      "completed": "مكتملة",
+      "accepted": "مقبول نهائياً"
+    },
+    "attendance": { "absent": "غائب" }
+  },
+  "major": {
+    "IT & Software Engineering": "هندسة المعلوماتية والبرمجيات",
+    "Computers & Automation Engineering": "هندسة الحواسيب والأتمتة",
+    "Telecommunications Engineering": "هندسة الاتصالات",
+    "AI & IoT Engineering": "هندسة الذكاء الصنعي وإنترنت الأشياء",
+    "Civil Engineering": "الهندسة المدنية",
+    "Business Administration": "إدارة الأعمال",
+    "Graphic Design": "التصميم الغرافيكي"
+  },
+  "city": {
+    "damascus": "دمشق",
+    "rural damascus": "ريف دمشق",
+    "aleppo": "حلب",
+    "latakia": "اللاذقية",
+    "tartus": "طرطوس",
+    "homs": "حمص",
+    "hama": "حماة",
+    "hasakah": "الحسكة",
+    "jableh": "جبلة",
+    "as sweida": "السويداء",
+    "qamishli": "القامشلي",
+    "deir ez zor": "دير الزور",
+    "idlib": "إدلب",
+    "raqqa": "الرقة",
+    "daraa": "درعا",
+    "quneitra": "القنيطرة"
+  },
+  "academicYear": { "final year": "سنة أخيرة", "graduated": "خريج" },
+  "reason": { "sick": "عذر صحي", "noExcuse": "بدون عذر" },
+  "audience": {
+    "allSupervisors": "جميع المشرفين",
+    "allTrainees": "جميع المتدربين"
+  },
+  "toast": { "error": "حدث خطأ، حاول مرة أخرى" },
+  "pagination": {
+    "previous": "الصفحة السابقة",
+    "next": "الصفحة التالية"
+  },
+
+  "modal":{
+    "deleteTitle":"تاكيد الحذف",
+    "description":"هل انت متاكد انك تريد حذف هذا",
+    "delete":"حذف"
+  },
+   "program": {
+    "backToPrograms": "العودة إلى البرامج",
+    "phasesTitle": "مراحل البرنامج",
+    "deadline": "تاريخ الانتهاء",
+    "noProgram": "البرنامج غير موجود",
+    "noPhases": "لم تتم إضافة أي مراحل بعد",
+    "noDescription": "لا يوجد وصف"
+  },
+  "task": {
+    "add": "إضافة مهمة",
+    "noTasks": "لم تتم إضافة مهام لهذه المرحلة بعد",
+    "assignee": "المسندة إلى",
+    "name" :"اسم المهمة",
+    "description":"وصف المهمة",
+    "create" :"انشاء مهمة جديدة ",
+    "deadline":"تاريخ الانتهاء",
+    "trainee":"المتدرب المعني",
+   "attachments": "المصادر والمرفقات",
+   "instructions":"التعليمات",
+   "priority":"الأهمية",
+   
+   "details": "تفاصيل المهمة",
+    "notFound": "المهمة غير موجودة",
+    "basicInfo": "المعلومات الأساسية",
+    "submission": "تسليم المتدرب",
+    "submittedFile": "ملف المهمة المرفوع",
+    "notSubmitted": "لم يقم المتدرب برفع ملف المهمة بعد",
+    "resource": "المصدر",
+    "noAttachments": "لا توجد مرفقات",
+    "evaluate": "تقييم المهمة",
+    "evidence":"ملف التوثيق",
+    "verify":"تحقق",
+    "start":"بدء",
+    "requestRevision": "طلب إصلاح المهمة",
+    "feedback": "الملاحظات",
+    "feedbackRequired": "يرجى كتابة الملاحظات أولاً",
+    "feedbackError": "حدث خطأ، يرجى المحاولة مجدداً",
+    "evaluationPlaceholder": "اكتب تقييمك وملاحظاتك حول أداء المتدرب...",
+    "revisionPlaceholder": "حدد التعديلات المطلوبة من المتدرب...",
+    "confirmEvaluation": "تأكيد التقييم",
+    "confirmRevision": "إرسال طلب الإصلاح",
+    "priorityLow": "منخفضة",
+    "priorityMedium": "متوسطة",
+    "priorityHigh": "مرتفعة",
+    "status": {
+      "pending": "قيد الانتظار",
+      "inProgress": "قيد التنفيذ",
+      "submitted": "تم التسليم",
+      "completed": "مكتملة",
+      "revisionRequired": "تحتاج إلى تعديل",
+      "PENDING": "قيد الانتظار",
+    "IN_PROGRESS": "قيد التنفيذ",
+    "COMPLETED": "مكتملة",
+    "CANCELLED": "ملغاة",
+    "FOR_REVIEW": "قيد المراجعة",
+    "NEED_FIX": "تحتاج إلى إصلاح",
+    "OVERDUE": "متأخرة",
+    "UNKNOWN": "حالة غير معروفة"
+    },
+
+  "completeDate":"تاريخ الاكمال",
+  "startDate":"تاريخ البدء",
+  "noDeadline": "غير محدد",
+  "noDescription": "لا يوجد وصف",
+  "unknownTrainee": "متدرب غير معروف",
+  "unknownDepartment": "قسم غير محدد",
+  "overdue": "مهمة متأخرة",
+  "taskDeadline": "موعد المهمة",
+  "submissions": "التسليمات",
+  "score": "آخر تقييم",
+  "viewDetails": "عرض التفاصيل"
+
+  },
+    "underDevelopment": {
+    "badge": "نعمل على تحسين تجربتك",
+    "eyebrow": "قريباً — تجربة أفضل",
+    "title": "الصفحة",
+    "titleAccent": "قيد التطوير",
+    "description": "نعمل على تطوير هذه الصفحة لنقدم لك تجربة أفضل وأكثر سهولة. نشكرك على صبرك، ونتطلع إلى رؤيتك قريباً!",
+    "homeButton": "العودة إلى الصفحة الرئيسية",
+    "footerNote": "سيرياتل · نربط الناس",
+    "footer": "سيرياتل — معاً نحو تجربة أفضل"
+  },
+   "notifications": {
+    "title": "الإشعارات",
+    "subtitle": "تابع آخر التنبيهات والتحديثات الخاصة بك",
+    "breadcrumbDashboard": "لوحة التحكم",
+    "markAll": "تحديد الكل كمقروء",
+    "total": "إجمالي الإشعارات",
+    "totalHint": "جميع التنبيهات الواردة",
+    "unread": "غير المقروءة",
+    "unreadHint": "إشعارات تحتاج إلى مراجعة",
+    "read": "المقروءة",
+    "readHint": "إشعارات تمت مراجعتها",
+    "listTitle": "كل الإشعارات",
+    "listSubtitle": "إدارة ومراجعة التنبيهات الخاصة بك",
+    "resultsCount": "{{count}} إشعارات",
+    "search": "ابحث في الإشعارات...",
+    "filterOptions": "خيارات التصفية",
+    "filters": {
+      "all": "الكل",
+      "unread": "غير المقروءة",
+      "read": "المقروءة"
+    },
+    "new": "جديد",
+    "markAsRead": "تحديد كمقروء",
+    "moreOptions": "خيارات الإشعار",
+    "today": "اليوم",
+    "yesterday": "أمس",
+    "emptyTitle": "لا توجد إشعارات",
+    "emptyDescription": "لا توجد إشعارات تطابق خيارات البحث والتصفية.",
+    "samples": {
+      "interview": {
+        "title": "موعد مقابلة جديد",
+        "message": "تم تحديد موعد مقابلة لأحد المتقدمين لبرنامج التدريب.",
+        "time": "منذ 10 دقائق"
+      },
+      "trainee": {
+        "title": "متدرب جديد",
+        "message": "تم تسجيل متدرب جديد بنجاح ضمن برنامج التدريب الحالي.",
+        "time": "منذ 35 دقيقة"
+      },
+      "evaluation": {
+        "title": "تحديث تقييم",
+        "message": "تم إرسال تقييم جديد لأحد المتدربين من قبل المشرف.",
+        "time": "منذ ساعتين"
+      },
+      "announcement": {
+        "title": "إعلان جديد",
+        "message": "تم نشر إعلان جديد لجميع المشرفين والمتدربين.",
+        "time": "أمس، 03:45 م"
+      },
+      "report": {
+        "title": "تقرير التدريب",
+        "message": "يمكنك الاطلاع على ملخص إحصائيات دورة التدريب الحالية.",
+        "time": "أمس، 10:20 ص"
+      }
+    }
+  }
+
+}

@@ -1,0 +1,231 @@
+{
+  "nav": {
+    "dashboard": "لوحة التحكم",
+    "applicants": "المتقدمون",
+    "assignedRequests": "الطلبات المسندة",
+    "interviews": "المقابلات",
+    "trainees": "المتدربون",
+    "departments": "الأقسام",
+    "supervisors": "المشرفون",
+    "attendance": "الغياب",
+    "announcements": "الإعلانات",
+    "reports": "التقارير",
+    "evaluations": "التقييمات",
+    "registration": "التسجيل",
+    "profile": "الصفحة الشخصية",
+    "trainingPrograms": "البرنامج التدريبي",
+    "vacations": "الإجازات",
+    "evaluation": "التقييم",
+    "notifications": "الاشعارات",
+    "programs": "البرامج ",
+    "re_evaluation":"اعادة التقيم",
+    "tasks":"المهام",
+    "vacationRequest":" طلبات الاجازة",
+    "notification":"الإشعارات",
+    "settings":"الاعدادات"
+
+  },
+  "dashboard": {
+    "latestApplicants": "أحدث المتقدمين",
+    "upcomingInterviews": "المقابلات القادمة",
+    "supervisorLine": "المشرف: {{name}}",
+    "noUpcoming": "لا توجد مقابلات مجدولة حالياً"
+  },
+  "applicants": {
+    "reject": "رفض الطلب",
+    "assignToDept": "إسناد لقسم",
+    "scheduleInterview": "تحديد موعد مقابلة",
+    "detailsTitle": "بيانات المتقدم: {{name}}",
+    "attachments": "الملفات المرفقة",
+    "assignTitle": "إسناد {{name}} إلى قسم",
+    "chooseDept": "اختر القسم",
+    "chooseSupervisor": "اختر المشرف المسؤول",
+    "interviewTitle": "تحديد موعد مقابلة لـ {{name}}",
+    "supervisorName": "المشرف",
+    "interviewDate": "تاريخ المقابلة",
+    "interviewTime": "وقت المقابلة",
+    "interviewLocation": "مكان المقابلة",
+    "defaultLocation": "مبنى سيريتل الرئيسي ",
+    "empty": "لا يوجد متقدمون مطابقون للبحث",
+    "toast": {
+      "rejected": "تم رفض الطلب",
+      "assigned": "تم إسناد المتقدم إلى القسم",
+      "interviewScheduled": "تم تحديد موعد المقابلة"
+    },
+    "chooseDepartment": "اختر الاقسم اولاً",
+    "emptyDepartment": "لايوجد مشرفين في هذا القسم",
+    "loadingSupervisors": "جاري تحميل المشرفين..."
+  },
+  "assigned": {
+    "applicant": "اسم المتقدم",
+    "supervisor": "المشرف المسؤول",
+    "remind": "تذكير المشرف بالمقابلة",
+    "unassigned": "غير محدد",
+    "empty": "لا توجد طلبات مسندة حالياً",
+    "reminderSent": "تم إرسال تذكير للمشرف {{name}} لتحديد المقابلة"
+  },
+  "interviews": {
+    "applicant": "المتقدم",
+    "supervisor": "المشرف",
+    "dateTime": "التاريخ والوقت",
+    "location": "المكان",
+    "rating": "التقييم",
+    "pendingRating": "بانتظار التقييم",
+    "finalAccept": "قبول نهائي",
+    "accepted": "تم القبول والتسجيل",
+    "empty": "لا توجد مقابلات",
+    "toast": {
+      "accepted": "تم قبول المتقدم وتسجيله كمتدرب"
+    }
+  },
+  "trainees": {
+    "traineeId": "الرقم التدريبي",
+    "startDate": "تاريخ البدء",
+    "empty": "لا يوجد متدربون"
+  },
+  "departments": {
+    "listTitle": "قائمة الأقسام المعتمدة",
+    "add": "إضافة قسم جديد",
+    "name": "اسم القسم",
+    "location": "موقع القسم",
+    "supervisorsCount": "عدد المشرفين",
+    "toast": {
+      "added": "تمت إضافة القسم"
+    }
+  },
+  "supervisors": {
+    "listTitle": "قائمة المشرفين",
+    "add": "إضافة مشرف جديد",
+    "name": "اسم المشرف",
+    "toast": {
+      "added": "تمت إضافة المشرف"
+    }
+  },
+  "attendance": {
+    "attendanceRegister":"سجل الغياب",
+    "searchPlaceholder": "ابحث عن متدرب لاسترجاع سجل الغياب...",
+    "trainee": "اسم المتدرب",
+    "absenceDate": "تاريخ الغياب",
+    "reason": "السبب",
+    "empty": "لا توجد سجلات مطابقة",
+    "add":" اضافة غياب"
+  },
+  "announcements": {
+
+    "listTitle": "الإعلانات العامة",
+    "send": "إرسال إعلان",
+    "target": "الجهة المستهدفة",
+    "title": "عنوان الإعلان",
+    "details": "تفاصيل الإعلان",
+    "toast": {
+      "sent": "تم إرسال الإعلان"
+    }
+  },
+  "reports": {
+    "title": "تقارير النظام والتحليلات",
+    "acceptanceRate": "نسبة قبول الطلبات",
+    "totalInterviews": "إجمالي المقابلات",
+    "exportPdf": "تصدير تقرير شامل PDF",
+    "exporting": "جاري تصدير التقرير بصيغة PDF...",
+     
+    "subtitle": "عرض إحصائيات دورة التدريب وتنزيلها بصيغة PDF",
+    "generate": "جلب التقرير وتنزيل PDF",
+    "refresh": "تحديث وتنزيل التقرير",
+    "generating": "جارٍ إنشاء التقرير...",
+    "loading": "جارٍ جلب البيانات وإنشاء ملف PDF...",
+    "emptyTitle": "لا يوجد تقرير معروض",
+    "emptyDescription": "اضغط على الزر لجلب إحصائيات دورة التدريب وإنشاء ملف PDF.",
+    "downloadSuccess": "تم إنشاء التقرير وتنزيله بنجاح",
+    "downloadError": "تعذر جلب التقرير أو إنشاء ملف PDF",
+    "trainingProgram": "البرنامج التدريبي",
+    "generatedAt": "تاريخ إنشاء التقرير",
+    "pdfTitle": "تقرير دورة التدريب",
+    "pdfSubtitle": "تقرير إحصائي لبرنامج التدريب الحالي",
+    "pdfFooter": "تم إنشاء هذا التقرير إلكترونياً من نظام إدارة التدريب TMS.",
+    "notSpecified": "غير محدد",
+    "indicator": "المؤشر",
+    "count": "العدد",
+    "groups": {
+      "applications": "طلبات التقديم",
+      "trainees": "المتدربون",
+      "organization": "الهيكل التنظيمي"
+    },
+    "fields": {
+      "total_applications": "إجمالي طلبات التقديم",
+      "accepted_applications": "الطلبات المقبولة",
+      "rejected_applications": "الطلبات المرفوضة",
+      "participating_trainees": "المتدربون المشاركون",
+      "completed_trainees": "المتدربون الذين أتموا التدريب",
+      "fired_trainees": "المتدربون المفصولون",
+      "total_departments": "إجمالي الأقسام",
+      "active_supervisor_accounts": "حسابات المشرفين النشطة"
+    }
+  },
+  "registration": {
+    "title": "انشاء دورة جديدة",
+    "add": "إضافة دورة جديد",
+    "startDate": "تاريخ البدء",
+    "endDate": "تاريخ الانتهاء",
+    "startDateRegistration": "تاريخ بدء التسجيل",
+    "endDateRegistration": "تاريخ انتهاء التسجيل",
+    "openRegistration": "فتح باب التسجيل",
+    "closeRegistration": "اغلاق باب التسجيل",
+    "name": "اسم الدورة"
+  },
+  "program": {
+    "listTitle": "قائمة البرامج ",
+    "add": "إضافة برنامج جديد",
+    "name": "اسم البرنامج",
+    "endDate": "تاريخ الانتهاء",
+    "description": "الوصف",
+    "phasesTitle": "عنوان المرحلة",
+    "addPhase": "اضافة مرحلة",
+    "phasesDescription": "وصف المرحلة",
+    "phaseName": "اسم المرحلة"
+  },
+
+   "evaluation": {
+    "evaluation":"تقييم",
+    "createTitle": "إنشاء تقييم الطالب",
+    "editTitle": "تعديل تقييم الطالب",
+    "subtitle": "قيّم أداء المتدرب وسجّل ملاحظاتك حول تقدمه.",
+    "description": "الوصف العام للتقييم",
+    "descriptionPlaceholder": "اكتب ملخصاً عن أداء المتدرب...",
+    "indicatorsTitle": "مؤشرات التقييم",
+    "scoreRange": "الدرجة من 100",
+    "score": "الدرجة",
+    "notice": "الملاحظة",
+    "noticePlaceholder": "اكتب ملاحظتك حول هذا المؤشر...",
+    "cancel": "إلغاء",
+    "create": "إنشاء التقييم",
+    "saveChanges": "حفظ التعديلات",
+    "indicators": {
+      "taskPerformance": "أداء المهام",
+      "attendance": "الحضور",
+      "progress": "التقدم"
+    },
+    "errors": {
+      "description": "الوصف العام مطلوب.",
+      "score": "يجب أن تكون الدرجة رقماً بين 0 و100.",
+      "notice": "الملاحظة مطلوبة."
+    },
+    "viewAndREvaluation":"عرض واعادة التقيم"
+  },
+
+   "notificationsPage": {
+    "title": "الإشعارات",
+    "subtitle": "تابع آخر التنبيهات والتحديثات الخاصة بك",
+    "listTitle": "جميع الإشعارات",
+    "totalCount": "إجمالي الإشعارات: {{count}}",
+    "loading": "جارٍ تحميل الإشعارات...",
+    "emptyTitle": "لا توجد إشعارات",
+    "emptyDescription": "ستظهر الإشعارات الجديدة هنا.",
+    "loadError": "تعذر تحميل الإشعارات. حاول مرة أخرى.",
+    "retry": "إعادة المحاولة",
+    "previous": "السابق",
+    "next": "التالي",
+    "pageInfo": "صفحة {{current}} من {{total}}"
+  }
+
+ 
+}

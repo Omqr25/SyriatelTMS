@@ -1,0 +1,261 @@
+{
+  "appName": "Syriatel",
+  "appTitle": "Training Management System",
+  "action": {
+    "save": "Save",
+    "close": "Close",
+    "reset": "Reset",
+    "viewDetails": "View details",
+    "logout": "Log out",
+    "openMenu": "Open menu",
+    "search": "Search",
+    "create": "Create",
+    "cancel":"Cancel",
+    "update":"Update",
+    "add":"Add"
+  },
+  "label": {
+    "name": "Name",
+    "email": "Email address",
+    "password": "Password",
+    "role": "Role",
+    "status": "Status",
+    "actions": "Actions",
+    "gpa": "GPA",
+    "academicYear": "Academic year",
+    "major": "Major",
+    "city": "City",
+    "department": "Department",
+    "all": "All",
+    "search": "Search...",
+    "age": "Age",
+    "reason": "Reason",
+    "attachments": "Attachments",
+    "cv": "CV",
+    "academicQualification": "Academic Qualification",
+    "nationalID": "National ID",
+    "personalPhoto": "Personal Photo",
+    "fieldOfStudy": "Field of Study",
+    "address": "Address",
+    "phoneNumber": "Phone Number",
+    "university": "University",
+    "technicalSkills": "Technical Skills",
+    "SubmissionDate": "Submission Date",
+    "note":"Note",
+     "rating":"Rating",
+     "fire":"Fire",
+    "additionalInfo":"Additional Info"
+
+  },
+  "language": { "switchTo": "عربي" },
+  "role": {
+    "HR": "HR Manager",
+    "SUPERVISOR": "Department Supervisor",
+    "TRAINEE": "Trainee"
+  },
+  "status": {
+    "applicant": {
+      "new": "New",
+      "assigned": "Assigned",
+      "interviewScheduled": "Interview scheduled",
+      "accepted": "Accepted",
+      "rejected": "Rejected",
+      "pending": "Pending",
+      "qualified": "qualified",
+      "for interview": "for interview",
+      "interviewed": "interviewed",
+      "active": "active",
+      "completed": "complete",
+      "fired": "fired",
+      "refreshing": "update data..."
+
+    },
+    "interview": {
+      "scheduled": "Scheduled",
+      "completed": "Completed",
+      "accepted": "Accepted"
+    },
+    "attendance": { "absent": "Absent" }
+  },
+  "major": {
+    "IT & Software Engineering": "IT & Software Engineering",
+    "Computers & Automation Engineering": "Computers & Automation Engineering",
+    "Telecommunications Engineering": "Telecommunications Engineering",
+    "AI & IoT Engineering": "AI & IoT Engineering",
+    "Civil Engineering": "Civil Engineering",
+    "Business Administration": "Business Administration",
+    "Graphic Design": "Graphic Design"
+  },
+  "city": {
+    "damascus": "damascus",
+    "rural damascus": "rural damascus",
+    "aleppo": "aleppo",
+    "latakia": "latakia",
+    "tartus": "tartus",
+    "homs": "homs",
+    "hama": "hama",
+    "hasakah": "hasakah",
+    "jableh": "jableh",
+    "as sweida": "as sweida",
+    "qamishli": "qamishli",
+    "deir ez zor": "deir ez zor",
+    "idlib": "idlib",
+    "raqqa": "raqqa",
+    "daraa": "dara",
+    "quneitra": "quneitra"
+  },
+  "academicYear": { "final year": "Final year", "graduated": "Graduated" },
+  "reason": { "sick": "Medical excuse", "noExcuse": "No excuse" },
+  "audience": {
+    "allSupervisors": "All supervisors",
+    "allTrainees": "All trainees"
+  },
+  "toast": { "error": "Something went wrong. Please try again." },
+  "pagination": {
+    "previous": "Previous page",
+    "next": "Next page"
+  },
+  "program": {
+    "backToPrograms": "Back to Programs",
+    "phasesTitle": "Program Phases",
+    "deadline": "End Date",
+    "noProgram": "Program Not Found",
+    "noPhases": "No phases have been added yet",
+    "noDescription": "No description available"
+  },
+   "task": {
+    "add": "Add Task",
+    "noTasks": "No tasks have been added to this phase yet",
+    "assignee": "Assigned To",
+    "name": "Task Name",
+    "description": "Task Description",
+    "create": "Create New Task",
+    "deadline": "Deadline",
+    "trainee": "Assigned Trainee",
+    "attachments": "Resources & Attachments",
+    "instructions": "Instructions",
+    "priority": "Priority",
+
+    "details": "Task Details",
+    "notFound": "Task not found",
+    "basicInfo": "Basic Information",
+    "submission": "Trainee Submission",
+    "submittedFile": "Uploaded Task File",
+    "notSubmitted": "The trainee has not uploaded the task file yet",
+    "resource": "Resource",
+    "noAttachments": "No attachments available",
+    "evaluate": "Evaluate Task",
+    "evidence":"Evidence",
+    "verify":"verify",
+    "start":"Start",
+    "requestRevision": "Request Revision",
+    "feedback": "Feedback",
+    "feedbackRequired": "Please enter your feedback first",
+    "feedbackError": "An error occurred. Please try again.",
+    "evaluationPlaceholder": "Enter your evaluation and feedback on the trainee's performance...",
+    "revisionPlaceholder": "Specify the changes required from the trainee...",
+    "confirmEvaluation": "Confirm Evaluation",
+    "confirmRevision": "Submit Revision Request",
+    "priorityLow": "Low",
+    "priorityMedium": "Medium",
+    "priorityHigh": "High",
+    "status": {
+      "pending": "Pending",
+      "inProgress": "In Progress",
+      "submitted": "Submitted",
+      "completed": "Completed",
+      "revisionRequired": "Revision Required",
+      "PENDING": "Pending",
+    "IN_PROGRESS": "In Progress",
+    "COMPLETED": "Completed",
+    "CANCELLED": "Cancelled",
+    "FOR_REVIEW": "For Review",
+    "NEED_FIX": "Needs Fix",
+    "OVERDUE": "Overdue",
+    "UNKNOWN": "Unknown Status"
+    
+    },
+    
+  "noDeadline": "Not specified",
+  "noDescription": "No description",
+  "unknownTrainee": "Unknown trainee",
+  "unknownDepartment": "Unassigned department",
+  "overdue": "Overdue",
+  "taskDeadline": "Task deadline",
+  "submissions": "Submissions",
+  "score": "Latest score",
+  "viewDetails": "View details"
+  },
+    "underDevelopment": {
+    "badge": "We're improving your experience",
+    "eyebrow": "Coming soon — A better experience",
+    "title": "This page is",
+    "titleAccent": "under development",
+    "description": "We're working on this page to provide you with a better and smoother experience. Thank you for your patience. We look forward to seeing you soon!",
+    "homeButton": "Back to the home page",
+    "footerNote": "Syriatel · Connecting People",
+    "footer": "Syriatel — Together towards a better experience"
+  },
+   "modal": {
+    "deleteTitle": "Confirm Deletion",
+    "description": "Are you sure you want to delete this?",
+    "delete": "Delete"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "subtitle": "Stay up to date with your latest alerts and updates",
+    "breadcrumbDashboard": "Dashboard",
+    "markAll": "Mark all as read",
+    "total": "Total notifications",
+    "totalHint": "All received alerts",
+    "unread": "Unread",
+    "unreadHint": "Notifications awaiting review",
+    "read": "Read",
+    "readHint": "Notifications already reviewed",
+    "listTitle": "All notifications",
+    "listSubtitle": "Manage and review your notifications",
+    "resultsCount": "{{count}} notifications",
+    "search": "Search notifications...",
+    "filterOptions": "Filter options",
+    "filters": {
+      "all": "All",
+      "unread": "Unread",
+      "read": "Read"
+    },
+    "new": "New",
+    "markAsRead": "Mark as read",
+    "moreOptions": "Notification options",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "emptyTitle": "No notifications",
+    "emptyDescription": "No notifications match your search or filters.",
+    "samples": {
+      "interview": {
+        "title": "New interview scheduled",
+        "message": "An interview has been scheduled for a training program applicant.",
+        "time": "10 minutes ago"
+      },
+      "trainee": {
+        "title": "New trainee",
+        "message": "A new trainee has been successfully registered in the current training program.",
+        "time": "35 minutes ago"
+      },
+      "evaluation": {
+        "title": "Evaluation updated",
+        "message": "A supervisor has submitted a new trainee evaluation.",
+        "time": "2 hours ago"
+      },
+      "announcement": {
+        "title": "New announcement",
+        "message": "A new announcement has been published for supervisors and trainees.",
+        "time": "Yesterday, 3:45 PM"
+      },
+      "report": {
+        "title": "Training report",
+        "message": "You can review the current training cycle statistics summary.",
+        "time": "Yesterday, 10:20 AM"
+      }
+    }
+  }
+  
+}

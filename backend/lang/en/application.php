@@ -1,0 +1,22 @@
+<?php
+return[
+    'delete_error'=>'Cannot delete an application that has interviews.',
+    'create'=> 'application created successfully.',
+    'update'=> 'application updated successfully.',
+    'delete'=> ' deleted successfully.',
+    'not_found'=> 'application not found.',
+    'invalidStatusForInterviewQualified'=> 'Application is not qualified  , can not schedule interview for it.',
+    'invalidStatusForInterview'=>' Application has unhandled interview , can not schedule interview for it',
+    'assign_error'=> 'Application status can not be changed to Assigned.',
+    'assign_application'=> 'Application assigned to a trainer to review.',
+    'interviewNotFound'=>'Interview not found.',
+    'invalidStatusForResult'=> 'Application status can not have Result.',
+    'accept_reject_error'=>' Application status Cannot be changed to accepted or rejected.',
+    'trainerInterviewTimeConflict'=>'trainer Already has interview at that time choose another time for interview.',
+    'trainer_profile_required'=>'Trainer profile required.',
+    'interview_not_assigned_to_trainer'=>'Interview is not assigned to this trainer.',
+    'application_not_assigned_to_trainer'=>'Application is not assigned to this trainer.',
+    'activateError'=>'Application is not accepted , cannot activate it.',
+    'no_available_program'=>'No currently open or upcoming training program is available.',
+    'application_status_cant_change'=>'Application status can not be changed to accepted or rejected.',
+];

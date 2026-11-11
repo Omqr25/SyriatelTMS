@@ -1,0 +1,205 @@
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+  padding: 18px;
+  background: var(--card-background, #fff);
+  border: 1px solid #e8e8e8;
+  border-radius: 12px;
+  color: inherit;
+  text-decoration: none;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.card:hover {
+  border-color: #c8202f;
+  box-shadow: 0 5px 18px rgb(0 0 0 / 7%);
+  transform: translateY(-2px);
+}
+
+.card:focus-visible {
+  outline: 2px solid #c8202f;
+  outline-offset: 3px;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.titleWrapper {
+  min-width: 0;
+}
+
+.title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.description {
+  display: -webkit-box;
+  margin: 6px 0 0;
+  color: #777;
+  font-size: 13px;
+  line-height: 1.6;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.arrow {
+  flex-shrink: 0;
+  color: #c8202f;
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.infoItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #555;
+  font-size: 13px;
+  min-width: 0;
+}
+
+.infoItem svg {
+  flex-shrink: 0;
+  color: #888;
+}
+
+.infoItem span {
+  overflow-wrap: anywhere;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding-top: 12px;
+  border-top: 1px solid #eee;
+  margin-top: auto;
+  padding: 4px;
+  border-radius:12px ;
+  padding-left: 10px;
+}
+
+.deadlineBadge {
+  padding: 5px 9px;
+  border-radius: 6px;
+  background: #f3f4f6;
+  color: #555;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.overdue {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.stats {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  color: #666;
+  font-size: 12px;
+}
+
+.stats span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.score {
+  color: #216e39;
+  font-weight: 700;
+}
+
+@media (max-width: 480px) {
+  .card {
+    padding: 14px;
+  }
+
+  .footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+
+.deadlineBadge {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Pending */
+.status_PENDING {
+  background: #fff4d6;
+  color: #8a6100;
+}
+
+/* In progress */
+.status_IN_PROGRESS {
+  background: #e8f2ff;
+  color: #1758a6;
+}
+
+/* Completed */
+.status_COMPLETED {
+  background: #dff5e5;
+  color: #176534;
+}
+
+/* Cancelled */
+.status_CANCELLED {
+  background: #f3f4f6;
+  color: #4b5563;
+}
+
+/* For review */
+.status_FOR_REVIEW {
+  background: #e8f5ec;
+  color: #216e39;
+}
+
+/* Need fix */
+.status_NEED_FIX {
+  background: #fff0e5;
+  color: #a3470b;
+}
+
+/* Overdue */
+.status_OVERDUE {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+/* Unknown status */
+.status_UNKNOWN {
+  background: #f3f4f6;
+  color: #4b5563;
+}

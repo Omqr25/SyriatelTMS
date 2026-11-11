@@ -1,0 +1,14 @@
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px;
+  background: var(--surface);
+  border: 1px solid var(--ink-200);
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-700);
+  transition: border-color 0.15s, color 0.15s;
+}
+.btn:hover { border-color: var(--red-600); color: var(--red-700); }
