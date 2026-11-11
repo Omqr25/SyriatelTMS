@@ -27,6 +27,7 @@ export default function VacationPage() {
 };
   const { t } = useTranslation("trainee");
     const {
+        vacationId,
         vacationRequest,
         sendingVacationRequest,
         updatingVacationRequest,
@@ -38,10 +39,12 @@ export default function VacationPage() {
         getVacatoinsList,
         openCancelVacation,
         openUpdateVacation,
+        openAddVacation,
         sendCancelVacation,
         sendUpdateVacation,
         sendVacationRequest,
-        setAddVacation,setVacationRequest
+        setAddVacation,
+        setVacationRequest
     } = VacationHooks()
 
   useEffect(()=>{
@@ -60,16 +63,14 @@ export default function VacationPage() {
   return `${year}-${month}-${day}`;
 };
 
-
-    const sendActionBasedOnData=(e)=>{
-      e.preventDefault(); 
-      vacationRequest.reason ===""?
-      sendVacationRequest():
-      sendUpdateVacation()
+    const sendActionBasedOnData = (e) => {
+      e.preventDefault();
+      if (vacationId.current === null) {
+          sendVacationRequest();
+      } else {
+          sendUpdateVacation();
+      }
     }
-    
-
-  
 
   const showCancelVacation = (status,startDate)=>{
     const currentDate = getToday()
@@ -208,7 +209,7 @@ export default function VacationPage() {
             </div>
           </Card>
         ))}
-        <Button className={styles.addReqeust} children={t("vacation.addRequest")} onClick={()=>setAddVacation(true)}/>
+        <Button className={styles.addReqeust} children={t("vacation.addRequest")} onClick={openAddVacation}/>
         
       </div>
         {vacationState && addVacationFormComponent}

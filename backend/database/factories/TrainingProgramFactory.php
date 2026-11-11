@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Models\TrainingProgram;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use App\Enums\TrainingProgramStatus;
 
 /**
  * @extends Factory<TrainingProgram>
@@ -35,6 +36,7 @@ class TrainingProgramFactory extends Factory
             'application_end_date' => $applicationEnd,
             'start_date' => $startDate,
             'end_date' => $endDate,
+            'status' => TrainingProgramStatus::OPEN,
         ];
     }
 }

@@ -2,7 +2,7 @@ import { getVacationsRequests, requestVacation, canceltVacation, updateVacation 
 import { useState, useRef } from "react";
 import { toast } from "react-toastify";
 export default function VacationHooks() {
-    const vacationId = useRef(-1);
+    const vacationId = useRef(null);
     const [vacationRequest, setVacationRequest] = useState({
         reason: "",
         start_date: "",
@@ -42,6 +42,20 @@ export default function VacationHooks() {
         })
         setAddVacation(true);
     }
+
+    const openAddVacation = () => {
+        vacationId.current = null;
+
+        setVacationRequest({
+            reason: "",
+            start_date: "",
+            end_date: "",
+        });
+
+        setAddVacation(true);
+    }
+
+
     const sendCancelVacation = async () => {
         try {
             setLoadingCancelVacationState(true)
@@ -116,6 +130,7 @@ export default function VacationHooks() {
         getVacatoinsList,
         openCancelVacation,
         openUpdateVacation,
+        openAddVacation, 
         sendCancelVacation,
         sendUpdateVacation,
         sendVacationRequest,
