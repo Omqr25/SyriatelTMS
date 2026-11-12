@@ -11,6 +11,15 @@ const en = {
     cta: "Apply Now",
     explore: "Explore the program",
   },
+  home: {
+    brandKicker: "SYRIATEL",
+    badge: "Learn · Build · Grow",
+    stats: {
+      practical: "Practical Experience",
+      expert: "Expert Mentorship",
+      career: "Career Growth",
+    },
+  },
   benefits: {
     title: "Why join the program?",
     subtitle:
@@ -35,6 +44,8 @@ const en = {
   quote:
     "Your talent can make a difference. Join us and be part of something bigger.",
   about: {
+    syriatel: "Syriatel",
+    talentDevelopment: "Talent Development",
     eyebrow: "About Syriatel",
     title: "Connecting People, Empowering Communities",
     introTitle: "About Syriatel",
@@ -88,7 +99,7 @@ const en = {
     submitting: "Submitting...",
     yes: "Yes",
     no: "No",
-    nationalIdNumber:" National ID Number",
+    nationalIdNumber: " National ID Number",
     cityOptions: [
       {
         value: "damascus",
@@ -199,11 +210,13 @@ const en = {
     ],
 
     sourceOptions: [
-      "University Workshop",
-      "social media",
-      "Previous Internship",
-      "Hi-Tech Exhibition",
+      { value: "University Workshop", label: "University Workshop" },
+      { value: "Social Media", label: "Social Media" },
+      { value: "Previous Internship", label: "Previous Internship" },
+      { value: "Hi-Tech Exhibition", label: "Hi-Tech Exhibition" },
+      { value: "Other", label: "Other" },
     ],
+    group: "Active Group",
     placeholders: {
       name: "Enter your full name",
       email: "you@example.com",
@@ -218,6 +231,16 @@ const en = {
     success: {
       title: "Your application has been submitted successfully",
       message: "We have received your application. We will contact you soon.",
+    },
+    errors: {
+      required: "This field is required",
+      requiredFile: "Please upload this mandatory file",
+      invalidEmail: "Please enter a valid email address",
+      invalidPhone: "Phone number must start with 09 and be 10 digits",
+      invalidNationalId: "National ID must be exactly 11 digits",
+      invalidGpa: "GPA must be a valid number between 0 and 100",
+      fileSize: "File size must not exceed 5 MB",
+      fixErrors: "Please fix the validation errors before submitting",
     },
   },
   footer: {

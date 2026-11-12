@@ -16,6 +16,15 @@ const ar = {
     cta: "سجل الآن",
     explore: "اكتشف البرنامج",
   },
+  home: {
+    brandKicker: "سيريتل",
+    badge: "تعلم · ابنِ · انمو",
+    stats: {
+      practical: "خبرة عملية",
+      expert: "إرشاد خبير",
+      career: "نمو مهني",
+    },
+  },
   benefits: {
     title: "لماذا تنضم إلى البرنامج؟",
     subtitle:
@@ -39,6 +48,8 @@ const ar = {
   },
   quote: "موهبتك قادرة على إحداث الفرق. انضم إلينا وكن جزءاً من شيء أكبر.",
   about: {
+    syriatel: "سيريَتل",
+    talentDevelopment: "تطوير المواهب",
     eyebrow: "عن سيريَتل",
     title: "نربط الناس ونمكّن المجتمعات",
     introTitle: "عن سيريَتل",
@@ -89,7 +100,7 @@ const ar = {
     submitting: "جارٍ الإرسال...",
     yes: "نعم",
     no: "لا",
-    nationalIdNumber:"الرقم الوطني",
+    nationalIdNumber: "الرقم الوطني",
     cityOptions: [
       {
         value: "damascus",
@@ -197,12 +208,13 @@ const ar = {
         label: "خريج",
       },
     ],
-
-      sourceOptions: [
-      "University Workshop",
-      "social media",
-      "Previous Internship",
-      "Hi-Tech Exhibition",
+    group: "المجموعة الحالية",
+    sourceOptions: [
+      { value: "University Workshop", label: "ورشة جامعية" },
+      { value: "Social Media", label: "وسائل التواصل الاجتماعي" },
+      { value: "Previous Internship", label: "تدريب سابق" },
+      { value: "Hi-Tech Exhibition", label: "معرض التقانة Hi-Tech" },
+      { value: "Other", label: "أخرى" },
     ],
     placeholders: {
       name: "أدخل اسمك الكامل",
@@ -218,6 +230,16 @@ const ar = {
     success: {
       title: "تم ارسال طلبك بنجاح",
       message: "لقد تم استلام طلبك سوف نتواصل معك قريبا",
+    },
+    errors: {
+      required: "هذا الحقل مطلوب",
+      requiredFile: "يرجى رفع هذا الملف الإلزامي",
+      invalidEmail: "يرجى إدخال بريد إلكتروني صالح",
+      invalidPhone: "رقم الهاتف يجب أن يبدأ بـ 09 ويتكون من 10 أرقام",
+      invalidNationalId: "الرقم الوطني يجب أن يتكون من 11 رقماً بالضبط",
+      invalidGpa: "المعدل يجب أن يكون رقماً بين 0 و 100",
+      fileSize: "حجم الملف يجب ألا يتجاوز 5 ميجابايت",
+      fixErrors: "يرجى تصحيح أخطاء الإدخال قبل الإرسال",
     },
   },
   footer: {

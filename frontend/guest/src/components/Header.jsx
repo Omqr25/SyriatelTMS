@@ -41,9 +41,12 @@ export default function Header() {
           >
             {t("nav.about")}
           </NavLink>
-          <a href="faq" onClick={() => setOpen(false)}>
+          <NavLink
+            to="/faq"
+            className={({ isActive }) => (isActive ? styles.active : "")}
+          >
             {t("nav.faqs")}
-          </a>
+          </NavLink>
           <Link to="/apply" className={styles.mobileApply}>
             {t("nav.apply")} <ArrowUpRight size={16} />
           </Link>
