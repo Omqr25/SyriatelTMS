@@ -12,6 +12,7 @@ const {
         loadingAction,
         trainingProgram,
         trainingProgramPhases,
+        notFoundMessage,
         controller,
         getTrainingProgramInfo,
         checkIsCurrentTrainee,
@@ -23,9 +24,27 @@ const {
   };
 }, []);
 
-  return loadingAction ? (
-    <Loading />
-  ) : (
+  if (loadingAction) {
+    return <Loading />;
+  }
+
+  if (notFoundMessage) {
+    return (
+      <main className={styles.page} dir="auto">
+        <header className={styles.programHeader}>
+          <div className={styles.programIcon}>
+            <ClipboardList size={28} />
+          </div>
+          <div className={styles.programInfo}>
+            <h1>{t("program.noProgram")}</h1>
+            <p>{t("program.noProgramYet")}</p>
+          </div>
+        </header>
+      </main>
+    );
+  }
+
+  return (
     <>
       <main className={styles.page} dir="auto">
         <header className={styles.programHeader}>

@@ -370,7 +370,8 @@ class ApplicationService
         return $trainer->applications()
             ->where('applications.training_program_id', $training_program->id)
             ->where('applications.status', ApplicationStatus::ASSIGNED)
-            ->latest()
+            ->with('assigns.trainer.user')
+            ->latest('applications.created_at')
             ->get();
 //        return $trainer->applications()->latest()->get()->where('status', ApplicationStatus::ASSIGNED);
     }

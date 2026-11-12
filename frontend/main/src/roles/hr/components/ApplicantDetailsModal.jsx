@@ -127,11 +127,11 @@ export default function ApplicantDetailsModal({
       <div className={styles.actions}>
         {applicant.status=="pending" && <Button onClick={onAssign}>{t("applicants.assignToDept")}</Button>}
 
-        {applicant.status=="qualified" && <Button variant="dark" onClick={onSchedule}>
-          {t("applicants.scheduleInterview")}
-        </Button> }
-        
-
+      {applicant.status === "accepted" && (
+  <Button variant="dark" onClick={onSchedule}>
+    {t("applicants.scheduleInterview")}
+  </Button>
+)}
       </div>
     </Modal>
   );

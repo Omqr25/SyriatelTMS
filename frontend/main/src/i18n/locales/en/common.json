@@ -120,6 +120,7 @@
     "phasesTitle": "Program Phases",
     "deadline": "End Date",
     "noProgram": "Program Not Found",
+    "noProgramYet": "Your supervisor has not created a training program for you yet. Please check back later.",
     "noPhases": "No phases have been added yet",
     "noDescription": "No description available"
   },
