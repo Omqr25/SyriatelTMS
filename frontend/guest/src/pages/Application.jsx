@@ -615,7 +615,7 @@ function SelectField({
         onBlur={onBlur}
         className={error ? styles.inputError : ""}
       >
-        <option value="">— Select —</option>
+        <option value="">—</option>
         {options.map((option) => (
           <option key={option.value || option} value={option.value || option}>
             {option.label || option}
