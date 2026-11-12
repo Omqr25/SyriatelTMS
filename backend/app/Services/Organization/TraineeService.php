@@ -28,10 +28,14 @@ class TraineeService
         if (! $training_program) {
             return Trainee::whereRaw('1 = 0')->get();
         }
-        return Trainee::where('status', TraineeStatus::ACTIVE)
-            ->whereHas('application', function ($query) use ($training_program) {
-                $query->where('training_program_id', $training_program->id);
-            })->with(['user','department', 'trainer'])->get();
+        
+      return Trainee::filter($request->query())
+        ->where('status', TraineeStatus::ACTIVE)
+        ->whereHas('application', function ($query) use ($training_program) {
+            $query->where('training_program_id', $training_program->id);
+        })
+        ->with(['user', 'department', 'trainer'])
+        ->get();
     }
     public function myTrainees(Request $request)
     {
