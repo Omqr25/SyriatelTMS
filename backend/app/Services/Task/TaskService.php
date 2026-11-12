@@ -65,13 +65,22 @@ class TaskService
 
     public function find(int $task_id): Task
     {
-        $task = Task::find($task_id);
+        $task = Task::with([
+            'trainee',
+            'attachments',
+            'evidences',
+        ])->find($task_id);
+    
         if (!$task) {
-            throw new ErrorException(__('task.not_found'), ApiCode::NOT_FOUND);
+            throw new ErrorException(
+                __('task.not_found'),
+                ApiCode::NOT_FOUND
+            );
         }
+    
         Gate::forUser(auth('api')->user())->authorize('view', $task);
-
-        return $task->load(['trainee', 'attachments']);
+    
+        return $task;
     }
 
     public function store(int $milestone_id, array $data)

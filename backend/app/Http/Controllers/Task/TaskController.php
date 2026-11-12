@@ -39,12 +39,13 @@ class TaskController extends Controller
 
     public function find(int $task_id)
     {
-
         $task = $this->taskService->find($task_id);
-        return $this->success(['task'=>TaskResource::make($task[0]),'can_update' =>$task[1]]);
-
+    
+        return $this->success([
+            'task' => TaskResource::make($task),
+            'can_update' => true,
+        ]);
     }
-
     public function update(UpdateTaskRequest $request, int $task_id)
     {
         $task = $this->taskService->update($task_id, $request->validated());

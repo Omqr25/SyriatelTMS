@@ -92,6 +92,75 @@
       "added": "تمت إضافة القسم"
     }
   },
+
+  "task": {
+    "details": "تفاصيل المهمة",
+    "basicInfo": "المعلومات الأساسية",
+    "name": "اسم المهمة",
+    "untitled": "مهمة بدون اسم",
+    "trainee": "المتدرب المعني",
+    "deadline": "الموعد النهائي",
+    "completeDate": "تاريخ الإكمال",
+    "startDate": "تاريخ البدء",
+    "priority": "الأهمية",
+    "priorityValue": "{{value}} / 10",
+    "description": "وصف المهمة",
+    "noDescription": "لا يوجد وصف للمهمة.",
+    "instructions": "التعليمات",
+    "noInstructions": "لا توجد تعليمات إضافية.",
+    "attachments": "المصادر والمرفقات",
+    "resource": "المصدر",
+    "noAttachments": "لا توجد مرفقات.",
+    "submission": "تسليمات المتدرب",
+    "submissionNumber": "التسليم {{number}}",
+    "submittedFile": "ملف المهمة المرفوع",
+    "noSubmissionFile": "لا يوجد ملف مرفق مع هذا التسليم.",
+    "noSubmission": "لم يقم المتدرب بتسليم أي ملفات أو أدلة حتى الآن.",
+    "feedback": "الملاحظات",
+    "evaluate": "قبول التسليم",
+    "requestRevision": "طلب تعديل",
+    "feedbackRequiresSubmission": "يمكنك تقييم المهمة أو طلب تعديلها بعد أن يقوم المتدرب بتسليم الأدلة.",
+    "edit": "تعديل المهمة",
+    "delete": "حذف المهمة",
+    "confirmDelete": "هل أنت متأكد من أنك تريد حذف هذه المهمة؟",
+    "back": "العودة",
+    "status": {
+      "pending": "قيد الانتظار",
+      "inProgress": "قيد التنفيذ",
+      "submitted": "تم التسليم",
+      "completed": "مكتملة",
+      "cancelled": "ملغاة",
+      "forReview": "بانتظار المراجعة",
+      "needFix": "تحتاج إلى تعديل",
+      "revisionRequired": "تتطلب تعديلاً",
+      "overdue": "متأخرة",
+      "unknown": "حالة غير معروفة"
+    },
+    "notFound": {
+      "title": "المهمة غير موجودة",
+      "description": "ربما تم حذف هذه المهمة أو لا تملك صلاحية الوصول إليها."
+    },
+    "errors": {
+      "noEvidence": "لا يوجد تسليم متاح لتقييمه.",
+      "feedbackFailed": "فشل إرسال الملاحظات. يرجى المحاولة مرة أخرى.",
+      "deleteFailed": "فشل حذف المهمة. يرجى المحاولة مرة أخرى."
+    },
+    "success": {
+      "feedbackSaved": "تم إرسال الملاحظات بنجاح.",
+      "deleted": "تم حذف المهمة بنجاح."
+    }
+  },
+  "modal": {
+    "deleteTitle": "تأكيد الحذف",
+    "description": "هل أنت متأكد من أنك تريد حذف هذا العنصر؟",
+    "delete": "حذف"
+  },
+  "action": {
+    "cancel": "إلغاء",
+    "save": "حفظ",
+    "confirm": "تأكيد"
+  },
+
   "supervisors": {
     "listTitle": "قائمة المشرفين",
     "add": "إضافة مشرف جديد",

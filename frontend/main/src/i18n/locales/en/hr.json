@@ -77,6 +77,75 @@
       "accepted": "Applicant accepted and enrolled as a trainee"
     }
   },
+
+  "task": {
+    "details": "Task details",
+    "basicInfo": "Basic information",
+    "name": "Task name",
+    "untitled": "Untitled task",
+    "trainee": "Assigned trainee",
+    "deadline": "Deadline",
+    "completeDate": "Completion date",
+    "startDate": "Start date",
+    "priority": "Priority",
+    "priorityValue": "{{value}} / 10",
+    "description": "Description",
+    "noDescription": "No description provided.",
+    "instructions": "Instructions",
+    "noInstructions": "No additional instructions.",
+    "attachments": "Resources and attachments",
+    "resource": "Resource",
+    "noAttachments": "No attachments available.",
+    "submission": "Trainee submissions",
+    "submissionNumber": "Submission {{number}}",
+    "submittedFile": "Submitted task file",
+    "noSubmissionFile": "No file attached to this submission.",
+    "noSubmission": "The trainee has not submitted any evidence yet.",
+    "feedback": "Feedback",
+    "evaluate": "Approve submission",
+    "requestRevision": "Request revision",
+    "feedbackRequiresSubmission": "You can evaluate or request a revision after the trainee submits evidence.",
+    "edit": "Edit task",
+    "delete": "Delete task",
+    "confirmDelete": "Are you sure you want to delete this task?",
+    "back": "Go back",
+    "status": {
+      "pending": "Pending",
+      "inProgress": "In progress",
+      "submitted": "Submitted",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "forReview": "For review",
+      "needFix": "Needs correction",
+      "revisionRequired": "Revision required",
+      "overdue": "Overdue",
+      "unknown": "Unknown status"
+    },
+    "notFound": {
+      "title": "Task not found",
+      "description": "This task may have been deleted or you may not have permission to view it."
+    },
+    "errors": {
+      "noEvidence": "There is no submission available to evaluate.",
+      "feedbackFailed": "Failed to submit feedback. Please try again.",
+      "deleteFailed": "Failed to delete the task. Please try again."
+    },
+    "success": {
+      "feedbackSaved": "Feedback submitted successfully.",
+      "deleted": "Task deleted successfully."
+    }
+  },
+  "modal": {
+    "deleteTitle": "Confirm deletion",
+    "description": "Are you sure you want to delete this item?",
+    "delete": "Delete"
+  },
+  "action": {
+    "cancel": "Cancel",
+    "save": "Save",
+    "confirm": "Confirm"
+  },
+
   "trainees": {
     "traineeId": "Trainee ID",
     "startDate": "Start date",
