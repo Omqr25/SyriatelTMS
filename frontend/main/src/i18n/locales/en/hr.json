@@ -18,12 +18,11 @@
     "evaluation": "Evaluations",
     "notifications": "Notifications",
     "programs": "Programs",
-    "re_evaluation":"Revaluation",
-    "tasks":"Tasks",
-    "vacationRequest":"Vacation Request",
-    "notification":"Notification",
-    "settings":"Settings"
-
+    "re_evaluation": "Revaluation",
+    "tasks": "Tasks",
+    "vacationRequest": "Vacation Request",
+    "notification": "Notification",
+    "settings": "Settings"
   },
   "dashboard": {
     "latestApplicants": "Latest applicants",
@@ -96,19 +95,20 @@
   "supervisors": {
     "listTitle": "Supervisors",
     "add": "Add supervisor",
+    "absence": "Add Absence",
     "name": "Supervisor name",
     "toast": {
       "added": "Supervisor added"
     }
   },
   "attendance": {
-    "attendanceRegister":"Attendance Register",
+    "attendanceRegister": "Attendance Register",
     "searchPlaceholder": "Search a trainee to see their absence record...",
     "trainee": "Trainee",
     "absenceDate": "Absence date",
     "reason": "Reason",
     "empty": "No matching records",
-    "add":"Add absence"
+    "add": "Add absence"
   },
   "announcements": {
     "listTitle": "General announcements",
@@ -126,7 +126,7 @@
     "totalInterviews": "Total interviews",
     "exportPdf": "Export full report (PDF)",
     "exporting": "Exporting the PDF report...",
-     
+
     "subtitle": "View training cycle statistics and download them as PDF",
     "generate": "Fetch Report & Download PDF",
     "refresh": "Refresh & Download Report",
@@ -182,7 +182,7 @@
     "phasesDescription": "Phase Description",
     "phaseName": "Phase Name"
   },
-   "evaluation": {
+  "evaluation": {
     "evaluation": "Evaluation",
     "createTitle": "Create Trainee Evaluation",
     "editTitle": "Edit Trainee Evaluation",
@@ -207,7 +207,7 @@
       "score": "The score must be a number between 0 and 100.",
       "notice": "Feedback is required."
     },
-    "viewAndREvaluation":"View and Revaluation"
+    "viewAndREvaluation": "View and Revaluation"
   },
 
   "notificationsPage": {
@@ -224,5 +224,4 @@
     "next": "Next",
     "pageInfo": "Page {{current}} of {{total}}"
   }
-
 }

@@ -23,7 +23,7 @@ import DashboardPage from "./pages/DashboardPage";
 import InterviewsPage from "./pages/InterviewsPage";
 import TraineesPage from "./pages/TraineesPage";
 // import EvaluationsPage from './pages/EvaluationsPage';
-import createProgramPage from "./pages/createProgramPage";
+import ProgramsPage from "./pages/ProgramsPage";
 import ProgramDetails from "./pages/ProgramDetails";
 import TaskDetailsPage from "./pages/TaskDetailsPage";
 import Revaluation from "./pages/Revaluation";
@@ -70,7 +70,7 @@ export const supervisorModule = {
       path: "programs",
       icon: ClipboardList,
       labelKey: "hr:nav.programs",
-      Component: createProgramPage,
+      Component: ProgramsPage,
     },
     {
       path: "re-evaluations",

@@ -16,29 +16,31 @@ export default function AbsentPage() {
   const { t } = useTranslation("hr");
 
   const [showAdd, setShowAdd] = useState(false);
-  const [addLoading,setAddLoading]=useState(false)
-  const { loading, getMyTrainees, myTrainees,getAllAbsent,absent } = useAssigned();
+  const [addLoading, setAddLoading] = useState(false);
+  const { loading, getMyTrainees, myTrainees, getAllAbsent, absent } =
+    useAssigned();
 
-//   console.log("absent", absent)
+  //   console.log("absent", absent)
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setAddLoading(true)
+    setAddLoading(true);
     const formData = new FormData(e.currentTarget);
-    console.log(formData.get("traineeId"))
+    console.log(formData.get("traineeId"));
 
     try {
-      const data = await addAbsentApi(formData.get("traineeId"),formData.get("reason"));
+      const data = await addAbsentApi(
+        formData.get("traineeId"),
+        formData.get("reason"),
+      );
       toast.success(data.message);
       await getAllAbsent(true);
       setShowAdd(false);
     } catch (error) {
       const message =
-        error.response?.data?.message ||
-        error.message ||
-        "Add Absent Error";
+        error.response?.data?.message || error.message || "Add Absent Error";
       toast.error(Array.isArray(message) ? message.join("، ") : message);
-    }finally{
-        setAddLoading(false)
+    } finally {
+      setAddLoading(false);
     }
   };
 
@@ -46,15 +48,21 @@ export default function AbsentPage() {
     {
       key: "name",
       header: t("attendance.trainee"),
-      render: (s) => <strong className={styles.strong}>{s.trainee_name}</strong>,
+      render: (s) => (
+        <strong className={styles.strong}>{s.trainee_name}</strong>
+      ),
     },
-    { key: "reason", header: t("attendance.reason")  ,render:(s)=> s.reason },
+    { key: "reason", header: t("attendance.reason"), render: (s) => s.reason },
 
-    { key: "absenceDate", header: t("attendance.absenceDate") ,render:(s)=> s.date},
+    {
+      key: "absenceDate",
+      header: t("attendance.absenceDate"),
+      render: (s) => s.date,
+    },
   ];
 
   useEffect(() => {
-    getAllAbsent()
+    getAllAbsent();
     getMyTrainees();
   }, []);
 
@@ -73,7 +81,10 @@ export default function AbsentPage() {
       <Table columns={columns} rows={absent} />
 
       {showAdd && (
-        <Modal title={t("supervisors.add")} onClose={() => setShowAdd(false)}>
+        <Modal
+          title={t("supervisors.absence")}
+          onClose={() => setShowAdd(false)}
+        >
           <form className={form.form} onSubmit={handleSubmit}>
             <Field label={t("attendance.trainee")}>
               <Select name="traineeId" required>

@@ -96,7 +96,9 @@ class TaskService
                     throw new ErrorException (__('trainee.trainee_not_in_training_program'));
                 }
                 $data['status'] = TaskStatus::PENDING->value;
+                $data['priority'] = $data['priority'] ?? 5;
                 $task = $milestone->tasks()->create($data);
+
                 $task->attachments()->createMany(collect($data['attachments'])
                     ->map(fn (string $path) => ['path' => $path,])->all());
                 MarkTaskAsOverdueJob::dispatch($task)->delay($task->deadline);
