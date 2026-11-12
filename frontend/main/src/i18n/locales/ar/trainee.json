@@ -36,7 +36,8 @@
             "attendance": "الحضور",
             "performance": "الأداء",
             "teamWork": "العمل الجماعي",
-            "reEvaluate": "إعادة التقييم"
+            "reEvaluate": "إعادة التقييم",
+            "noEvaluationYet": "لم يقم المشرف بتقييمك بعد. سيظهر تقييمك هنا بمجرد إرساله."
             },
     "vacation":{
         "vacationRequests": "طلبات الإجازة",

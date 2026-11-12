@@ -122,11 +122,14 @@ class EvaluationService
     public function myEvaluation(User $user)
     {
         $trainee = $user->trainee;
+        if (! $trainee) {
+            throw new ErrorException(__('evaluation.no_evaluation_yet'), ApiCode::NOT_FOUND);
+        }
         $evaluation = Evaluation::with('criteria')
             ->where('trainee_id', $trainee->id)
             ->first();
         if (! $evaluation) {
-            throw new ErrorException(__('evaluation.no_evaluation_for_trainee'),ApiCode::NOT_FOUND);
+            throw new ErrorException(__('evaluation.no_evaluation_yet'), ApiCode::NOT_FOUND);
         }
         $reevaluation_request=ReevaluationRequest::where('trainee_id', $trainee->id)->where('evaluation_id',$evaluation->id)->first();
         Gate::forUser($user)->authorize('view', $evaluation);
@@ -148,7 +151,13 @@ class EvaluationService
     public function requestReevaluate(string $reason)
     {
         $user = auth('api')->user();
-        $evaluation=Evaluation::where('trainee_id', $user->trainee->id)->first();
+        $evaluation = $user->trainee
+            ? Evaluation::where('trainee_id', $user->trainee->id)->first()
+            : null;
+        // Without this guard a null evaluation reaches the Gate and fails with a generic 403.
+        if (! $evaluation) {
+            throw new ErrorException(__('evaluation.no_evaluation_for_trainee'), ApiCode::NOT_FOUND);
+        }
         Gate::forUser($user)->authorize('requestReevaluation',$evaluation);
         $reevaluation_request= ReevaluationRequest::create([
                 'trainee_id' => $user->trainee->id,

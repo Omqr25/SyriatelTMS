@@ -11,5 +11,6 @@ return [
     'reevaluation_error'=>'reevaluation request is not accepted, cannot update evaluation.',
     'request_reevaluation_error'=>'An active re-evaluation request already exists.',
     'no_evaluation_for_trainee'=>'There is no evaluation for this trainee , you cannot request reevaluation.',
+    'no_evaluation_yet'=>'You have not been evaluated yet.',
     'evaluation_already_submitted'=>'Evaluation already submitted, cannot evaluate trainee.',
 ];

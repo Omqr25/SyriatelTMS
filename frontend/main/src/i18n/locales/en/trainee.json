@@ -36,7 +36,9 @@
             "attendance": "Attendance",
             "taskPerformance": "Performance",
             "teamWork": "Teamwork",
-            "reEvaluate": "Re-Evaluate"
+            "reEvaluate": "Re-Evaluate",
+            "performance": "Performance",
+            "noEvaluationYet": "Your supervisor has not evaluated you yet. Your evaluation will appear here once it is submitted."
             },
         "vacation":
         {

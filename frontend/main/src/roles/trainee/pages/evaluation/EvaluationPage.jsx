@@ -19,9 +19,11 @@ export default function EvaluationPage(){
         reEvaluationReason,
         evaluationScore,
         evaluationIndicators,
+        hasEvaluation,
         fetchEvaluation,
         reEvaluationFunction,
         setRevaluationForm,
+        setReEvaluationReason,
         closeTheForm,} = evaluationHooks()
     useEffect(() => {
     fetchEvaluation();
@@ -34,7 +36,7 @@ export default function EvaluationPage(){
   >
     <form
       className={styles.modalContent}
-      onSubmit={()=>reEvaluationFunction}
+      onSubmit={reEvaluationFunction}
     >
       <Field
         label={t("evaluation.reason")}
@@ -57,6 +59,22 @@ export default function EvaluationPage(){
   </Modal>
 );
     if(loadingAction) return <Loading />;
+    if (!hasEvaluation) {
+      return (
+        <div className={styles.evaluation}>
+          <section className={styles.finalEvaluation}>
+            <div className={styles.blocArea}>
+              <BlocArea
+                title={t("evaluation.generalEvaluation")}
+                children={
+                  <p className={styles.feedback}>{t("evaluation.noEvaluationYet")}</p>
+                }
+              />
+            </div>
+          </section>
+        </div>
+      );
+    }
     return (
             <>
             <div className={styles.evaluation}>
