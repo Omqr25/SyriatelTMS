@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getTraineeProfile } from "../../../../Api/Trainee/profileApi.js";
+import { getTraineeProfile } from "../../Api/Trainee/profileApi.js";
 
 export default function useTraineeProfile() {
 
