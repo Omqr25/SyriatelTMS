@@ -18,12 +18,11 @@
     "evaluation": "التقييم",
     "notifications": "الاشعارات",
     "programs": "البرامج ",
-    "re_evaluation":"اعادة التقيم",
-    "tasks":"المهام",
-    "vacationRequest":" طلبات الاجازة",
-    "notification":"الإشعارات",
-    "settings":"الاعدادات"
-
+    "re_evaluation": "اعادة التقيم",
+    "tasks": "المهام",
+    "vacationRequest": " طلبات الاجازة",
+    "notification": "الإشعارات",
+    "settings": "الاعدادات"
   },
   "dashboard": {
     "latestApplicants": "أحدث المتقدمين",
@@ -93,25 +92,94 @@
       "added": "تمت إضافة القسم"
     }
   },
+
+  "task": {
+    "details": "تفاصيل المهمة",
+    "basicInfo": "المعلومات الأساسية",
+    "name": "اسم المهمة",
+    "untitled": "مهمة بدون اسم",
+    "trainee": "المتدرب المعني",
+    "deadline": "الموعد النهائي",
+    "completeDate": "تاريخ الإكمال",
+    "startDate": "تاريخ البدء",
+    "priority": "الأهمية",
+    "priorityValue": "{{value}} / 10",
+    "description": "وصف المهمة",
+    "noDescription": "لا يوجد وصف للمهمة.",
+    "instructions": "التعليمات",
+    "noInstructions": "لا توجد تعليمات إضافية.",
+    "attachments": "المصادر والمرفقات",
+    "resource": "المصدر",
+    "noAttachments": "لا توجد مرفقات.",
+    "submission": "تسليمات المتدرب",
+    "submissionNumber": "التسليم {{number}}",
+    "submittedFile": "ملف المهمة المرفوع",
+    "noSubmissionFile": "لا يوجد ملف مرفق مع هذا التسليم.",
+    "noSubmission": "لم يقم المتدرب بتسليم أي ملفات أو أدلة حتى الآن.",
+    "feedback": "الملاحظات",
+    "evaluate": "قبول التسليم",
+    "requestRevision": "طلب تعديل",
+    "feedbackRequiresSubmission": "يمكنك تقييم المهمة أو طلب تعديلها بعد أن يقوم المتدرب بتسليم الأدلة.",
+    "edit": "تعديل المهمة",
+    "delete": "حذف المهمة",
+    "confirmDelete": "هل أنت متأكد من أنك تريد حذف هذه المهمة؟",
+    "back": "العودة",
+    "status": {
+      "pending": "قيد الانتظار",
+      "inProgress": "قيد التنفيذ",
+      "submitted": "تم التسليم",
+      "completed": "مكتملة",
+      "cancelled": "ملغاة",
+      "forReview": "بانتظار المراجعة",
+      "needFix": "تحتاج إلى تعديل",
+      "revisionRequired": "تتطلب تعديلاً",
+      "overdue": "متأخرة",
+      "unknown": "حالة غير معروفة"
+    },
+    "notFound": {
+      "title": "المهمة غير موجودة",
+      "description": "ربما تم حذف هذه المهمة أو لا تملك صلاحية الوصول إليها."
+    },
+    "errors": {
+      "noEvidence": "لا يوجد تسليم متاح لتقييمه.",
+      "feedbackFailed": "فشل إرسال الملاحظات. يرجى المحاولة مرة أخرى.",
+      "deleteFailed": "فشل حذف المهمة. يرجى المحاولة مرة أخرى."
+    },
+    "success": {
+      "feedbackSaved": "تم إرسال الملاحظات بنجاح.",
+      "deleted": "تم حذف المهمة بنجاح."
+    }
+  },
+  "modal": {
+    "deleteTitle": "تأكيد الحذف",
+    "description": "هل أنت متأكد من أنك تريد حذف هذا العنصر؟",
+    "delete": "حذف"
+  },
+  "action": {
+    "cancel": "إلغاء",
+    "save": "حفظ",
+    "confirm": "تأكيد"
+  },
+
   "supervisors": {
     "listTitle": "قائمة المشرفين",
     "add": "إضافة مشرف جديد",
+    "absence": "تسجيل غياب جديد",
     "name": "اسم المشرف",
     "toast": {
       "added": "تمت إضافة المشرف"
     }
   },
   "attendance": {
-    "attendanceRegister":"سجل الغياب",
+    "attendanceRegister": "سجل الغياب",
     "searchPlaceholder": "ابحث عن متدرب لاسترجاع سجل الغياب...",
     "trainee": "اسم المتدرب",
     "absenceDate": "تاريخ الغياب",
     "reason": "السبب",
     "empty": "لا توجد سجلات مطابقة",
-    "add":" اضافة غياب"
+    "add": " اضافة غياب"
   },
   "announcements": {
-
     "listTitle": "الإعلانات العامة",
     "send": "إرسال إعلان",
     "target": "الجهة المستهدفة",
@@ -127,7 +195,7 @@
     "totalInterviews": "إجمالي المقابلات",
     "exportPdf": "تصدير تقرير شامل PDF",
     "exporting": "جاري تصدير التقرير بصيغة PDF...",
-     
+
     "subtitle": "عرض إحصائيات دورة التدريب وتنزيلها بصيغة PDF",
     "generate": "جلب التقرير وتنزيل PDF",
     "refresh": "تحديث وتنزيل التقرير",
@@ -184,8 +252,8 @@
     "phaseName": "اسم المرحلة"
   },
 
-   "evaluation": {
-    "evaluation":"تقييم",
+  "evaluation": {
+    "evaluation": "تقييم",
     "createTitle": "إنشاء تقييم الطالب",
     "editTitle": "تعديل تقييم الطالب",
     "subtitle": "قيّم أداء المتدرب وسجّل ملاحظاتك حول تقدمه.",
@@ -209,10 +277,10 @@
       "score": "يجب أن تكون الدرجة رقماً بين 0 و100.",
       "notice": "الملاحظة مطلوبة."
     },
-    "viewAndREvaluation":"عرض واعادة التقيم"
+    "viewAndREvaluation": "عرض واعادة التقيم"
   },
 
-   "notificationsPage": {
+  "notificationsPage": {
     "title": "الإشعارات",
     "subtitle": "تابع آخر التنبيهات والتحديثات الخاصة بك",
     "listTitle": "جميع الإشعارات",
@@ -226,6 +294,4 @@
     "next": "التالي",
     "pageInfo": "صفحة {{current}} من {{total}}"
   }
-
- 
 }

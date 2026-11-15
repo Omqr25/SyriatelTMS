@@ -55,13 +55,22 @@ class TaskService
 
     public function find(int $task_id): Task
     {
-        $task = Task::find($task_id);
+        $task = Task::with([
+            'trainee',
+            'attachments',
+            'evidences',
+        ])->find($task_id);
+    
         if (!$task) {
-            throw new ErrorException(__('task.not_found'), ApiCode::NOT_FOUND);
+            throw new ErrorException(
+                __('task.not_found'),
+                ApiCode::NOT_FOUND
+            );
         }
+    
         Gate::forUser(auth('api')->user())->authorize('view', $task);
-
-        return $task->load(['trainee', 'attachments']);
+    
+        return $task;
     }
 
     public function store(int $milestone_id, array $data)
@@ -86,7 +95,9 @@ class TaskService
                     throw new ErrorException (__('trainee.trainee_not_in_training_program'));
                 }
                 $data['status'] = TaskStatus::PENDING->value;
+                $data['priority'] = $data['priority'] ?? 5;
                 $task = $milestone->tasks()->create($data);
+
                 $task->attachments()->createMany(collect($data['attachments'])
                     ->map(fn (string $path) => ['path' => $path,])->all());
                 MarkTaskAsOverdueJob::dispatch($task)->delay($task->deadline);
