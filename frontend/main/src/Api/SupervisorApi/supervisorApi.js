@@ -2,6 +2,7 @@ import api from "../axios";
 
 export const getMyInterview = async () => {
   const response = await api.get("application/trainer/interview");
+  return response.data;
 };
 
 export const SetInterviewResult = async (id, formData) => {
