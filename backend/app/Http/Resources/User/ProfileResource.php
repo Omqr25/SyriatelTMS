@@ -20,7 +20,7 @@ class ProfileResource extends JsonResource
         return [
             'personal_information' => [
                 'name' => $this->name,
-                'birth_date' => $application?->birth_date->format('Y-m-d'),
+                'birth_date' => $application?->birth_date?->format('Y-m-d'),
                 'national_id_number'=>$application?->national_id_number,
             ],
 

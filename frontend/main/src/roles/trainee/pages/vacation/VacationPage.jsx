@@ -44,6 +44,7 @@ export default function VacationPage() {
         sendUpdateVacation,
         sendVacationRequest,
         setAddVacation,
+        setCancelVacationState, 
         setVacationRequest
     } = VacationHooks()
 

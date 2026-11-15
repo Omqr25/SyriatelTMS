@@ -53,73 +53,9 @@ return Application::configure(basePath: dirname(__DIR__))
             ], $status);
         });
 
-//        $exceptions->render(function (Throwable $e) {
-//            // Leave browser/web requests to Laravel's normal exception handling.
-//            $status = 500;
-//            $message = 'Something went wrong. Please try again later.';
-//            $data = null;
-//            if ($e instanceof ValidationException) {
-//                $status = 422;
-////                $message = 'Please correct the validation errors.';
-//                $message = $e->validator->errors()->first();
-////                $data = ['errors' => $e->errors()];
-//            } elseif ($e instanceof AuthenticationException) {
-//                $status = 401;
-//                $message = $e->getMessage();
-////                $message = 'You must log in to continue.';
-//            } elseif ($e instanceof AuthorizationException) {
-//                $status = 403;
-////                $message = $e->getMessage();
-//                $message = 'You are not allowed to perform this action.';
-//            } elseif ($e instanceof ModelNotFoundException) {
-//                $status = 404;
-//                $message=$e->getMessage();
-////                $message = 'The requested resource was not found.';
-//            } elseif ($e instanceof QueryException) {
-//                $errorNumber = $e->errorInfo[1] ?? null;
-//                if ($errorNumber === 1062) {
-//                    $status = 409;
-////                    $message = 'This record already exists.';
-//                    $message=$e->errorInfo[2];
-////                    $data=['errors'=>$e->errorInfo[2]];
-//                } elseif (in_array($errorNumber, [1451, 1452], true)) {
-//                    $status = 409;
-//                    $message = $e->errorInfo[2];
-////                    $message = 'This operation conflicts with related records.';
-//                } else {
-//                    report($e);
-//                }
-//            } elseif ($e instanceof HttpExceptionInterface) {
-//                $status = $e->getStatusCode();
-//
-//                $message = match ($status) {
-//                    400 => 'Invalid request.',
-//                    401 => 'You must log in to continue.',
-//                    403 => 'You are not allowed to perform this action.',
-//                    404 => 'The requested resource was not found.',
-//                    405 => 'This action is not supported.',
-//                    409 => 'The request conflicts with the current state.',
-//                    429 => 'Too many requests. Please try again later.',
-//                    default => $status >= 500
-//                        ? 'Something went wrong. Please try again later.'
-//                        : 'The request could not be completed.',
-//                };
-//            } else {
-//                report($e);
-//            }
-//
-//            return response()->json([
-//                'code' => $status,
-//                'message' => $message,
-//                'data' => $data,
-//            ], $status);
-//
-//        });
         $exceptions->render(function (Exception $e) {
             return response()->json([
                 'message' => $e->getMessage()
-//                'message' => $e->getTrace(),
-//                    'message' => __('messages.error.server_error')
             ], ApiCode::INTERNAL_SERVER_ERROR);
 
         });

@@ -52,16 +52,6 @@ class TaskService
         }
         return $milestone;
     }
-    // public function find(int $task_id)
-    // {
-    //     $task=Task::find($task_id);
-    //     if (!$task) {
-    //         throw new ErrorException(__('task.not_found'),ApiCode::NOT_FOUND);
-    //     }
-    //     Gate::forUser(auth('api')->user())->authorize('view', $task);
-    //     $can_update=($task->trainee_id == auth('api')->user()->trainee?->id);
-    //     return [$task->load(['trainee', 'attachments']) ,$can_update];
-    // }
 
     public function find(int $task_id): Task
     {

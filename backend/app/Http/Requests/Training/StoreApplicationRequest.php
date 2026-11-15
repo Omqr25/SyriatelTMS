@@ -44,7 +44,7 @@ class StoreApplicationRequest extends FormRequest
             'national_id' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
             'academic_qualification' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
             'personal_photo' => ['required', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
-            'home_address' => ['required', 'string','max:100'],
+            'home_address' => ['required', 'string','max:200'],
             'university'   =>['required', 'string','max:30'],
             'field_of_study' => ['required', 'string',Rule::enum(FieldOfStudy::class)],
             'academic_major' => ['required', 'string', 'max:30'],

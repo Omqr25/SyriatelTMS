@@ -33,7 +33,7 @@ Route::get('/health-check', function () {
 
 Route::get('/test-email', function () {
     Mail::raw('This is a test email from Syriatel TMS.', function ($message) {
-        $message->to('hudazain.ite@gmail.com')
+        $message->to('msqr2623@gmail.com')
             ->subject('Syriatel TMS Email Test');
     });
 
@@ -163,7 +163,10 @@ Route::prefix('v1')->group(function () {
             });
 
             Route::get('trainee/trainer', [TraineeController::class, 'myTrainees']);
+
             Route::prefix('task')->group(function () {
+                Route::get('{milestone_id}',[TaskController::class, 'findAll']);
+                Route::get('{milestone_id}/{task_id}',[TaskController::class, 'find']);
                 Route::post('{milestone_id}/tasks', [TaskController::class, 'store']);
                 Route::put('tasks/{task}', [TaskController::class, 'update']);
                 Route::delete('tasks/{task}', [TaskController::class, 'delete']);

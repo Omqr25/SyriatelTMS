@@ -75,13 +75,5 @@ class AbsenceService
             'reason' => $reason,
             'request_id' => $vacation_request?->id,
         ]);
-//        return Absence::create(
-//            [
-//                'trainee_id' => $trainee_id,
-//                'trainer_id'=>$user->trainer->id,
-//                'date' => today(),
-//                'reason' => $reason,
-//            ]
-//        );
     }
 }

@@ -1,6 +1,7 @@
 import { getVacationsRequests, requestVacation, canceltVacation, updateVacation } from "../../Api/Trainee/vacationApi.js"
 import { useState, useRef } from "react";
 import { toast } from "react-toastify";
+import { useTranslation } from "react-i18next";
 export default function VacationHooks() {
     const vacationId = useRef(null);
     const [vacationRequest, setVacationRequest] = useState({
@@ -8,6 +9,7 @@ export default function VacationHooks() {
         start_date: "",
         end_date: "",
     })
+    const { t } = useTranslation("trainee");
     const [sendingVacationRequest, setSendingVacationRequest] = useState(false)
     const [updatingVacationRequest, setUpdatingVacationRequest] = useState(false)
     const [vacationsList, setVacationsList] = useState([])
@@ -28,9 +30,9 @@ export default function VacationHooks() {
             setLoadingAction(false)
         }
     }
-    const openCancelVacation = (vacationId) => {
+    const openCancelVacation = (id) => {
         setCancelVacationState(true)
-        vacationId.current = vacationId
+        vacationId.current = id
     }
 
     const openUpdateVacation = (vacationData) => {
@@ -135,6 +137,7 @@ export default function VacationHooks() {
         sendUpdateVacation,
         sendVacationRequest,
         setAddVacation,
+        setCancelVacationState, 
         setVacationRequest
     }
 }

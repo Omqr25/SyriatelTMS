@@ -63,6 +63,7 @@ class AuthService
 
     public function changePassword(array $data)
     {
+        /** @var \App\Models\User|null $user */
         $user = auth('api')->user();
         if (!Hash::check($data['current_password'], $user->password)) {
             throw new ErrorException(__('auth.password'), ApiCode::BAD_REQUEST);
