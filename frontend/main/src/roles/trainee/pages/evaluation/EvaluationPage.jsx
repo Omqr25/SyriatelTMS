@@ -43,6 +43,8 @@ export default function EvaluationPage(){
         children={
           <Input
             required
+            minLength={10}
+            maxLength={100}
             value={reEvaluationReason}
             onChange={(reason) => setReEvaluationReason(reason.target.value)}
           />
@@ -123,6 +125,7 @@ export default function EvaluationPage(){
                   {t("evaluation.reEvaluate")}
                 </Button>
               </div>}
+              {!reEvaluationAvaliability && <p role="status">{t("evaluation.requestAlreadyUsed")}</p>}
               {reEvaluationForm && 
               reEvaluationFormComponent 
         }

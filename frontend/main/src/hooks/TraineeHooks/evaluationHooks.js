@@ -8,7 +8,7 @@ const getErrorMessage = (error) =>
 
 export default function evaluationHooks() {
     const [reEvaluationForm, setRevaluationForm] = useState(false);
-    const [loadingAction, setLoadingAction] = useState(false);
+    const [loadingAction, setLoadingAction] = useState(true);
     const [reEvaluationState, setReEvaluationState] = useState(false);
     const [reEvaluationAvaliability, setReEvaluationAvaliability] = useState(false);
     const [reEvaluationReason, setReEvaluationReason] = useState("");
@@ -31,7 +31,7 @@ export default function evaluationHooks() {
             });
             // `reevaluation` is true when a request ALREADY exists,
             // so the button is only available when it is false.
-            setReEvaluationAvaliability(!evaluationData?.reevaluation);
+            setReEvaluationAvaliability(evaluationData?.can_request_reevaluation === true);
             setHasEvaluation(true);
         } catch (error) {
             // 404 = the supervisor has not evaluated this trainee yet.
@@ -50,9 +50,10 @@ export default function evaluationHooks() {
     };
     const reEvaluationFunction = async (e) => {
         e.preventDefault();
+        if (reEvaluationState || !reEvaluationAvaliability) return;
         try {
             setReEvaluationState(true)
-            const response = await requestReEvaluation({ reason: reEvaluationReason })
+            const response = await requestReEvaluation({ reason: reEvaluationReason.trim() })
             setRevaluationForm(false)
             setReEvaluationReason("")
             // Only one re-evaluation request is allowed, so hide the button.
