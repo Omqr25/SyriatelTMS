@@ -22,6 +22,7 @@ return [
     'userNotActive'=>'user not active',
     'newPassword'=>'New Password Set Successfully',
     'passwordResetLinkSent'=>'Password Reset Link Sent to the provided email address',
+    'passwordResetSuccessfully' => 'Your password has been reset successfully.',
     'unauthenticated'=>'Unauthenticated',
     'unauthorized'=>'Unauthorized',
 ];

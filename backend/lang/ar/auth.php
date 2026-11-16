@@ -21,4 +21,5 @@ return [
     'userNotFound' => 'لم يتم العثور على المستخدم.',
     'newPassword' => 'تم تعيين كلمة مرور جديدة بنجاح.',
     'passwordResetSuccessfully' => 'تم إعادة تعيين كلمة المرور بنجاح.',
+    'passwordResetLinkSent' => 'تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني.',
 ];

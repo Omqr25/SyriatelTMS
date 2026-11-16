@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import AppShell from '../components/layout/AppShell';
 import { useAuth } from '../context/AuthContext';
 import LoginPage from '../features/auth/LoginPage';
+import PasswordRecoveryPage from '../features/auth/PasswordRecoveryPage';
 import { roleRegistry } from '../roles';
 
 /** يمنع الوصول إلا لمن يملك الدور المطلوب */
@@ -22,6 +23,8 @@ export default function AppRouter() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/forgot-password" element={<PasswordRecoveryPage key="forgot" />} />
+      <Route path="/reset-password" element={<PasswordRecoveryPage key="reset" reset />} />
 
       {Object.values(roleRegistry).map((module) => (
         <Route
