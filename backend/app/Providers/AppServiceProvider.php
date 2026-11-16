@@ -30,7 +30,9 @@ class AppServiceProvider extends ServiceProvider
     {
         URL::forceRootUrl(config('app.url'));
         ResetPassword::createUrlUsing(function ($user, string $token) {
-            return url('/reset-password')
+            $baseUrl = config('app.frontend_url') ?: config('app.url');
+
+            return rtrim($baseUrl, '/') . '/reset-password'
                 . '?token=' . urlencode($token)
                 . '&email=' . urlencode($user->email);
         });
@@ -38,12 +40,4 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Milestone::class, TaskPolicy::class);
     }
 
-//    public function boot(): void
-//    {
-//        ResetPassword::createUrlUsing(function ($user, string $token) {
-//            return rtrim(config('app.frontend_url'), '/')
-//                . '/reset-password?token=' . urlencode($token)
-//                . '&email=' . urlencode($user->email);
-//        });
-//    }
 }

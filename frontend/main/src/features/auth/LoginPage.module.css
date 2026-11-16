@@ -28,6 +28,10 @@
 .logo { margin-block-end: 28px; }
 .card h2 { font-size: 26px; font-weight: 800; }
 .subtitle { margin-block: 4px 24px; color: var(--ink-500); }
+.link { display: block; margin-block-start: 16px; color: var(--red-700); text-align: center; text-decoration: underline; }
+.notice { padding: 16px; background: var(--surface); border: 1px solid var(--ink-500); border-radius: 8px; }
+.error { color: var(--red-700); overflow-wrap: anywhere; }
+.hint { margin: 0; color: var(--ink-500); font-size: 14px; }
 
 @media (max-width: 860px) {
   .page { grid-template-columns: 1fr; }

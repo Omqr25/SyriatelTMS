@@ -24,6 +24,13 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        $exceptions->render(function (ValidationException $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+                'errors' => $e->errors(),
+            ], $e->status);
+        });
+
         $exceptions->render(function (\App\Exceptions\ErrorException $e) {
             return response()->json(['message'=> $e->message,'data'=>$e->data],$e->errorCode);
         });

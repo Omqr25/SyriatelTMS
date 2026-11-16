@@ -1,5 +1,5 @@
 import {  useState } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Button from "../../components/ui/Button";
 import { Field, Input } from "../../components/ui/Field";
@@ -142,6 +142,9 @@ export default function LoginPage() {
             <Button type="submit" size="lg" fullWidth loading={loading}>
               {t("submit")}
             </Button>
+            <Link className={styles.link} to="/forgot-password">
+              {t("forgotPassword")}
+            </Link>
           </form>
         </div>
       </main>

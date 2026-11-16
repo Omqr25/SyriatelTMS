@@ -36,7 +36,7 @@ class AuthController extends Controller
     public function forgotPassword(ForgotPasswordRequest $request)
     {
         $this->authService->sendResetPasswordLink($request->validated()['email']);
-        return $this->success(__('auth.passwordResetLinkSent'));
+        return $this->success(message: __('auth.passwordResetLinkSent'));
     }
 
     public function resetPassword(ResetPasswordRequest $request)
