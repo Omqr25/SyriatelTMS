@@ -131,7 +131,7 @@ class EvaluationService
         if (! $evaluation) {
             throw new ErrorException(__('evaluation.no_evaluation_yet'), ApiCode::NOT_FOUND);
         }
-        $reevaluation_request=ReevaluationRequest::where('trainee_id', $trainee->id)->where('evaluation_id',$evaluation->id)->first();
+        $reevaluation_request=ReevaluationRequest::where('trainee_id', $trainee->id)->first();
         Gate::forUser($user)->authorize('view', $evaluation);
         return [$evaluation , (bool)$reevaluation_request];
     }
@@ -150,47 +150,52 @@ class EvaluationService
 
     public function requestReevaluate(string $reason)
     {
-        $user = auth('api')->user();
-        $evaluation = $user->trainee
-            ? Evaluation::where('trainee_id', $user->trainee->id)->first()
-            : null;
-        // Without this guard a null evaluation reaches the Gate and fails with a generic 403.
-        if (! $evaluation) {
-            throw new ErrorException(__('evaluation.no_evaluation_for_trainee'), ApiCode::NOT_FOUND);
-        }
-        Gate::forUser($user)->authorize('requestReevaluation',$evaluation);
-        $reevaluation_request= ReevaluationRequest::create([
-                'trainee_id' => $user->trainee->id,
-                'trainer_id' => $evaluation->trainer_id,
-                'reason' => $reason,
-                'evaluation_id' => $evaluation->id,
-                'status' => EvaluationRequestStatus::PENDING,
+        return DB::transaction(function () use ($reason) {
+            $user = auth('api')->user();
+            if ($user->trainee) {
+                Trainee::whereKey($user->trainee->id)->lockForUpdate()->first();
+            }
+            $evaluation = $user->trainee
+                ? Evaluation::where('trainee_id', $user->trainee->id)->first()
+                : null;
+            // Without this guard a null evaluation reaches the Gate and fails with a generic 403.
+            if (! $evaluation) {
+                throw new ErrorException(__('evaluation.no_evaluation_for_trainee'), ApiCode::NOT_FOUND);
+            }
+            Gate::forUser($user)->authorize('requestReevaluation',$evaluation);
+            $reevaluation_request= ReevaluationRequest::create([
+                    'trainee_id' => $user->trainee->id,
+                    'trainer_id' => $evaluation->trainer_id,
+                    'reason' => $reason,
+                    'evaluation_id' => $evaluation->id,
+                    'status' => EvaluationRequestStatus::PENDING,
+                ]);
+
+            // TODO: Notify the responsible supervisor.
+
+
+            $trainer=$evaluation->trainer->user;
+            $trainee=$evaluation->trainee;
+            $notification = Notification::create([
+                'title' => 'New Reevaluation Request',
+                'description' => $trainee->user->name . ' has submitted an reevaluation request.',
+                'notifier_id' =>auth('api')->id(),
             ]);
 
-        // TODO: Notify the responsible supervisor.
-
-
-        $trainer=$evaluation->trainer->user;
-        $trainee=$evaluation->trainee;
-        $notification = Notification::create([
-            'title' => 'New Reevaluation Request',
-            'description' => $trainee->user->name . ' has submitted an reevaluation request.',
-            'notifier_id' =>auth('api')->id(),
-        ]);
-
-        $notification->notified()->create([
-            'notified_id' => $trainer->id,
-        ]);
-        $trainer->notify(new TmsPushNotification(
-            title: 'New Reevaluation Request',
-            body: $trainee->user->name . ' has submitted an reevaluation request.',
-            data: [
-                'type' => 'revaluation_request_created',
-                'reevaluation_request_id' => $reevaluation_request->id,
-                'trainee_id' => $trainee->id,
-            ],
-        ));
-        return $reevaluation_request;
+            $notification->notified()->create([
+                'notified_id' => $trainer->id,
+            ]);
+            $trainer->notify(new TmsPushNotification(
+                title: 'New Reevaluation Request',
+                body: $trainee->user->name . ' has submitted an reevaluation request.',
+                data: [
+                    'type' => 'revaluation_request_created',
+                    'reevaluation_request_id' => $reevaluation_request->id,
+                    'trainee_id' => $trainee->id,
+                ],
+            ));
+            return $reevaluation_request;
+        });
     }
 
     public function decide(int $request_id, array $data)

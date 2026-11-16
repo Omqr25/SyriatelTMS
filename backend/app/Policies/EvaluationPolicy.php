@@ -15,6 +15,9 @@ class EvaluationPolicy
 
     public function requestReevaluation(User $user , Evaluation $evaluation): Response
     {
+        if (! $user->trainee || (int) $evaluation->trainee_id !== (int) $user->trainee->id) {
+            return Response::deny(__('evaluation.unauthorized_view'));
+        }
         $reevaluation_request = ReevaluationRequest::where('trainee_id', $user->trainee?->id)->first();
         if ($reevaluation_request) {
             return Response::deny(

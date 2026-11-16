@@ -1,3 +1,4 @@
+import StatusBadge from "../../../hr/components/StatusBadge.jsx";
 import Loading from "../../../../components/ui/Loading";
 import { useTranslation } from "react-i18next";
 import Table from "../../../../components/ui/Table";

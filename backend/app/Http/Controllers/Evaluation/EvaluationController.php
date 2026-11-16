@@ -44,7 +44,7 @@ class EvaluationController extends Controller
     {
         $user = $request->user();
         $evaluation=$this->evaluationService->myEvaluation($user);
-        return $this->success(['evaluation' =>EvaluationResource::make($evaluation[0]),'reevaluation' =>$evaluation[1]]);
+        return $this->success(['evaluation' =>EvaluationResource::make($evaluation[0]),'reevaluation' =>$evaluation[1], 'can_request_reevaluation' => \Illuminate\Support\Facades\Gate::forUser($user)->allows('requestReevaluation', $evaluation[0])]);
 
     }
     public function myEvaluations(Request $request)
