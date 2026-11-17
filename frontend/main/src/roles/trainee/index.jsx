@@ -1,3 +1,4 @@
+import CertificatesPage from '../../features/certificates/CertificatesPage';
 import {
   BellRing,
   User,Megaphone,CalendarCheck,CalendarOff,Star,CalendarX,LayoutDashboard,Settings
@@ -60,6 +61,7 @@ export const traineeModule = {
       Component: SettingsPage,
     },
 
+    { path: 'certificates', icon: Star, labelKey: 'certificates:title', Component: CertificatesPage },
   ],
 
   extraRoutes:[

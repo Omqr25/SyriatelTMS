@@ -1,0 +1,23 @@
+{
+  "title": "Certificates",
+  "trainee": "Trainee",
+  "program": "Training program",
+  "issuedOn": "Issued on",
+  "actions": "Actions",
+  "preview": "Preview",
+  "download": "Download PDF",
+  "retry": "Retry",
+  "failed": "Unable to complete the request. Please try again.",
+  "description": "After you complete training and HR issues your certificate, it will appear here for preview and download.",
+  "hrDescription": "Upload the official certificate PDF for a completed trainee. Issued certificates remain available across training cycles.",
+  "completedTrainees": "Completed trainees",
+  "issuedCertificates": "Issued certificates",
+  "issued": "Issued",
+  "upload": "Upload certificate",
+  "issue": "Issue certificate",
+  "pdfHint": "Upload the official PDF (up to 10 MB). Check the trainee and program before issuing; duplicate issuance is blocked.",
+  "pdfFile": "Certificate PDF",
+  "empty": "No certificates have been issued yet.",
+  "noCompleted": "No completed trainees are available.",
+  "previewHint": "If your browser cannot display the PDF, use Download PDF."
+}

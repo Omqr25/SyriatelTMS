@@ -92,6 +92,14 @@ Route::prefix('v1')->group(function () {
 
         });
 
+        Route::prefix('certificates')->middleware('role:HR,TRAINEE')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Certificate\CertificateController::class, 'index']);
+            Route::get('candidates', [\App\Http\Controllers\Certificate\CertificateController::class, 'candidates'])->middleware('role:HR');
+            Route::post('trainees/{trainee}', [\App\Http\Controllers\Certificate\CertificateController::class, 'store'])->middleware('role:HR');
+            Route::get('{certificate}/preview', [\App\Http\Controllers\Certificate\CertificateController::class, 'preview']);
+            Route::get('{certificate}/download', [\App\Http\Controllers\Certificate\CertificateController::class, 'download']);
+        });
+
         Route::prefix('absence')->group(function () {
             Route::get('findAll', [AbsenceController::class, 'findAll']);
         });
