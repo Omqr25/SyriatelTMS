@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
+import useLiveFilterUpdates from "./useLiveFilterUpdates";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
   getApplicants,
@@ -19,6 +20,9 @@ const EMPTY_FILTERS = {
 };
 
 export default function useApplicants() {
+  const requestId = useRef(0);
+  const invalidate = useCallback(() => { requestId.current += 1; }, []);
+
   // ==============================
   // Applicants data
   // ==============================
@@ -74,27 +78,33 @@ export default function useApplicants() {
   // ==============================
   const loadApplicants = useCallback(
     async (silent = false) => {
+      const id = ++requestId.current;
       if (!silent) {
         setLoading(true);
       }
       try {
         setError(null);
 
-        const data = await getApplicants(page, limit);
+        const data = isSearchMode
+          ? await searchApplicants({ page: searchPage, limit, filters: appliedFilters })
+          : await getApplicants(page, limit);
+        if (id !== requestId.current) return null;
 
         setApplicants(data.data || []);
-        setPagination({
+        const updatePagination = isSearchMode ? setSearchPagination : setPagination;
+        updatePagination({
           total: data.meta.total,
           totalPages: data.meta.total_pages,
         });
       } catch (error) {
+        if (id !== requestId.current) return null;
         console.error("Failed to load applicants:", error);
         setError(error);
       } finally {
-        setLoading(false);
+        if (id === requestId.current) setLoading(false);
       }
     },
-    [page, limit],
+    [page, limit, isSearchMode, searchPage, appliedFilters],
   );
 
   // ==============================
@@ -120,6 +130,7 @@ export default function useApplicants() {
 
   const performSearch = useCallback(
     async (pageNumber, currentFilters) => {
+      const id = ++requestId.current;
       try {
         setLoading(true);
         setError(null);
@@ -130,6 +141,7 @@ export default function useApplicants() {
           filters: currentFilters,
         });
 
+        if (id !== requestId.current) return null;
         setApplicants(data.data || []);
 
         setSearchPagination({
@@ -139,13 +151,14 @@ export default function useApplicants() {
 
         return data;
       } catch (error) {
+        if (id !== requestId.current) return null;
         console.error("Failed to search applicants:", error);
 
         setError(error);
 
         return null;
       } finally {
-        setLoading(false);
+        if (id === requestId.current) setLoading(false);
       }
     },
     [limit],
@@ -204,70 +217,49 @@ export default function useApplicants() {
   );
 
   // ============================
-  const applyFilters = useCallback(async () => {
-    const newFilters = { ...filters };
-
-    // نبدأ نتائج البحث من الصفحة الأولى
-    setSearchPage(1);
-
-    // نحفظ الفلاتر التي تم تطبيقها
-    setAppliedFilters(newFilters);
-
-    // ننتقل إلى search mode
+  const applySnapshot = useCallback(async (newFilters) => {
     setIsSearchMode(true);
-
-    // تنفيذ البحث مباشرة
+    setSearchPage(1);
+    setAppliedFilters(newFilters);
     await performSearch(1, newFilters);
-  }, [filters, performSearch]);
+  }, [performSearch]);
 
-  // =============================
+  const { schedule, cancel } = useLiveFilterUpdates(applySnapshot, invalidate);
+  const applyFilters = useCallback(() => {
+    cancel();
+    return applySnapshot(filters);
+  }, [cancel, applySnapshot, filters]);
+
   const changeSearchPage = useCallback(
     async (newPage) => {
-      setSearchPage(newPage);
+      if (filters !== appliedFilters) return applyFilters();
+    setSearchPage(newPage);
 
       await performSearch(newPage, appliedFilters);
     },
-    [appliedFilters, performSearch],
+    [appliedFilters, performSearch, filters, applyFilters],
   );
 
   // ==============================
   // Search applicants
   // ==============================
-  const search = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const data = await searchApplicants(page, limit, ...appliedFilters);
-
-      setApplicants(data || []);
-
-      return data;
-    } catch (error) {
-      console.error("Failed to search applicants:", error);
-      setError(error);
-      return [];
-    } finally {
-      setLoading(false);
-    }
-  }, [appliedFilters]);
+  const search = applyFilters;
 
   // ==============================
   // Load applicants when hook mounts
   // ==============================
   useEffect(() => {
-    loadApplicants();
-  }, [loadApplicants]);
+    if (!isSearchMode) loadApplicants();
+  }, [loadApplicants, isSearchMode]);
 
   //   ==============================
   // Update filters
   // ==============================
   const updateFilter = useCallback((key, value) => {
-    setFilters((prev) => ({
-      ...prev,
-      [key]: value,
-    }));
-  }, []);
+    const next = { ...filters, [key]: value };
+    setFilters(next);
+    schedule(key, next);
+  }, [filters, schedule]);
 
   // const applyFilters = useCallback(() => {
   //   setPage(1);
@@ -278,21 +270,13 @@ export default function useApplicants() {
   // Reset filters
   // ==============================
   const resetFilters = useCallback(() => {
+    cancel();
     setFilters(EMPTY_FILTERS);
-    setAppliedFilters(EMPTY_FILTERS);
-
-    setSearchPage(1);
-    setSearchPagination({
-      total: 0,
-      totalPages: 0,
-    });
-    loadApplicants();
-
-    setIsSearchMode(false);
-
-    // العودة إلى أول صفحة للقائمة العادية
+    setIsSearchMode(true);
     setPage(1);
-  }, []);
+    return applySnapshot(EMPTY_FILTERS);
+  }, [cancel, applySnapshot]);
+
   // ==============================
   // Public API of the hook
   // ==============================
@@ -334,7 +318,7 @@ export default function useApplicants() {
     searchPage,
     searchPagination,
     changeSearchPage,
-    setPage,
+    setPage: (newPage) => filters !== appliedFilters ? applyFilters() : setPage(newPage),
 
     // Search
     isSearchMode,
