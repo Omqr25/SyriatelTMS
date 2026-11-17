@@ -86,6 +86,17 @@ export default function ApplicantDetailsModal({
         </div>
 
         <div>
+          <dt>{t("applicants.howHeard")}</dt>
+          <dd>
+            {applicant.how_heard
+              ? t(`applicants.howHeardOptions.${applicant.how_heard}`, {
+                  defaultValue: applicant.how_heard,
+                })
+              : t("applicants.notSpecified")}
+          </dd>
+        </div>
+
+        <div>
           <dt>{c("label.additionalInfo")}</dt>
           <dd>{applicant.additional_info ||"empty "}</dd>
         </div>

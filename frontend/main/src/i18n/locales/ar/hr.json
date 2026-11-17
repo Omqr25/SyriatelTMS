@@ -31,6 +31,15 @@
     "noUpcoming": "لا توجد مقابلات مجدولة حالياً"
   },
   "applicants": {
+    "howHeard": "كيف سمعت عنا؟",
+    "notSpecified": "غير محدد",
+    "howHeardOptions": {
+      "University Workshop": "ورشة جامعية",
+      "social media": "وسائل التواصل الاجتماعي",
+      "Previous Internship": "تدريب سابق",
+      "Hi-Tech Exhibition": "معرض التقانة Hi-Tech",
+      "other": "أخرى"
+    },
     "reject": "رفض الطلب",
     "assignToDept": "إسناد لقسم",
     "scheduleInterview": "تحديد موعد مقابلة",
