@@ -115,7 +115,7 @@ export default function useAssigned() {
     }
     try {
       const data = await getTaskApi(taskId);
-      setTask(data.data);
+      setTask({ ...data.data.task, can_update: data.data.can_update });
       console.log(`indied the api => ${data.data}`)
     } catch (error) {
       console.log(error);

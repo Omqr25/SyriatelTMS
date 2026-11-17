@@ -26,8 +26,8 @@ class AddTaskFeedbackRequest extends FormRequest
     {
         return [
             'evidence_id' => ['required', 'integer', 'exists:evidences,id'],
-            'feedback' => ['required', 'string', 'max:100'],
-            'status' => ['required',  Rule::in(array_column(TaskStatus::cases(), 'value'))],
+            'feedback' => ['required', 'string', 'max:3000'],
+            'status' => ['required',  Rule::in([TaskStatus::NeedFix->value, TaskStatus::COMPLETED->value])],
         ];
     }
 }

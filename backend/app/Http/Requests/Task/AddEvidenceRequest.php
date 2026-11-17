@@ -23,7 +23,7 @@ class AddEvidenceRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'evidence' => ['required', 'file', 'max:10240', 'mimes:pdf,png,jpg,jpeg,doc,docx,txt,json',],
+            'evidence' => ['required', 'file', 'max:10240', 'mimes:pdf',],
         ];
     }
 }

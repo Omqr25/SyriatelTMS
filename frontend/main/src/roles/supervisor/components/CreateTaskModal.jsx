@@ -21,12 +21,16 @@ const initialForm = {
   trainee_id: "",
   instructions: "",
   attachments: [""],
+  subtasks: [],
   priority: "2",
 };
 
-export default function CreateTaskModal({ onClose, phase, task = null,onUpdated
-  
- }) {
+export default function CreateTaskModal({
+  onClose,
+  phase,
+  task = null,
+  onUpdated,
+}) {
   const isEditMode = Boolean(task);
   const { t } = useTranslation("common");
 
@@ -50,6 +54,7 @@ export default function CreateTaskModal({ onClose, phase, task = null,onUpdated
           trainee_id: String(task.trainee?.id ?? ""),
 
           instructions: task.instructions ?? "",
+          subtasks: task.subtasks ?? [],
 
           attachments: task.attachments?.length
             ? task.attachments.map((attachment) =>
@@ -65,8 +70,6 @@ export default function CreateTaskModal({ onClose, phase, task = null,onUpdated
   }));
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-
-  
 
   const updateField = (name, value) => {
     setForm((prev) => ({
@@ -114,6 +117,10 @@ export default function CreateTaskModal({ onClose, phase, task = null,onUpdated
       instructions: form.instructions.trim(),
       attachments: form.attachments.map((url) => url.trim()).filter(Boolean),
       priority: Number(form.priority),
+      subtasks: form.subtasks.map((item) => ({
+        ...item,
+        title: item.title.trim(),
+      })),
     };
 
     // console.log(payload)
@@ -122,13 +129,12 @@ export default function CreateTaskModal({ onClose, phase, task = null,onUpdated
       if (isEditMode) {
         const data = await updateTaskApi(task.id, payload);
         toast.success(data.message);
-        
       } else {
         const data = await createTaskApi(phase?.id, payload);
         toast.success(data.message);
       }
 
-      await onUpdated?.()
+      await onUpdated?.();
       onClose();
     } catch (err) {
       setError(
@@ -146,7 +152,7 @@ export default function CreateTaskModal({ onClose, phase, task = null,onUpdated
   }, []);
 
   return (
-    <Modal title={t("task.create", { ns: "common" })} onClose={onClose}>
+    <Modal title={t(isEditMode ? "task.edit" : "task.create", { ns: "common" })} onClose={onClose}>
       <form className={styles.form} onSubmit={handleSubmit}>
         {/* اسم المهمة */}
         <Field label={t("task.name", { ns: "common" })}>
@@ -251,6 +257,68 @@ export default function CreateTaskModal({ onClose, phase, task = null,onUpdated
             maxLength={5000}
           />
         </Field>
+
+        <fieldset className={styles.subtasks}>
+          <legend>{t("subtasks", { ns: "taskWorkspace" })}</legend>
+          {form.subtasks.map((item, index) => (
+            <div className={styles.attachmentRow} key={index}>
+              <input
+                type="checkbox"
+                aria-label={t("subtaskDone", { ns: "taskWorkspace" })}
+                checked={item.completed}
+                onChange={(e) =>
+                  updateField(
+                    "subtasks",
+                    form.subtasks.map((row, i) =>
+                      i === index
+                        ? { ...row, completed: e.target.checked }
+                        : row,
+                    ),
+                  )
+                }
+              />
+              <Input
+                aria-label={t("subtaskTitle", { ns: "taskWorkspace" })}
+                value={item.title}
+                required
+                maxLength={255}
+                onChange={(e) =>
+                  updateField(
+                    "subtasks",
+                    form.subtasks.map((row, i) =>
+                      i === index ? { ...row, title: e.target.value } : row,
+                    ),
+                  )
+                }
+              />
+              <Button
+                type="button"
+                variant="soft"
+                onClick={() =>
+                  updateField(
+                    "subtasks",
+                    form.subtasks.filter((_, i) => i !== index),
+                  )
+                }
+              >
+                {t("removeSubtask", { ns: "taskWorkspace" })}
+              </Button>
+            </div>
+          ))}
+          <Button
+            type="button"
+            variant="soft"
+            disabled={form.subtasks.length >= 50}
+            onClick={() =>
+              updateField("subtasks", [
+                ...form.subtasks,
+                { title: "", completed: false },
+              ])
+            }
+          >
+            {t("addSubtask", { ns: "taskWorkspace" })}
+          </Button>
+        </fieldset>
 
         {/* الأولوية */}
         <Field label={t("task.priority")}>

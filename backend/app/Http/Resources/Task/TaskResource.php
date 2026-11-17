@@ -10,14 +10,21 @@ class TaskResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
+        $user = $request->user('api');
+        $gate = \Illuminate\Support\Facades\Gate::forUser($user);
         return [
             'id' => $this->id,
             'name' => $this->name,
             'description' => $this->description,
             'status' => $this->status,
+            'can_start' => $gate->allows('start', $this->resource),
+            'can_submit' => $gate->allows('submit', $this->resource),
+            'is_mine' => (int) $this->trainee_id === (int) $user->trainee?->id,
+            'deadline_iso' => $this->deadline?->toIso8601String(),
             'priority' => $this->priority,
-            'started_at' => $this->started_at,
-            'completed_at' => $this->completed_at,
+            'started_at' => $this->started_at?->toIso8601String(),
+            'completed_at' => $this->completed_at?->toIso8601String(),
+            'subtasks' => $this->subtasks ?? [],
             'deadline' => $this->deadline?->format('d-m-Y H:i:s'),
             'instructions' => $this->instructions,
 
@@ -31,7 +38,7 @@ class TaskResource extends JsonResource
             ),
 
             'evidences' => EvidenceResource::collection(
-                $this->whenLoaded('evidences')
+                $this->when($this->relationLoaded('evidences') && $gate->allows('manageEvidence', $this->resource), fn () => $this->evidences)
             ),
         ];
     }

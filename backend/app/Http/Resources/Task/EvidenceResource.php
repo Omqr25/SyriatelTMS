@@ -18,7 +18,7 @@ class EvidenceResource extends JsonResource
         return [
             'id' => $this->id,
             'evidence'=> route('evidences.download', ['evidence_id' => $this->id]),
-            'submitted_at' => $this->created_at->format('Y-m-d H:i:s'),
+            'submitted_at' => $this->created_at->toIso8601String(),
             'feedback'=>TaskFeedbackResource::make($this->targetFeedback),
         ];
     }

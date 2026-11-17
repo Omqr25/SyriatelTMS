@@ -19,6 +19,7 @@ class Task extends Model
         'milestone_id',
         'status',
         'instructions',
+        'subtasks',
         'priority',
         'started_at',
         'completed_at',
@@ -29,6 +30,9 @@ class Task extends Model
     {
         return [
             'deadline' => 'datetime',
+            'started_at' => 'datetime',
+            'completed_at' => 'datetime',
+            'subtasks' => 'array',
             'status' => TaskStatus::class,
         ];
     }
