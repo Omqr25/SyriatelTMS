@@ -22,6 +22,8 @@
     "status": "Status",
     "actions": "Actions",
     "gpa": "GPA",
+    "minimumGpa": "Minimum GPA",
+    "maximumGpa": "Maximum GPA",
     "academicYear": "Academic year",
     "major": "Major",
     "city": "City",

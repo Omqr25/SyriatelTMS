@@ -136,12 +136,30 @@ export default function ApplicantsPage() {
           onChange={(e) => updateFilter("search", e.target.value)}
         />
 
-        <Input
-          placeholder="GPA"
-          value={filters.gpa}
-          onChange={(e) => updateFilter("gpa", e.target.value)}
-          type="number"
-        />
+        <div className={styles.gpaRange}>
+          <Input
+            placeholder={c("label.minimumGpa")}
+            aria-label={c("label.minimumGpa")}
+            title={c("label.minimumGpa")}
+            value={filters.gpa_min}
+            onChange={(e) => updateFilter("gpa_min", e.target.value)}
+            type="number"
+            min="0"
+            max="100"
+            step="0.01"
+          />
+          <Input
+            placeholder={c("label.maximumGpa")}
+            aria-label={c("label.maximumGpa")}
+            title={c("label.maximumGpa")}
+            value={filters.gpa_max}
+            onChange={(e) => updateFilter("gpa_max", e.target.value)}
+            type="number"
+            min="0"
+            max="100"
+            step="0.01"
+          />
+        </div>
 
         <Select
           value={filters.status}
