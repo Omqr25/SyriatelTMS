@@ -82,6 +82,11 @@ export const updateTaskApi = async (taskId, body) => {
   return response.data;
 };
 
+export const getTraineeEvaluationsApi = async (id) => {
+  const response = await api.get(`evaluation/trainee/${id}`);
+  return response.data;
+};
+
 export const createEvaluationApi = async (id, body) => {
   const response = await api.post(`evaluation/trainee/${id}`, body);
   return response.data;
