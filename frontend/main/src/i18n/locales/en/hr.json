@@ -31,6 +31,15 @@
     "noUpcoming": "No interviews scheduled"
   },
   "applicants": {
+    "howHeard": "How did you hear about us?",
+    "notSpecified": "Not specified",
+    "howHeardOptions": {
+      "University Workshop": "University Workshop",
+      "social media": "Social Media",
+      "Previous Internship": "Previous Internship",
+      "Hi-Tech Exhibition": "Hi-Tech Exhibition",
+      "other": "Other"
+    },
     "reject": "Reject",
     "assignToDept": "Assign to department",
     "scheduleInterview": "Schedule interview",
