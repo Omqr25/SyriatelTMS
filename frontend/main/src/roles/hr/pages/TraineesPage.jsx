@@ -4,7 +4,6 @@ import Table from "../../../components/ui/Table";
 import styles from "./Pages.module.css";
 import useTrainees from "../../../hooks/HrHooks/useTrainees";
 import Button from "../../../components/ui/Button";
-import Loading from "../../../components/ui/Loading";
 import { useState } from "react";
 import { toast } from "react-toastify";
 import Modal from "../../../components/ui/Modal";
@@ -97,9 +96,7 @@ export default function TraineesPage() {
     },
   ];
 
-  return loading ? (
-    <Loading />
-  ) : (
+  return (
     <>
       <Card className={styles.filters}>
         <Input
@@ -122,11 +119,14 @@ export default function TraineesPage() {
         </Button>
       </Card>
 
-      <Table
-        columns={columns}
-        rows={trainees}
-        emptyText={t("trainees.empty")}
-      />
+      <div aria-busy={loading} style={{ opacity: loading ? 0.5 : 1 }}>
+        <Table
+          columns={columns}
+          rows={trainees}
+          emptyText={t("trainees.empty")}
+        />
+
+      </div>
 
       {isSearchMode ? (
         <Pagination

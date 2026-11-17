@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
+import useLiveFilterUpdates from "./useLiveFilterUpdates";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   getSupervisorsApi,
   createSupervisorsApi,
@@ -9,6 +10,9 @@ const EMPTY_FILTERS = {
 };
 
 export default function useTrainees() {
+  const requestId = useRef(0);
+  const invalidate = useCallback(() => { requestId.current += 1; }, []);
+
   const [trainees, setTrainees] = useState([]);
   const [loadingCreate, setLoadingCreate] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -33,7 +37,8 @@ export default function useTrainees() {
   const [isSearchMode, setIsSearchMode] = useState(false);
   const [error, setError] = useState(null);
   const getTrainees = useCallback(
-    async (silent = false, currentFilters = {}) => {
+    async (silent = false, currentFilters = appliedFilters) => {
+      const id = ++requestId.current;
       if (silent) {
         setRefreshing(true);
       } else {
@@ -48,64 +53,64 @@ export default function useTrainees() {
           ...currentFilters,
         };
 
-        const data = await getAllTraineesApi({});
-        console.log("TRAINEES RESULT:",data)
+        const data = await getAllTraineesApi(params);
+        if (id !== requestId.current) return null;
         setTrainees(data.data || []);
         
         if (data.meta) {
-          setPagination({
+          const updatePagination = isSearchMode ? setSearchPagination : setPagination;
+          updatePagination({
             total: data.meta.total || 0,
             totalPages: data.meta.total_pages || 0,
           });
         }
       } catch (error) {
+        if (id !== requestId.current) return null;
         const message =
           error.response?.data?.message || error.message || "error";
         console.error("Error fetching trainees:", message);
         setError(error);
         throw error;
       } finally {
-        if (silent) {
-          setRefreshing(false);
-        } else {
-          setLoading(false);
+        if (id === requestId.current) {
+          if (silent) {
+            setRefreshing(false);
+          } else {
+            setLoading(false);
+          }
         }
       }
     },
-    [page, limit, isSearchMode, searchPage]
+    [page, limit, isSearchMode, searchPage, appliedFilters]
   );
 
   const performSearch = useCallback(
-  async (pageNumber, currentFilters) => {
-    try {
-      setLoading(true);
-      setError(null);
+    async (pageNumber, currentFilters) => {
+      const id = ++requestId.current;
+      try {
+        setLoading(true);
+        setError(null);
 
-      const params = {
-        page: pageNumber,
-        limit,
-        ...currentFilters,
-      };
-
-      const data = await getAllTraineesApi(params);
-      setTrainees(data.data || []);
-
-      setSearchPagination({
-        total: data.meta?.total || 0,
-        totalPages: data.meta?.total_pages || 0,
-      });
-
-      return data;
-    } catch (error) {
-      console.error("Failed to search trainees:", error);
-      setError(error);
-      return null;
-    } finally {
-      setLoading(false);
-    }
-  },
-  [limit]
-);
+        const params = { page: pageNumber, limit, ...currentFilters };
+        const data = await getAllTraineesApi(params);
+        if (id !== requestId.current) return null;
+        setTrainees(data.data || []);
+        setSearchPagination({
+          total: data.meta?.total || 0,
+          totalPages: data.meta?.total_pages || 0,
+        });
+        return data;
+      } catch (error) {
+        if (id !== requestId.current) return null;
+        console.error("Failed to search trainees:", error);
+        setError(error);
+        return null;
+      } finally {
+        if (id === requestId.current) setLoading(false);
+      }
+    },
+    [limit]
+  );
 
   const fireTrainee = useCallback(async (id, reason) => {
     // setLoadingCreate(true)
@@ -122,50 +127,48 @@ export default function useTrainees() {
     } finally {
       // setLoadingCreate(false)
     }
-  }, []);
+  }, [getTrainees]);
 
-  const applyFilters = useCallback(async () => {
-  const newFilters = { ...filters };
-  setSearchPage(1);
-  setAppliedFilters(newFilters);
-  setIsSearchMode(true);
-  await performSearch(1, newFilters);
-}, [filters, performSearch]);
+  const applySnapshot = useCallback(async (newFilters) => {
+    setIsSearchMode(true);
+    setSearchPage(1);
+    setAppliedFilters(newFilters);
+    await performSearch(1, newFilters);
+  }, [performSearch]);
 
-const changeSearchPage = useCallback(
-  async (newPage) => {
-    setSearchPage(newPage);
-    await performSearch(newPage, appliedFilters);
-  },
-  [appliedFilters, performSearch]
-);
+  const { schedule, cancel } = useLiveFilterUpdates(applySnapshot, invalidate);
+  const applyFilters = useCallback(() => {
+    cancel();
+    return applySnapshot(filters);
+  }, [cancel, applySnapshot, filters]);
 
-const updateFilter = useCallback((key, value) => {
-  setFilters((prev) => ({
-    ...prev,
-    [key]: value,
-  }));
-}, []);
+  const changeSearchPage = useCallback(
+    async (newPage) => {
+      if (filters !== appliedFilters) return applyFilters();
+      setSearchPage(newPage);
+      await performSearch(newPage, appliedFilters);
+    },
+    [appliedFilters, performSearch, filters, applyFilters]
+  );
 
-const resetFilters = useCallback(() => {
-  setFilters(EMPTY_FILTERS);
-  setAppliedFilters(EMPTY_FILTERS);
-  setSearchPage(1);
-  setSearchPagination({
-    total: 0,
-    totalPages: 0,
-  });
-  setIsSearchMode(false);
-  setPage(1);
-  getTrainees(false, EMPTY_FILTERS);
-}, [getTrainees]);
+  const updateFilter = useCallback((key, value) => {
+    const next = { ...filters, [key]: value };
+    setFilters(next);
+    schedule(key, next);
+  }, [filters, schedule]);
+
+  const resetFilters = useCallback(() => {
+    cancel();
+    setFilters(EMPTY_FILTERS);
+    setIsSearchMode(true);
+    setPage(1);
+    return applySnapshot(EMPTY_FILTERS);
+  }, [cancel, applySnapshot]);
 
   useEffect(() => {
-    if (!isSearchMode) {
-      getTrainees();
-    }
+    if (!isSearchMode) getTrainees();
   }, [getTrainees, isSearchMode]);
-  
+
   return {
     // operation
     getTrainees,
@@ -180,7 +183,7 @@ const resetFilters = useCallback(() => {
     page,
     limit,
     pagination,
-    setPage,
+    setPage: (newPage) => filters !== appliedFilters ? applyFilters() : setPage(newPage),
     // search & filters
     error,
     filters,

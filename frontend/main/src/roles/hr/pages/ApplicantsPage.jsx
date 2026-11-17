@@ -17,7 +17,6 @@ import ScheduleInterviewModal from "../components/ScheduleInterviewModal";
 import StatusBadge from "../components/StatusBadge";
 import styles from "./ApplicantsPage.module.css";
 import useApplicants from "../../../hooks/HrHooks/useApplicants";
-import Loading from "../../../components/ui/Loading";
 import Pagination from "../../../components/ui/Pagination";
 
 export default function ApplicantsPage() {
@@ -128,9 +127,7 @@ export default function ApplicantsPage() {
   ];
 
   // console.log("applicants", applicants);
-  return loading ? (
-    <Loading />
-  ) : (
+  return (
     <>
       <Card className={styles.filters}>
         <Input
@@ -213,11 +210,14 @@ export default function ApplicantsPage() {
         </Button>
       </Card>
 
-      <Table
-        columns={columns}
-        rows={applicants}
-        emptyText={t("applicants.empty")}
-      />
+      <div aria-busy={loading} style={{ opacity: loading ? 0.5 : 1 }}>
+        <Table
+          columns={columns}
+          rows={applicants}
+          emptyText={t("applicants.empty")}
+        />
+
+      </div>
 
       {isSearchMode ? (
         <Pagination
