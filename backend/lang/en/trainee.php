@@ -1,5 +1,6 @@
 <?php
 return[
+    'not_active' => 'Only active trainees can be dismissed.',
   'not_found'=>'trainee not found',
     'already_fired'=>'trainee already fired',
     'trainees_not_found'=>'One or more selected trainees do not exist.',

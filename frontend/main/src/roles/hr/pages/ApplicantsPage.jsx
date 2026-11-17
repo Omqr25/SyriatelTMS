@@ -6,7 +6,6 @@ import { Input, Select } from "../../../components/ui/Field";
 import Table from "../../../components/ui/Table";
 import {
   ACADEMIC_YEAR_KEYS,
-  APPLICANT_STATUS,
   CITY_KEYS,
   MAJOR_KEYS,
   APPLICANT_STATUS_Arr,
@@ -17,6 +16,8 @@ import ScheduleInterviewModal from "../components/ScheduleInterviewModal";
 import StatusBadge from "../components/StatusBadge";
 import styles from "./ApplicantsPage.module.css";
 import useApplicants from "../../../hooks/HrHooks/useApplicants";
+import Modal from "../../../components/ui/Modal";
+import { toast } from "react-toastify";
 import Pagination from "../../../components/ui/Pagination";
 
 export default function ApplicantsPage() {
@@ -31,7 +32,10 @@ export default function ApplicantsPage() {
     applicant,
     // Loading
     actionLoading,
-    setActionLoading,
+    applicantLoading,
+    clearApplicant,
+    loadApplicants,
+    assign,
     rejectLOading,
     // Normal pagination
     page,
@@ -42,20 +46,13 @@ export default function ApplicantsPage() {
     updateFilter,
     applyFilters,
     resetFilters,
-    isSearchMode,
-    // Search pagination
-    searchPage,
-    searchPagination,
-    changeSearchPage,
     // reject
     reject,
   } = useApplicants();
 
   const handleViewDetails = async (id) => {
-    setActionLoading(id);
-
     const data = await loadApplicant(id);
-    setActionLoading(null);
+
     if (!data) {
       return;
     }
@@ -72,6 +69,7 @@ export default function ApplicantsPage() {
 
   const closeModal = () => {
     setModal(null);
+    clearApplicant();
   };
   const columns = [
     {
@@ -81,7 +79,8 @@ export default function ApplicantsPage() {
         <button
           type="button"
           className={styles.nameBtn}
-          onClick={() => handleViewDetails(a._id)}
+          onClick={() => handleViewDetails(a.id)}
+          disabled={!!applicantLoading || actionLoading}
         >
           {a.full_name}
         </button>
@@ -104,23 +103,28 @@ export default function ApplicantsPage() {
             variant="secondary"
             // onClick={() => open("details", a)}
             onClick={() => handleViewDetails(a.id)}
-            loading={actionLoading === a.id}
-            disabled={actionLoading === a.id}
+            loading={applicantLoading === a.id}
+            disabled={!!applicantLoading || actionLoading}
           >
             {c("action.viewDetails")}
           </Button>
-          <Button
-            size="sm"
-            variant="soft"
-            loading={rejectLOading == a.id}
-            disabled={
-              a.status === APPLICANT_STATUS.REJECTED ||
-              a.status === APPLICANT_STATUS.ACCEPTED
-            }
-            onClick={() => reject(a.id)}
-          >
-            {t("applicants.reject")}
-          </Button>
+          {[
+            "pending",
+            "assigned",
+            "qualified",
+            "for interview",
+            "interviewed",
+          ].includes(a.status) && (
+            <Button
+              size="sm"
+              variant="soft"
+              loading={rejectLOading == a.id}
+              disabled={actionLoading || !!applicantLoading}
+              onClick={() => setModal({ type: "reject", applicant: a })}
+            >
+              {t("applicants.reject")}
+            </Button>
+          )}
         </div>
       ),
     },
@@ -234,23 +238,36 @@ export default function ApplicantsPage() {
           rows={applicants}
           emptyText={t("applicants.empty")}
         />
-
       </div>
 
-      {isSearchMode ? (
-        <Pagination
-          currentPage={searchPage}
-          totalPages={searchPagination.totalPages}
-          onPageChange={changeSearchPage}
-        />
-      ) : (
-        <Pagination
-          currentPage={page}
-          totalPages={pagination.totalPages}
-          onPageChange={setPage}
-        />
-      )}
+      <Pagination
+        currentPage={page}
+        totalPages={pagination.totalPages}
+        onPageChange={setPage}
+      />
 
+      {modal?.type === "reject" && (
+        <Modal
+          title={t("applicants.reject")}
+          onClose={() => !actionLoading && closeModal()}
+        >
+          <p>
+            {t("applicants.confirmReject", { name: modal.applicant.full_name })}
+          </p>
+          <Button
+            loading={actionLoading}
+            onClick={async () => {
+              const result = await reject(modal.applicant.id);
+              if (result) {
+                toast.success(t("applicants.toast.rejected"));
+                closeModal();
+              }
+            }}
+          >
+            {t("applicants.reject")}
+          </Button>
+        </Modal>
+      )}
       {modal?.type === "details" && applicant && (
         <ApplicantDetailsModal
           // applicant={modal.applicant}
@@ -263,12 +280,20 @@ export default function ApplicantsPage() {
         />
       )}
       {modal?.type === "assign" && applicant && (
-        <AssignDepartmentModal applicant={applicant} onClose={closeModal} />
+        <AssignDepartmentModal
+          applicant={applicant}
+          onClose={closeModal}
+          assign={assign}
+          actionLoading={actionLoading}
+        />
       )}
       {modal?.type === "schedule" && applicant && (
-        <ScheduleInterviewModal applicant={applicant} onClose={closeModal} />
+        <ScheduleInterviewModal
+          applicant={applicant}
+          onClose={closeModal}
+          update={loadApplicants}
+        />
       )}
-      
     </>
   );
 }

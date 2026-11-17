@@ -90,7 +90,7 @@ export default function TraineesPage() {
       header: t("label.actions", { ns: "common" }),
       render: (tr) => (
         <Button size="sm" loading={""} onClick={() => handelFire(tr)}>
-          x
+          {t("trainees.dismiss")}
         </Button>
       ),
     },

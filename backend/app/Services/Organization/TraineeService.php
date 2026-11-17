@@ -70,8 +70,11 @@ class TraineeService
     }
     public function fireTrainee(int $trainee_id, array $data,$actor)
     {
-        $trainee=$this->find($trainee_id);
-        return DB::transaction(function () use ($trainee, $data , $actor) {
+        return DB::transaction(function () use ($trainee_id, $data , $actor) {
+            $trainee = Trainee::lockForUpdate()->findOrFail($trainee_id);
+            if ($trainee->status !== TraineeStatus::ACTIVE) {
+                throw new ErrorException(__('trainee.not_active'), 400);
+            }
             if ($trainee->fire()->exists()) {
                 throw new ErrorException(__('trainee.already_fired'));
             }
