@@ -121,7 +121,7 @@ class DashboardService
     {
         $training_program = $this->trainingProgramService->openProgram();
         if (!$training_program) {
-            throw new ErrorException();
+            throw new ErrorException(__('reports.no_program'), \App\Helpers\ApiCode::NOT_FOUND);
         }
         $applications = Application::where('training_program_id', $training_program->id);
         $totalApplications = (clone $applications)->count();

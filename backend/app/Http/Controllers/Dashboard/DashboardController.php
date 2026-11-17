@@ -36,13 +36,7 @@ class DashboardController extends Controller
 
     public function trainingCycle()
     {
-        try {
-
-            $report = $this->dashboardService->generateTrainingCycleReport();
-            return $this->success($report);
-
-        } catch (\Exception $exception) {
-            return $this->error($exception->getMessage(), $exception->getCode());
-        }
+        $report = $this->dashboardService->generateTrainingCycleReport();
+        return $this->success($report);
     }
 }
