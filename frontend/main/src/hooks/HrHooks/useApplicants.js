@@ -15,7 +15,8 @@ const EMPTY_FILTERS = {
   year: "",
   major: "",
   city: "",
-  gpa: "",
+  gpa_min: 0,
+  gpa_max: 100,
   status: "",
 };
 

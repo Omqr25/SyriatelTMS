@@ -40,7 +40,8 @@ export const searchApplicants = async ({ filters, page=1, limit=10 }) => {
   if (filters.city) params.city = filters.city;
   if (filters.major) params.field_of_study = filters.major;
   if (filters.year) params.year_of_study = filters.year;
-  if (filters.gpa) params.gpa = filters.gpa;
+  params.gpa_min = filters.gpa_min === "" ? 0 : (filters.gpa_min ?? 0);
+  params.gpa_max = filters.gpa_max === "" ? 100 : (filters.gpa_max ?? 100);
   if (filters.status) params.status = filters.status;
 
   const response = await api.get("/application", {

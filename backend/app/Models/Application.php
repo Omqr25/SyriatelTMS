@@ -73,6 +73,12 @@ class Application extends Model
         $query->when($filters['gpa'] ?? false, function ($query) use ($filters) {
             $query->where('gpa', '>=', $filters['gpa']);
         });
+        $query->when(isset($filters['gpa_min']) && $filters['gpa_min'] !== '', function ($query) use ($filters) {
+            $query->where('gpa', '>=', $filters['gpa_min']);
+        });
+        $query->when(isset($filters['gpa_max']) && $filters['gpa_max'] !== '', function ($query) use ($filters) {
+            $query->where('gpa', '<=', $filters['gpa_max']);
+        });
         $query->when($filters['field_of_study'] ?? false , function ($query) use ($filters){
             $query->where('field_of_study',$filters['field_of_study']);
         });

@@ -4,6 +4,15 @@
   gap: 12px;
   padding: 16px;
 }
+.gpaRange {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  min-width: 0;
+}
+.gpaRange input {
+  min-width: 0;
+}
 .nameBtn {
   padding: 0;
   background: none;
