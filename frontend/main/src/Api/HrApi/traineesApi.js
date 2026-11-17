@@ -1,9 +1,13 @@
 import api from "../axios";
-
-export const getAllTraineesApi = async () => {
-  const response = await api.get("/trainee");
-  console.log(response.data);
-  return response.data;
+export const getAllTraineesApi = async (params = {}) => {
+  try {
+    const response = await api.get("/trainee", { params });
+    console.log("API Response Data:", response.data); 
+    return response.data;
+  } catch (error) {
+    console.error("API Error:", error);
+    throw error;
+  }
 };
 
 export const activeTraineeAccountApi = async (id) => {

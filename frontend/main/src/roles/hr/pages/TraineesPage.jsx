@@ -11,11 +11,22 @@ import Modal from "../../../components/ui/Modal";
 import { Field, Input } from "../../../components/ui/Field";
 import form from "../../../components/ui/Form.module.css";
 import Pagination from "../../../components/ui/Pagination";
+import Card from "../../../components/ui/Card";
 
 export default function TraineesPage() {
   const { t } = useTranslation("hr");
+  const c = (key, opts) => t(key, { ns: "common", ...opts });
   // const {  getDepartment } = useData();
-  const { trainees, loading, fireTrainee,page,pagination ,setPage} = useTrainees();
+  const { trainees, loading, fireTrainee,page,pagination ,setPage,
+    filters,
+    updateFilter,
+    applyFilters,
+    resetFilters,
+    isSearchMode,
+    searchPage,
+    searchPagination,
+    changeSearchPage
+  } = useTrainees();
   const [trainee, setTrainee] = useState("");
   const [fireTraineeModel, setFireTraineeModel] = useState(false);
   const [loadingFire, setLoadingFire] = useState("");
@@ -90,17 +101,46 @@ export default function TraineesPage() {
     <Loading />
   ) : (
     <>
+      <Card className={styles.filters}>
+        <Input
+          placeholder={c("label.search")}
+          value={filters.search}
+          onChange={(e) => updateFilter("search", e.target.value)}
+        />
+
+        <Button variant="secondary" onClick={resetFilters} loading={loading}>
+          {c("action.reset")}
+        </Button>
+
+        <Button
+          variant="primary"
+          onClick={applyFilters}
+          loading={loading}
+          disabled={loading}
+        >
+          {c("action.search")}
+        </Button>
+      </Card>
+
       <Table
         columns={columns}
         rows={trainees}
         emptyText={t("trainees.empty")}
       />
 
-       {/* <Pagination
-                currentPage={page}
-                totalPages={pagination.totalPages}
-                onPageChange={setPage}
-              /> */}
+      {isSearchMode ? (
+        <Pagination
+          currentPage={searchPage}
+          totalPages={searchPagination.totalPages}
+          onPageChange={changeSearchPage}
+        />
+      ) : (
+        <Pagination
+          currentPage={page}
+          totalPages={pagination.totalPages}
+          onPageChange={setPage}
+        />
+      )}
 
 
       {fireTraineeModel && (
