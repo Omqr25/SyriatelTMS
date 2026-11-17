@@ -1,3 +1,4 @@
+import { HrCertificatesPage } from '../../features/certificates/CertificatesPage';
 import {
   Building2, CalendarCheck, ClipboardList, FileText, GraduationCap,
   LayoutDashboard, ListChecks, Megaphone, UserCog, Users,Star,BookLock ,BellRing
@@ -39,6 +40,7 @@ export const hrModule = {
     { path: 'notification', icon: BellRing, labelKey: 'hr:nav.notification', Component: NotificationsPage },
 
 
+    { path: 'certificates', icon: FileText, labelKey: 'certificates:title', Component: HrCertificatesPage },
   ],
 };
 

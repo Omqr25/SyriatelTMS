@@ -1,0 +1,4 @@
+.description { margin-block: 12px 24px; color: var(--ink-500); }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.form { display: grid; gap: 16px; }
+.preview { display: block; width: 100%; height: 60vh; border: 1px solid var(--ink-200); margin-block: 12px; }

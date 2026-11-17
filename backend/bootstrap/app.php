@@ -24,6 +24,10 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        $exceptions->render(function (AuthenticationException $e) {
+            return response()->json(['message' => __('auth.unauthenticated')], 401);
+        });
+
         $exceptions->render(function (HttpExceptionInterface $e) {
             return response()->json(['message' => $e->getMessage()], $e->getStatusCode());
         });
