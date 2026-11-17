@@ -173,8 +173,8 @@ Route::prefix('v1')->group(function () {
             Route::get('trainee/trainer', [TraineeController::class, 'myTrainees']);
 
             Route::prefix('task')->group(function () {
-                Route::get('{milestone_id}',[TaskController::class, 'findAll']);
-                Route::get('{milestone_id}/{task_id}',[TaskController::class, 'find']);
+                Route::get('{milestone_id}',[TaskController::class, 'findAll'])->whereNumber('milestone_id');
+                Route::get('{milestone_id}/{task_id}',[TaskController::class, 'find'])->whereNumber(['milestone_id', 'task_id']);
                 Route::post('{milestone_id}/tasks', [TaskController::class, 'store']);
                 Route::put('tasks/{task}', [TaskController::class, 'update']);
                 Route::delete('tasks/{task}', [TaskController::class, 'delete']);
@@ -227,7 +227,7 @@ Route::prefix('v1')->group(function () {
         Route::middleware('role:TRAINEE')->group(function () {
             Route::get('dashboard/trainee', [DashboardController::class, 'trainee']);
             Route::prefix('task')->group(function () {
-                Route::get('tasks/{task_id}/start', [TaskController::class, 'startTask']);
+                Route::post('tasks/{task_id}/start', [TaskController::class, 'startTask']);
                 Route::post('tasks/{task_id}/evidence', [TaskController::class, 'addEvidence']);
             });
 

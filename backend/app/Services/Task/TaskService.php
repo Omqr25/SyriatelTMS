@@ -15,6 +15,7 @@ use App\Models\Task;
 use App\Models\Trainee;
 use App\Models\User;
 use App\Notifications\TmsPushNotification;
+use App\Notifications\TaskEvidenceSubmittedNotification;
 use App\Services\File\FileStorageService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -58,7 +59,7 @@ class TaskService
         $task = Task::with([
             'trainee',
             'attachments',
-            'evidences',
+            'evidences.targetFeedback.trainer',
         ])->find($task_id);
     
         if (!$task) {
@@ -87,7 +88,7 @@ class TaskService
                 if (!$isTrainee) {
                     throw new ErrorException (__('trainee.not_a_trainee', ['id' => $trainee->id]));
                 }
-                if ($trainee->department_id != $milestone->program->department_id) {
+                if ($trainee->department_id != $milestone->program->department_id || $trainee->trainer_id != $milestone->program->trainer_id) {
                     throw new ErrorException (__('trainee.trainee_not_in_team'));
                 }
     //            dd($milestone->program->training_program_id);
@@ -98,7 +99,7 @@ class TaskService
                 $data['priority'] = $data['priority'] ?? 5;
                 $task = $milestone->tasks()->create($data);
 
-                $task->attachments()->createMany(collect($data['attachments'])
+                $task->attachments()->createMany(collect($data['attachments'] ?? [])
                     ->map(fn (string $path) => ['path' => $path,])->all());
                 MarkTaskAsOverdueJob::dispatch($task)->delay($task->deadline);
                 $notification = Notification::create([
@@ -128,9 +129,11 @@ class TaskService
         Gate::forUser(auth('api')->user())->authorize('update', $task);
         return DB::transaction(function () use ($task, $data) {
             $task->update($data);
-            $task->attachments()->delete();
-            $task->attachments()->createMany(collect($data['attachments'])
-                ->map(fn (string $path) => ['path' => $path,])->all());
+            if (array_key_exists('attachments', $data)) {
+                $task->attachments()->delete();
+                $task->attachments()->createMany(collect($data['attachments'] ?? [])
+                    ->map(fn (string $path) => ['path' => $path])->all());
+            }
             MarkTaskAsOverdueJob::dispatch($task)->delay($task->deadline);
 
             return $task->fresh()->load(['trainee', 'attachments']);
@@ -149,53 +152,60 @@ class TaskService
 
 
 
-    public function addFeedback(int $task_id, array $data , User $user)
+    public function addFeedback(int $task_id, array $data, User $user)
     {
-        $task=$this->find($task_id);
-        Gate::forUser(auth('api')->user())->authorize('manageFeedback', $task);
-        $trainee=Evidence::find($data['evidence_id'])->trainee;
-        if ($task->status !== TaskStatus::ForReview) {
-            throw new ErrorException(__('task.feedback_error'),ApiCode::BAD_REQUEST);
-        }
-        $data=array_merge($data, ['trainer_id'=>$user->id]);
-        $feedback=Feedback::create($data);
-        $task->update(['status' => $feedback->status]);
-        return $feedback->fresh()->load('trainer');
+        return DB::transaction(function () use ($task_id, $data, $user) {
+            $task = Task::whereKey($task_id)->lockForUpdate()->firstOrFail();
+            Gate::forUser($user)->authorize('manageFeedback', $task);
+            $evidence = $task->evidences()->latest('id')->first();
+            abort_unless($task->status === TaskStatus::ForReview && $evidence
+                && (int) $evidence->id === (int) $data['evidence_id']
+                && ! $evidence->targetFeedback()->exists(), 422, __('task.feedback_error'));
+            $feedback = Feedback::create([
+                'evidence_id' => $evidence->id, 'trainer_id' => $user->trainer->id,
+                'feedback' => $data['feedback'] ?? null, 'status' => $data['status'],
+            ]);
+            $task->update(['status' => $feedback->status,
+                'completed_at' => $feedback->status === TaskStatus::COMPLETED ? now() : null]);
+            return $feedback->load('trainer');
+        });
     }
 
     public function addEvidence(int $task_id, User $user, array $data)
     {
-        $task=$this->find($task_id);
-        Gate::forUser(auth('api')->user())->authorize('manageEvidence', $task);
-        if (!in_array($task->status, [TaskStatus::IN_PROGRESS, TaskStatus::NeedFix], true)) {
-            throw new ErrorException(__('task.evidence_add_error'),ApiCode::BAD_REQUEST);
-        }
-
-        $file = $data['evidence'];
-        $path = $this->fileStorageService->store($file, "evidences/{$task->id}");
-
+        $path = null;
         try {
-            return DB::transaction(function () use ($task, $data, $file, $path) {
-
-                $status = $task->status instanceof \BackedEnum
-                    ? $task->status->value
-                    : $task->status;
-
-                if (!in_array($status, [TaskStatus::IN_PROGRESS->value,TaskStatus::NeedFix->value], true)) {
-                    throw new ErrorException(__('task.evidence_add_error'),ApiCode::BAD_REQUEST);
+            return DB::transaction(function () use ($task_id, $user, $data, &$path) {
+                $task = Task::whereKey($task_id)->lockForUpdate()->firstOrFail();
+                Gate::forUser($user)->authorize('submit', $task);
+                $revision = $task->status === TaskStatus::NeedFix;
+                if ($revision) {
+                    $previous = $task->evidences()->latest('id')->first();
+                    abort_unless($previous?->targetFeedback?->status === TaskStatus::NeedFix, 422, __('task.evidence_add_error'));
                 }
-
-                $evidence = $task->evidences()->create([
-                    'evidence' => $path,
-                ]);
-
-                $task->status = TaskStatus::ForReview->value;
-                $task->save();
-
+                $path = $this->fileStorageService->store($data['evidence'], "evidences/{$task->id}");
+                abort_unless($path, 500);
+                $evidence = $task->evidences()->create(['evidence' => $path]);
+                $task->update(['status' => TaskStatus::ForReview, 'completed_at' => null]);
+                $trainer = $task->milestone->program->trainer->user;
+                $title = $revision ? 'Revised task evidence' : 'Task ready for review';
+                $notification = Notification::create(['title' => $title,
+                    'description' => $user->name . ': ' . $task->name, 'notifier_id' => $user->id]);
+                $notification->notified()->create(['notified_id' => $trainer->id]);
+                DB::afterCommit(function () use ($trainer, $title, $task, $evidence) {
+                    try {
+                        $trainer->notify(new TaskEvidenceSubmittedNotification($title, $task->name,
+                            ['type' => 'task_evidence_submitted', 'task_id' => $task->id, 'evidence_id' => $evidence->id]));
+                    } catch (\Throwable $exception) {
+                        // The in-app notification and evidence are durable. A push
+                        // outage must not report a failed submission or delete its file.
+                        report($exception);
+                    }
+                });
                 return $evidence->load('task');
             });
         } catch (\Throwable $exception) {
-            Storage::disk('private')->delete($path);
+            if ($path) Storage::disk('private')->delete($path);
             throw $exception;
         }
     }
@@ -215,14 +225,11 @@ class TaskService
 
     public function startTask(int $task_id)
     {
-        $task=$this->find($task_id);
-        Gate::forUser(auth('api')->user())->authorize('updateStatus', $task);
-        if ($task->status !== TaskStatus::PENDING) {
-            throw new ErrorException(__('task.task_status_error'),ApiCode::BAD_REQUEST);
-        }
-        $task->update(['status'=>TaskStatus::IN_PROGRESS->value,'started_at'=>now()]);
-        return $task->refresh();
+        return DB::transaction(function () use ($task_id) {
+            $task = Task::whereKey($task_id)->lockForUpdate()->firstOrFail();
+            Gate::forUser(auth('api')->user())->authorize('start', $task);
+            $task->update(['status' => TaskStatus::IN_PROGRESS, 'started_at' => now()]);
+            return $task->fresh();
+        });
     }
-
-
 }

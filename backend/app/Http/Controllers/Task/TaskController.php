@@ -43,7 +43,7 @@ class TaskController extends Controller
     
         return $this->success([
             'task' => TaskResource::make($task),
-            'can_update' => true,
+            'can_update' => \Illuminate\Support\Facades\Gate::forUser(auth('api')->user())->allows('update', $task),
         ]);
     }
     public function update(UpdateTaskRequest $request, int $task_id)

@@ -30,6 +30,7 @@ import {
 } from "../../../Api/SupervisorApi/supervisorApi";
 
 import styles from "./TaskDetailsPage.module.css";
+import api from "../../../Api/axios";
 
 const STATUS_MAP = {
   pending: "PENDING",
@@ -74,6 +75,8 @@ export default function TaskDetailsPage() {
   const [loadingDelete, setLoadingDelete] = useState(false);
 
   const [showUpdateTask, setShowUpdateTask] = useState(false);
+
+  const canReview = task?.status === "for review";
 
   const evidences = useMemo(
     () => (Array.isArray(task?.evidences) ? task.evidences : []),
@@ -198,6 +201,29 @@ export default function TaskDetailsPage() {
     }
   };
 
+  const [downloading, setDownloading] = useState(null);
+  async function downloadEvidence(evidence) {
+    if (downloading) return;
+    setDownloading(evidence.id);
+    try {
+      const { data } = await api.get(`task/${evidence.id}/download`, {
+        responseType: "blob",
+      });
+      const url = URL.createObjectURL(data);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `task-${task.id}-evidence-${evidence.id}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch {
+      toast.error(t("downloadFailed", { ns: "taskWorkspace" }));
+    } finally {
+      setDownloading(null);
+    }
+  }
+
   const handleFeedbackSubmit = async (feedback) => {
     if (!task?.id || !latestEvidence?.id) {
       toast.error(t("task.errors.noEvidence"));
@@ -296,6 +322,7 @@ export default function TaskDetailsPage() {
 
               <div className={styles.headerActions}>
                 <Button
+                  disabled={!task.can_update}
                   onClick={() => setShowUpdateTask(true)}
                   size="sm"
                   icon={SquarePen}
@@ -306,6 +333,7 @@ export default function TaskDetailsPage() {
                 </Button>
 
                 <Button
+                  disabled={task.status === "completed"}
                   onClick={() => setDeleteModel(true)}
                   size="sm"
                   icon={Trash}
@@ -335,7 +363,7 @@ export default function TaskDetailsPage() {
                 <span>{t("task.deadline")}</span>
                 <strong className={styles.iconValue}>
                   <CalendarDays size={17} />
-                  {formatDate(task.deadline)}
+                  {formatDate(task.deadline_iso || task.deadline)}
                 </strong>
               </div>
 
@@ -431,18 +459,18 @@ export default function TaskDetailsPage() {
                           })}
                         </span>
 
-                        {evidence.created_at && (
+                        {evidence.submitted_at && (
                           <span className={styles.submissionDate}>
-                            {formatDate(evidence.created_at)}
+                            {formatDate(evidence.submitted_at)}
                           </span>
                         )}
                       </div>
 
                       {url ? (
-                        <a
-                          href={url}
-                          target="_blank"
-                          rel="noopener noreferrer"
+                        <button
+                          type="button"
+                          onClick={() => downloadEvidence(evidence)}
+                          disabled={downloading !== null}
                           className={styles.submissionFile}
                         >
                           <FileText size={19} />
@@ -452,7 +480,7 @@ export default function TaskDetailsPage() {
                           </span>
 
                           <ExternalLink size={16} />
-                        </a>
+                        </button>
                       ) : (
                         <p className={styles.muted}>
                           {t("task.noSubmissionFile")}
@@ -478,7 +506,7 @@ export default function TaskDetailsPage() {
             <Button
               variant="primary"
               icon={ClipboardCheck}
-              disabled={!latestEvidence?.id || loadingAction}
+              disabled={!latestEvidence?.id || !canReview || loadingAction}
               loading={loadingAction && feedbackAction === "evaluate"}
               onClick={() => setFeedbackAction("evaluate")}
             >
@@ -488,7 +516,7 @@ export default function TaskDetailsPage() {
             <Button
               variant="secondary"
               icon={RotateCcw}
-              disabled={!latestEvidence?.id || loadingAction}
+              disabled={!latestEvidence?.id || !canReview || loadingAction}
               loading={loadingAction && feedbackAction === "revision"}
               onClick={() => setFeedbackAction("revision")}
             >

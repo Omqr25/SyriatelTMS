@@ -33,22 +33,16 @@ class ProgramService
         $trainee = $user->trainee;
         $trainingProgramId = $trainee?->application?->training_program_id;
 
-        if (!$trainee || !$trainingProgramId) {
+        if (!$trainee || !$trainingProgramId || $trainee->status !== \App\Enums\TraineeStatus::ACTIVE || $user->status !== \App\Enums\UserStatus::ACTIVE) {
             throw new ErrorException(__('program.no_program_for_you'), ApiCode::NOT_FOUND);
         }
 
-        // Only load the tasks assigned to this trainee (tasks are per-trainee).
-        $baseQuery = fn () => Program::withCount('milestones')
-            ->with(['milestones.tasks' => fn ($query) => $query->where('trainee_id', $trainee->id)])
-            ->where('training_program_id', $trainingProgramId);
-
-        // Prefer the program created by the trainee's own supervisor,
-        // then fall back to any program in the trainee's department.
-        $program = null;
-        if ($trainee->trainer_id) {
-            $program = $baseQuery()->where('trainer_id', $trainee->trainer_id)->first();
-        }
-        $program ??= $baseQuery()->where('department_id', $trainee->department_id)->first();
+        // Team membership requires the same supervisor, department and training cycle.
+        $program = Program::withCount('milestones')
+            ->with(['milestones.tasks.trainee', 'milestones.tasks.attachments'])
+            ->where('training_program_id', $trainingProgramId)
+            ->where('department_id', $trainee->department_id)
+            ->where('trainer_id', $trainee->trainer_id)->first();
 
         if (!$program) {
             throw new ErrorException(__('program.no_program_for_you'), ApiCode::NOT_FOUND);

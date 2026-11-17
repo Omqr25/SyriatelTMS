@@ -27,11 +27,15 @@ class StoreTaskRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:30'],
-            'description' => ['nullable', 'string','max:100'],
+            'name' => ['required', 'string', 'max:150'],
+            'description' => ['nullable', 'string','max:2000'],
             'deadline' => ['required', 'date', 'after:now'],
             'priority' => ['nullable', 'integer', 'between:1,10'],
             'instructions' => ['nullable', 'string'],
+            'subtasks' => ['sometimes', 'array', 'max:50'],
+            'subtasks.*' => ['array:title,completed'],
+            'subtasks.*.title' => ['required', 'string', 'max:255'],
+            'subtasks.*.completed' => ['required', 'boolean'],
             'attachments' => ['nullable', 'array'],
             'attachments.*' => ['string', 'required'],
             'trainee_id' => ['required','integer', 'exists:trainees,id'],

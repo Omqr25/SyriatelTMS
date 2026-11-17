@@ -19,7 +19,7 @@ class UpdateOverdueTasks extends Command
     {
         Task::query()
             ->where('deadline', '<', now())
-            ->whereNotIn('status', [TaskStatus::CANCELLED->value, TaskStatus::CANCELLED->value, TaskStatus::OVERDUE->value])
+            ->whereIn('status', [TaskStatus::PENDING->value, TaskStatus::IN_PROGRESS->value, TaskStatus::NeedFix->value])
             ->update(['status' => TaskStatus::OVERDUE->value]);
 
         $this->info('Overdue tasks updated.');

@@ -18,6 +18,8 @@ class TaskFeedbackResource extends JsonResource
         return [
           'id'=>$this->id,
           'feedback'=>$this->feedback,
+            'status' => $this->status,
+            'reviewed_at' => $this->created_at->toIso8601String(),
             'trainer'=>TrainerResource::make($this->trainer),
         ];
     }

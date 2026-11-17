@@ -13,23 +13,40 @@ class TaskPolicy
 
     public function viewMilestone(User $user, Milestone $milestone): Response
     {
-        $assigned_trainee=$user->trainee?->department_id == $milestone->program->department_id;
-        if (!$user->trainer && !$assigned_trainee) {
-            return Response::deny(
-                __('task.not_trainer')
-            );
-        }
         $program = $milestone->program;
-        if ( !$program || ($user->trainer &&((int) $program->trainer_id !== (int) $user->trainer?->id))) {
-            return Response::deny(
-             __('task.unauthorized_management')
-            );
-        }
-
-        return Response::allow();
+        return ($user->trainer && (int) $program->trainer_id === (int) $user->trainer->id)
+            || $this->inTeam($user, $milestone)
+            ? Response::allow() : Response::deny(__('task.unauthorized_view'));
     }
 
+    private function inTeam(User $user, Milestone $milestone): bool
+    {
+        $trainee = $user->trainee;
+        $program = $milestone->program;
+        return $trainee && $trainee->status === \App\Enums\TraineeStatus::ACTIVE
+            && $user->status === \App\Enums\UserStatus::ACTIVE
+            && (int) $trainee->department_id === (int) $program->department_id
+            && (int) $trainee->trainer_id === (int) $program->trainer_id
+            && (int) $trainee->application?->training_program_id === (int) $program->training_program_id;
+    }
 
+    public function workOn(User $user, Task $task): bool
+    {
+        return $this->inTeam($user, $task->milestone)
+            && (int) $task->trainee_id === (int) $user->trainee->id
+            && (! $task->deadline || $task->deadline->isFuture());
+    }
+
+    public function start(User $user, Task $task): bool
+    {
+        return $this->workOn($user, $task) && $task->status === TaskStatus::PENDING;
+    }
+
+    public function submit(User $user, Task $task): bool
+    {
+        return $this->workOn($user, $task)
+            && in_array($task->status, [TaskStatus::IN_PROGRESS, TaskStatus::NeedFix], true);
+    }
 
     public function manageFeedback(User $user, Task $task): Response
     {
@@ -44,12 +61,9 @@ class TaskPolicy
 
     public function manageEvidence(User $user, Task $task): Response
     {
-        if (!$task->trainee?->id == $user->trainee?->id && !$this->ownsTask($user, $task)) {
-            return Response::deny(
-                __('task.unauthorized_manage_evidence')
-            );
-        }
-        return Response::allow();
+        return $this->ownsTask($user, $task)
+            || ($this->inTeam($user, $task->milestone) && (int) $task->trainee_id === (int) $user->trainee->id)
+            ? Response::allow() : Response::deny(__('task.unauthorized_manage_evidence'));
     }
 
 
@@ -61,7 +75,7 @@ class TaskPolicy
             );
         }
 
-        if ($task->status == TaskStatus::COMPLETED->value) {
+        if ($task->status == TaskStatus::COMPLETED) {
             return Response::deny(
                 __('task.unauthorized_manage_attachment_completed')
             );
@@ -100,21 +114,8 @@ class TaskPolicy
             return Response::allow();
         }
 
-        $isAssignedTrainee = ($task->trainee_id == $user->trainee?->id);
-
-        if ($isAssignedTrainee) {
-            return Response::allow();
-        }
-        $trainee_in_team= ($task->milestone->program->training_program_id == $user->trainee?->application->training_program_id
-            || $task->milestone->program->department_id == $user->trainee?->department_id
-        );
-        if ($trainee_in_team)
-        {
-            return Response::allow();
-        }
-        return Response::deny(
-            __('task.unauthorized_view')
-        );
+        return $this->inTeam($user, $task->milestone)
+            ? Response::allow() : Response::deny(__('task.unauthorized_view'));
     }
 
     /**
@@ -137,7 +138,7 @@ class TaskPolicy
             );
         }
 
-        if ($task->status == TaskStatus::COMPLETED->value || $task->status==TaskStatus::OVERDUE->value) {
+        if ($task->status == TaskStatus::COMPLETED || $task->status==TaskStatus::OVERDUE) {
             return Response::deny(
                 __('task.completed_task_update')
             );
@@ -154,7 +155,7 @@ class TaskPolicy
             );
         }
 
-        if ($task->status == TaskStatus::COMPLETED->value || $task->status == TaskStatus::OVERDUE->value) {
+        if ($task->status == TaskStatus::COMPLETED || $task->status == TaskStatus::OVERDUE) {
             return Response::deny(
                 __('task.completed_task_update')
             );
@@ -178,7 +179,7 @@ class TaskPolicy
         }
 
 
-        if ($task->status  == TaskStatus::COMPLETED->value) {
+        if ($task->status  == TaskStatus::COMPLETED) {
             return Response::deny(
                 __('task.completed_task_delete')
             );

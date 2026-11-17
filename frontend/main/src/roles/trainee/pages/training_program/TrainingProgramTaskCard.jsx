@@ -11,9 +11,8 @@ import {
 import { useTranslation } from "react-i18next";
 import styles from "./TrainingProgramTaskCard.module.css";
 
-
-export default function TrainingProgramTaskCard({ task ,available }) {
-  const { t, i18n } = useTranslation();
+export default function TrainingProgramTaskCard({ task, available }) {
+  const { t } = useTranslation();
   if (!task) return null;
 
   const statusMap = {
@@ -26,19 +25,18 @@ export default function TrainingProgramTaskCard({ task ,available }) {
     overdue: "OVERDUE",
   };
 
-  const rawStatus = task?.status?.trim().toLowerCase();
+  const late =
+    task.deadline_iso &&
+    new Date(task.deadline_iso) <= new Date() &&
+    ["pending", "in progress", "need fix"].includes(task.status);
+  const rawStatus = late ? "overdue" : task?.status?.trim().toLowerCase();
   const normalizedStatus = statusMap[rawStatus] || "UNKNOWN";
-
-
-  const isOverdue =
-    task.deadline && new Date(task.deadline).getTime() < Date.now();
 
   return (
     <Link
-      to={available ? `/trainee/tasks/details/${task.id}` :'#'}
+      to={available ? `/trainee/tasks/details/${task.id}` : "#"}
       className={styles.card}
       aria-label={`${t("task.viewDetails")}: ${task.name}`}
-
     >
       <div className={styles.header}>
         <div className={styles.titleWrapper}>
@@ -56,7 +54,7 @@ export default function TrainingProgramTaskCard({ task ,available }) {
         <div className={styles.infoItem}>
           <CalendarDays size={16} />
           <span>
-            {t("task.deadline")}: {task.deadline.split(" ")[0]}
+            {t("task.deadline")}: {task.deadline?.split(" ")[0] || "—"}
           </span>
         </div>
 
@@ -73,19 +71,11 @@ export default function TrainingProgramTaskCard({ task ,available }) {
         </div>
       </div>
 
-      <div className={`${styles.footer}  ${
-            styles[`status_${normalizedStatus}`] || styles.status_UNKNOWN
-          }`}>
-        {/* <span
-          className={`${styles.deadlineBadge} ${
-            isOverdue ? styles.overdue : ""
-          }`}
-        >
-          {isOverdue
-            ? t("task.overdue")
-            : t("task.taskDeadline")}
-        </span> */}
-
+      <div
+        className={`${styles.footer}  ${
+          styles[`status_${normalizedStatus}`] || styles.status_UNKNOWN
+        }`}
+      >
         <span
           className={`${styles.deadlineBadge} ${
             styles[`status_${normalizedStatus}`] || styles.status_UNKNOWN
@@ -102,9 +92,11 @@ export default function TrainingProgramTaskCard({ task ,available }) {
             {task.attachments?.length ?? 0}
           </span>
 
-          <span title={t("task.submissions")}>
+          <span>
             <FileCheck2 size={15} />
-            {task.evidences?.length ?? 0}
+            {task.is_mine
+              ? t("myTask", { ns: "taskWorkspace" })
+              : t("teamTask", { ns: "taskWorkspace" })}
           </span>
         </div>
       </div>
