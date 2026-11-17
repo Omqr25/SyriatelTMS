@@ -69,6 +69,7 @@
     "loadingSupervisors": "Loading supervisors..."
   },
   "assigned": {
+    "scheduleUnavailable": "This applicant is no longer available for interview scheduling in Assigned Requests. Refresh the applicant details to check their status.",
     "applicant": "Applicant",
     "supervisor": "Responsible supervisor",
     "remind": "Remind supervisor",
@@ -268,7 +269,6 @@
   },
   "evaluation": {
     "evaluation": "Evaluation",
-    "evaluated": "Evaluated",
     "createTitle": "Create Trainee Evaluation",
     "editTitle": "Edit Trainee Evaluation",
     "subtitle": "Evaluate the trainee's performance and record feedback on their progress.",

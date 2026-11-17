@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Button from "../../../components/ui/Button";
 import Card from "../../../components/ui/Card";
@@ -12,7 +13,6 @@ import {
 } from "../../../constants";
 import ApplicantDetailsModal from "../components/ApplicantDetailsModal";
 import AssignDepartmentModal from "../components/AssignDepartmentModal";
-import ScheduleInterviewModal from "../components/ScheduleInterviewModal";
 import StatusBadge from "../components/StatusBadge";
 import styles from "./ApplicantsPage.module.css";
 import useApplicants from "../../../hooks/HrHooks/useApplicants";
@@ -22,6 +22,7 @@ import Pagination from "../../../components/ui/Pagination";
 
 export default function ApplicantsPage() {
   const { t } = useTranslation("hr");
+  const navigate = useNavigate();
   const c = (key, opts) => t(key, { ns: "common", ...opts });
 
   const {
@@ -34,7 +35,6 @@ export default function ApplicantsPage() {
     actionLoading,
     applicantLoading,
     clearApplicant,
-    loadApplicants,
     assign,
     rejectLOading,
     // Normal pagination
@@ -61,7 +61,7 @@ export default function ApplicantsPage() {
     });
   };
 
-  const [modal, setModal] = useState(null); // { type: 'details' | 'assign' | 'schedule', applicant }
+  const [modal, setModal] = useState(null);
 
   const openModal = (type) => {
     setModal({ type });
@@ -276,7 +276,12 @@ export default function ApplicantsPage() {
           // onAssign={() => open("assign", modal.applicant)}
           // onSchedule={() => open("schedule", modal.applicant)}
           onAssign={() => openModal("assign")}
-          onSchedule={() => openModal("schedule")}
+          onSchedule={() => {
+            if (applicant.status !== "qualified") return;
+            navigate(
+              `/hr/assigned-requests?schedule=${encodeURIComponent(applicant.id)}`,
+            );
+          }}
         />
       )}
       {modal?.type === "assign" && applicant && (
@@ -285,13 +290,6 @@ export default function ApplicantsPage() {
           onClose={closeModal}
           assign={assign}
           actionLoading={actionLoading}
-        />
-      )}
-      {modal?.type === "schedule" && applicant && (
-        <ScheduleInterviewModal
-          applicant={applicant}
-          onClose={closeModal}
-          update={loadApplicants}
         />
       )}
     </>

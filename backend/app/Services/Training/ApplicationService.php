@@ -301,6 +301,8 @@ class ApplicationService
                 );
             }
 
+            // Serialize appointments for this supervisor before checking conflicts.
+            $supervisor = Trainer::lockForUpdate()->findOrFail($data['trainer_id']);
             $interview_time = Carbon::parse($data['time']);
             $has_conflict = Interview::where('trainer_id', $data['trainer_id'])
                 ->where('time', '>', $interview_time->copy()->subHour())
@@ -327,7 +329,7 @@ class ApplicationService
                 $application,
                 $interview,
             )->afterCommit();
-            $trainer = Trainer::find($data['trainer_id'])->user;
+            $trainer = $supervisor->user;
 
             DB::transaction(function () use ($trainer) {
                 $notification = Notification::create([

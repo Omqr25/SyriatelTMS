@@ -8,9 +8,13 @@ import { useState } from "react";
 import { createInterviewApi } from "../../../Api/HrApi/interviewApi";
 import { toast } from "react-toastify";
 export default function ScheduleInterviewModal({ applicant, onClose, update }) {
-  console.log("applicants", applicant);
   const { t } = useTranslation("hr");
   const [loading, setLoading] = useState(false);
+  const supervisors = Array.isArray(applicant.supervisors)
+    ? applicant.supervisors
+    : applicant.supervisors
+      ? [applicant.supervisors]
+      : [];
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -24,9 +28,7 @@ export default function ScheduleInterviewModal({ applicant, onClose, update }) {
         location: formData.get("location"),
       };
 
-      // console.log("body",body)
       const data = await createInterviewApi(applicant.id, body);
-      // console.log(data)
       toast.success(data.message || "success");
       if (update) {
         await update(true);
@@ -42,7 +44,6 @@ export default function ScheduleInterviewModal({ applicant, onClose, update }) {
     }
   };
 
-  // console.log("ScheduleInterviewModal",applicant.supervisors)
   return (
     <Modal
       title={t("applicants.interviewTitle", {
@@ -52,14 +53,13 @@ export default function ScheduleInterviewModal({ applicant, onClose, update }) {
     >
       <form className={form.form} onSubmit={handleSubmit}>
         <Field label={t("applicants.supervisorName")}>
-          <Select name="trainer_id" required defaultValue="">
+          <Select
+            name="trainer_id"
+            required
+            defaultValue={supervisors.length === 1 ? supervisors[0].id : ""}
+          >
             <option value="">{t("applicants.chooseSupervisor")}</option>
-            {(Array.isArray(applicant.supervisors)
-              ? applicant.supervisors
-              : applicant.supervisors
-                ? [applicant.supervisors]
-                : []
-            ).map((supervisor) => (
+            {supervisors.map((supervisor) => (
               <option key={supervisor.id} value={supervisor.id}>
                 {supervisor.name}
               </option>
