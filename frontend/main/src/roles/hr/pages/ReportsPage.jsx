@@ -1,48 +1,4 @@
-// import { FileDown } from 'lucide-react';
-// import { useTranslation } from 'react-i18next';
-// import Button from '../../../components/ui/Button';
-// import Card from '../../../components/ui/Card';
-// import { useToast } from '../../../context/ToastContext';
-// import { useData } from '../../../data/DataContext';
-// import styles from './ReportsPage.module.css';
-// import UnderDevelopment from '../../../components/error/UnderDevelopment';
-
-// export default function ReportsPage() {
-//   const { t } = useTranslation('hr');
-//   const { applicants, trainees, interviews } = useData();
-//   const { toast } = useToast();
-
-//   const acceptanceRate = applicants.length ? Math.round((trainees.length / applicants.length) * 100) : 0;
-
-
-
-  
-
-//   return (
-//     <Card>
-//       <h4 className={styles.title}>{t('reports.title')}</h4>
-
-//       <div className={styles.grid}>
-//         <div className={`${styles.metric} ${styles.primary}`}>
-//           <p>{t('reports.acceptanceRate')}</p>
-//           <strong>{acceptanceRate}%</strong>
-//         </div>
-//         <div className={styles.metric}>
-//           <p>{t('reports.totalInterviews')}</p>
-//           <strong>{interviews.length}</strong>
-//         </div>
-//       </div>
-
-//       <Button variant="dark" icon={FileDown} onClick={() => toast(t('reports.exporting'), 'info')}>
-//         {t('reports.exportPdf')}
-//       </Button>
-//     </Card>
-//   );
-// }
-
-
-
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   FileText,
@@ -62,8 +18,7 @@ import Card from "../../../components/ui/Card";
 import styles from "./ReportsPage.module.css";
 
 
-import html2canvas from "html2canvas";
-import { jsPDF } from "jspdf";
+
 
 const REPORT_FIELDS = [
   { key: "total_applications", group: "applications" },
@@ -158,233 +113,83 @@ function createReportHtml(report, t, language) {
   `;
 }
 
-// async function downloadReportPdf(report, t, language) {
-//   const element = document.createElement("div");
-//   element.innerHTML = createReportHtml(report, t, language);
-
-//   element.style.cssText = `
-//     position: fixed;
-//     left: -10000px;
-//     top: 0;
-//     width: 180mm;
-//     padding: 8mm;
-//     background: #fff;
-//     color: #222;
-//     font-family: Arial, Tahoma, sans-serif;
-//     box-sizing: border-box;
-//   `;
-
-//   const style = document.createElement("style");
-
-//   style.textContent = `
-//     .pdf-report {
-//       direction: inherit;
-//       text-align: start;
-//       font-family: Arial, Tahoma, sans-serif;
-//       font-size: 12px;
-//       color: #222;
-//       overflow-wrap: anywhere;
-//     }
-
-//     .pdf-header {
-//       text-align: center;
-//       border-bottom: 3px solid #e60000;
-//       padding-bottom: 18px;
-//       margin-bottom: 22px;
-//     }
-
-//     .pdf-brand {
-//       color: #e60000;
-//       font-size: 19px;
-//       font-weight: bold;
-//       letter-spacing: 1px;
-//     }
-
-//     .pdf-header h1 {
-//       margin: 12px 0 6px;
-//       font-size: 23px;
-//     }
-
-//     .pdf-header p {
-//       color: #666;
-//       margin: 0;
-//       line-height: 1.8;
-//     }
-
-//     .pdf-meta {
-//       padding: 10px 14px;
-//       background: #f7f7f7;
-//       border-radius: 5px;
-//       margin-bottom: 20px;
-//     }
-
-//     .pdf-meta p {
-//       margin: 8px 0;
-//       line-height: 1.8;
-//     }
-
-//     .pdf-report table {
-//       width: 100%;
-//       border-collapse: collapse;
-//       margin-top: 16px;
-//     }
-
-//     .pdf-report thead {
-//       display: table-header-group;
-//     }
-
-//     .pdf-report tr {
-//       break-inside: avoid;
-//       page-break-inside: avoid;
-//     }
-
-//     .pdf-report th {
-//       background: #e60000;
-//       color: #fff;
-//       padding: 12px;
-//       text-align: start;
-//     }
-
-//     .pdf-report td {
-//       border: 1px solid #ddd;
-//       padding: 11px;
-//       text-align: start;
-//       line-height: 1.6;
-//     }
-
-//     .pdf-report tbody tr:nth-child(even) {
-//       background: #f8f8f8;
-//     }
-
-//     .pdf-report .number {
-//       text-align: center;
-//       direction: ltr;
-//     }
-
-//     .pdf-footer {
-//       margin-top: 28px;
-//       padding-top: 12px;
-//       border-top: 1px solid #ddd;
-//       text-align: center;
-//       color: #777;
-//       font-size: 10px;
-//       line-height: 1.8;
-//     }
-//   `;
-
-//   element.prepend(style);
-//   document.body.appendChild(element);
-
-//   try {
-//     await html2pdf()
-//       .set({
-//         margin: 8,
-//         filename: `TMS-Training-Report-${report.training_program?.id ?? "cycle"}.pdf`,
-//         image: { type: "jpeg", quality: 0.98 },
-//         html2canvas: {
-//           scale: 2,
-//           backgroundColor: "#ffffff",
-//           useCORS: true,
-//         },
-//         jsPDF: {
-//           unit: "mm",
-//           format: "a4",
-//           orientation: "portrait",
-//         },
-//         pagebreak: {
-//           mode: ["css", "legacy"],
-//         },
-//       })
-//       .from(element)
-//       .save();
-//   } finally {
-//     element.remove();
-//   }
-// }
-
-
-
 async function downloadReportPdf(report, t, language) {
-  const element = document.createElement("div");
-
-  element.innerHTML = createReportHtml(report, t, language);
-
-  const style = document.createElement("style");
-
-  style.textContent = `
-    .pdf-report {
-      width: 700px;
-      padding: 24px;
-      box-sizing: border-box;
-      background: #ffffff;
-      color: #222222;
-      font-family: Arial, Tahoma, sans-serif;
-      font-size: 14px;
-      line-height: 1.8;
-    }
-
-    .pdf-header {
-      text-align: center;
-      border-bottom: 3px solid #e60000;
-      padding-bottom: 18px;
-      margin-bottom: 22px;
-    }
-
-    .pdf-brand {
-      color: #e60000;
-      font-size: 20px;
-      font-weight: bold;
-    }
-
-    .pdf-report table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-    }
-
-    .pdf-report th {
-      background: #e60000;
-      color: #ffffff;
-      padding: 12px;
-    }
-
-    .pdf-report td {
-      border: 1px solid #dddddd;
-      padding: 12px;
-    }
-
-    .pdf-report .number {
-      text-align: center;
-    }
-
-    .pdf-footer {
-      margin-top: 24px;
-      padding-top: 12px;
-      border-top: 1px solid #dddddd;
-    }
-  `;
-
-  document.head.appendChild(style);
-
-  element.style.cssText = `
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 750px;
-    background: #ffffff;
-    z-index: 99999;
-    pointer-events: none;
-  `;
-
-  document.body.appendChild(element);
-
+  const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
+    import("html2canvas"), import("jspdf"),
+  ]);
+  const frame = document.createElement("iframe");
+  frame.title = "Report export";
+  frame.setAttribute("aria-hidden", "true");
+  frame.tabIndex = -1;
+  frame.style.cssText = "position:fixed;left:-10000px;top:0;width:750px;height:1500px;border:0;pointer-events:none;";
+  document.body.appendChild(frame);
   try {
-    // انتظر حتى يرسم المتصفح التقرير.
-    await new Promise((resolve) =>
-      requestAnimationFrame(() =>
-        requestAnimationFrame(resolve)
-      )
-    );
+    const exportDocument = frame.contentDocument;
+    exportDocument.open();
+    exportDocument.write('<!doctype html><html><head><meta charset="utf-8"></head><body style="margin:0"></body></html>');
+    exportDocument.close();
+    const element = exportDocument.createElement("div");
+    element.innerHTML = createReportHtml(report, t, language);
+
+    const style = exportDocument.createElement("style");
+
+    style.textContent = `
+      .pdf-report {
+        width: 700px;
+        padding: 24px;
+        box-sizing: border-box;
+        background: #ffffff;
+        color: #222222;
+        font-family: Arial, Tahoma, sans-serif;
+        font-size: 14px;
+        line-height: 1.8;
+      }
+
+      .pdf-header {
+        text-align: center;
+        border-bottom: 3px solid #e60000;
+        padding-bottom: 18px;
+        margin-bottom: 22px;
+      }
+
+      .pdf-brand {
+        color: #e60000;
+        font-size: 20px;
+        font-weight: bold;
+      }
+
+      .pdf-report table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+      }
+
+      .pdf-report th {
+        background: #e60000;
+        color: #ffffff;
+        padding: 12px;
+      }
+
+      .pdf-report td {
+        border: 1px solid #dddddd;
+        padding: 12px;
+      }
+
+      .pdf-report .number {
+        text-align: center;
+      }
+
+      .pdf-footer {
+        margin-top: 24px;
+        padding-top: 12px;
+        border-top: 1px solid #dddddd;
+      }
+    `;
+
+    exportDocument.head.appendChild(style);
+
+    exportDocument.body.appendChild(element);
+    await exportDocument.fonts.ready;
 
     const content = element.querySelector(".pdf-report");
 
@@ -395,26 +200,21 @@ async function downloadReportPdf(report, t, language) {
     const canvas = await html2canvas(content, {
       scale: 2,
       backgroundColor: "#ffffff",
-      logging: true,
+      logging: false,
       useCORS: true,
       width: content.scrollWidth,
       height: content.scrollHeight,
       windowWidth: Math.max(
-        document.documentElement.clientWidth,
+        exportDocument.documentElement.clientWidth,
         content.scrollWidth
       ),
       windowHeight: Math.max(
-        document.documentElement.clientHeight,
+        exportDocument.documentElement.clientHeight,
         content.scrollHeight
       ),
       scrollX: 0,
       scrollY: 0,
     });
-
-    // console.log("PDF canvas dimensions:", {
-    //   width: canvas.width,
-    //   height: canvas.height,
-    // });
 
     if (!canvas.width || !canvas.height) {
       throw new Error("Canvas has invalid dimensions");
@@ -465,8 +265,7 @@ async function downloadReportPdf(report, t, language) {
       `TMS-Training-Report-${report.training_program?.id ?? "cycle"}.pdf`
     );
   } finally {
-    element.remove();
-    style.remove();
+    frame.remove();
   }
 }
 
@@ -497,39 +296,47 @@ export default function ReportsPage() {
   const { t, i18n } = useTranslation("hr");
 
   const [report, setReport] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
+  const [error, setError] = useState(null);
+  const requestVersion = useRef(0);
 
   const language = i18n.resolvedLanguage || i18n.language || "ar";
   const isArabic = language.startsWith("ar");
 
-  const getReport = async () => {
-    if (loading) return;
-
+  const getReport = useCallback(async () => {
+    const version = ++requestVersion.current;
     setLoading(true);
-
+    setError(null);
     try {
-      const response = await getReportApi();
-      const data = response?.data ?? response;
-
-      if (
-        !data ||
-        typeof data !== "object" ||
-        !data.training_program ||
-        typeof data.total_applications !== "number"
-      ) {
+      const data = await getReportApi();
+      if (!data || !data.training_program || typeof data.total_applications !== "number") {
         throw new Error("Invalid report response");
       }
+      if (version === requestVersion.current) setReport(data);
+    } catch (err) {
+      if (version === requestVersion.current) setError({ message: err.response?.data?.message });
+    } finally {
+      if (version === requestVersion.current) setLoading(false);
+    }
+  }, []);
 
-      setReport(data);
+  useEffect(() => {
+    getReport();
+    return () => { requestVersion.current += 1; };
+  }, [getReport]);
 
-      await downloadReportPdf(data, t, language);
-
+  const download = async () => {
+    if (!report || loading || exporting) return;
+    setExporting(true);
+    try {
+      await downloadReportPdf(report, t, language);
       toast.success(t("reports.downloadSuccess"));
-    } catch (error) {
-      console.error("Failed to generate report:", error);
+    } catch (err) {
+      console.error("Failed to export report:", err);
       toast.error(t("reports.downloadError"));
     } finally {
-      setLoading(false);
+      setExporting(false);
     }
   };
 
@@ -547,21 +354,24 @@ export default function ReportsPage() {
           </div>
         </div>
 
-        <Button
-          onClick={getReport}
-          disabled={loading}
-          loading={loading}
-          icon={loading ? LoaderCircle : Download}
-        >
-          {loading
-            ? t("reports.generating")
-            : report
-              ? t("reports.refresh")
-              : t("reports.generate")}
-        </Button>
+        <div className={styles.actions}>
+          <Button
+            onClick={getReport}
+            disabled={loading || exporting}
+            loading={loading}
+            icon={FileText}
+          >
+            {loading ? t("reports.generating") : t("reports.refresh")}
+          </Button>
+          <Button onClick={download} disabled={!report || loading || exporting} loading={exporting} icon={Download}>
+            {exporting ? t("reports.exporting") : t("reports.exportPdf")}
+          </Button>
+        </div>
       </header>
 
-      {!report && !loading && (
+      {error && <p role="alert">{error.message || t("reports.loadError")}</p>}
+
+      {!report && !loading && !error && (
         <Card>
           <div className={styles.emptyState}>
             <FileText size={42} strokeWidth={1.5} />
