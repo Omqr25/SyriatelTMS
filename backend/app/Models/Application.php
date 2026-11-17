@@ -26,6 +26,16 @@ class Application extends Model
     ];
 
 
+    public function latestAssignment()
+    {
+        return $this->hasOne(ApplicationAssign::class)->latestOfMany();
+    }
+
+    public function latestInterview()
+    {
+        return $this->hasOne(Interview::class)->latestOfMany();
+    }
+
     public function interviews()
     {
         return $this->hasMany(Interview::class);

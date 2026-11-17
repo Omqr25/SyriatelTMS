@@ -1,0 +1,22 @@
+import React from 'react';
+import { render, screen, cleanup, fireEvent } from '@testing-library/react';
+import { afterEach, expect, it, vi } from 'vitest';
+import ApplicantsPage from './ApplicantsPage';
+import useApplicants from '../../../hooks/HrHooks/useApplicants';
+vi.mock('../../../hooks/HrHooks/useApplicants');
+vi.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key) => key, i18n: { dir: () => "ltr" } }) }));
+vi.mock('../components/ApplicantDetailsModal', () => ({ default: () => null }));
+vi.mock('../components/AssignDepartmentModal', () => ({ default: () => null }));
+vi.mock('../components/ScheduleInterviewModal', () => ({ default: () => null }));
+vi.mock('../components/StatusBadge', () => ({ default: () => null }));
+afterEach(cleanup);
+it.each(['pending', 'assigned', 'qualified', 'for interview', 'interviewed', 'accepted', 'active', 'completed', 'fired', 'rejected'])('restricts rejection for %s and opens details using the API id', (status) => {
+  const loadApplicant = vi.fn().mockResolvedValue(null);
+  const reject = vi.fn();
+  useApplicants.mockReturnValue({ applicants: [{ id: 42, full_name: 'Alice', email: 'a@example.com', gpa: 80, status }], filters: {}, pagination: { totalPages: 1 }, page: 1, loadApplicant, reject });
+  render(<ApplicantsPage />);
+  expect(!!screen.queryByRole('button', { name: 'applicants.reject' })).toBe(['pending', 'assigned', 'qualified', 'for interview', 'interviewed'].includes(status));
+  fireEvent.click(screen.getByRole('button', { name: 'Alice' }));
+  expect(loadApplicant).toHaveBeenCalledWith(42);
+  expect(reject).not.toHaveBeenCalled();
+});

@@ -31,6 +31,10 @@
     "noUpcoming": "No interviews scheduled"
   },
   "applicants": {
+    "confirmReject": "Reject the application from {{name}}? This ends the recruitment process.",
+    "activeTraineeHelp": "This applicant is an active trainee. Manage dismissal, with a recorded reason, on the trainees page.",
+    "acceptedHelp": "This applicant has been accepted. Activate their trainee account on the interviews page.",
+
     "howHeard": "How did you hear about us?",
     "notSpecified": "Not specified",
     "howHeardOptions": {
@@ -156,6 +160,7 @@
   },
 
   "trainees": {
+    "dismiss": "Dismiss trainee",
     "traineeId": "Trainee ID",
     "startDate": "Start date",
     "empty": "No trainees yet"

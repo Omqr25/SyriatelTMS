@@ -7,14 +7,15 @@ import form from "../../../components/ui/Form.module.css";
 import { useState } from "react";
 import { createInterviewApi } from "../../../Api/HrApi/interviewApi";
 import { toast } from "react-toastify";
-export default function ScheduleInterviewModal({ applicant, onClose ,update }) {
+export default function ScheduleInterviewModal({ applicant, onClose, update }) {
   console.log("applicants", applicant);
   const { t } = useTranslation("hr");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
-    setLoading(true);
     e.preventDefault();
+    if (loading) return;
+    setLoading(true);
     try {
       const formData = new FormData(e.currentTarget);
       const body = {
@@ -28,9 +29,9 @@ export default function ScheduleInterviewModal({ applicant, onClose ,update }) {
       // console.log(data)
       toast.success(data.message || "success");
       if (update) {
-        await update(true)
+        await update(true);
       }
-       onClose();
+      onClose();
     } catch (error) {
       const message =
         error.response?.data?.message || error.message || "error in interview";
@@ -38,31 +39,31 @@ export default function ScheduleInterviewModal({ applicant, onClose ,update }) {
       toast.error(Array.isArray(message) ? message.join("، ") : message);
     } finally {
       setLoading(false);
-     
     }
   };
 
   // console.log("ScheduleInterviewModal",applicant.supervisors)
   return (
     <Modal
-      title={t("applicants.interviewTitle", { name: applicant.name })}
-      onClose={onClose}
+      title={t("applicants.interviewTitle", {
+        name: applicant.full_name || applicant.name,
+      })}
+      onClose={() => !loading && onClose()}
     >
       <form className={form.form} onSubmit={handleSubmit}>
         <Field label={t("applicants.supervisorName")}>
-          <Select
-            name="trainer_id"
-            required
-            defaultValue={applicant.supervisorId}
-          >
-            <option
-              key={
-                applicant?.supervisors?.name || applicant?.supervisors[0]?.name
-              }
-              value={applicant.supervisors.id || applicant.supervisors[0].id}
-            >
-              {applicant.supervisors.name || applicant.supervisors[0].name}
-            </option>
+          <Select name="trainer_id" required defaultValue="">
+            <option value="">{t("applicants.chooseSupervisor")}</option>
+            {(Array.isArray(applicant.supervisors)
+              ? applicant.supervisors
+              : applicant.supervisors
+                ? [applicant.supervisors]
+                : []
+            ).map((supervisor) => (
+              <option key={supervisor.id} value={supervisor.id}>
+                {supervisor.name}
+              </option>
+            ))}
           </Select>
         </Field>
         <div className={form.row}>

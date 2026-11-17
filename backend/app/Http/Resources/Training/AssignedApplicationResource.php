@@ -19,7 +19,7 @@ class AssignedApplicationResource extends JsonResource
             'id'=>$this->id,
           'name'=>$this->full_name,
           'status'=>$this->status,
-            'supervisors' =>TrainerResource::make($this->assigns()->latest()->first()?->trainer),
+            'supervisors' =>TrainerResource::make($this->latestAssignment?->trainer),
         ];
     }
 }

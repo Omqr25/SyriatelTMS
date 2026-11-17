@@ -19,11 +19,11 @@ class InterviewApplicationResource extends JsonResource
           'id'=>$this->id,
           'name'=>$this->full_name,
           'status'=>$this->status,
-          'supervisor'=>TrainerResource::make($this->assigns()->latest()->first()?->trainer),
-            'time'=>$this->interviews()->latest()->first()?->time->format('y-m-d H:i'),
-            'location'=>$this->interviews()->latest()->first()?->location,
-            'evaluation' => $this->interviews()->latest()->first()?->evaluation,
-            'interview_note' => $this->interviews()->latest()->first()?->interview_note,
+          'supervisor'=>TrainerResource::make($this->latestAssignment?->trainer),
+            'time'=>$this->latestInterview?->time->format('y-m-d H:i'),
+            'location'=>$this->latestInterview?->location,
+            'evaluation' => $this->latestInterview?->evaluation,
+            'interview_note' => $this->latestInterview?->interview_note,
         ];
     }
 }

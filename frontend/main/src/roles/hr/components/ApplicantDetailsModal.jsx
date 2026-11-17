@@ -13,7 +13,6 @@ export default function ApplicantDetailsModal({
 }) {
   const { t } = useTranslation("hr");
   const c = (key) => t(key, { ns: "common" });
-  console.log("Applicant", applicant);
   return (
     <Modal
       title={t("applicants.detailsTitle", { name: applicant.full_name })}
@@ -109,7 +108,6 @@ export default function ApplicantDetailsModal({
         ))} */}
         <a href={applicant.cv} rel="noopener noreferrer" target="_blank">
 
-        {console.log("cv:",applicant.cv)}
           <span className={styles.file}>
             <FileText size={14} /> {c("label.cv")}
           </span>
@@ -135,10 +133,12 @@ export default function ApplicantDetailsModal({
         </a>
       </div>
 
+      {applicant.status === "active" && <p>{t("applicants.activeTraineeHelp")} <Link to="/hr/trainees">{t("nav.trainees")}</Link></p>}
+      {applicant.status === "accepted" && <p>{t("applicants.acceptedHelp")} <Link to="/hr/interviews">{t("nav.interviews")}</Link></p>}
       <div className={styles.actions}>
         {applicant.status=="pending" && <Button onClick={onAssign}>{t("applicants.assignToDept")}</Button>}
 
-      {applicant.status === "accepted" && (
+      {applicant.status === "qualified" && (
   <Button variant="dark" onClick={onSchedule}>
     {t("applicants.scheduleInterview")}
   </Button>

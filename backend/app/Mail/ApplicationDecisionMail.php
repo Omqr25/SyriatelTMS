@@ -18,17 +18,20 @@ class ApplicationDecisionMail extends Mailable
     /**
      * Create a new message instance.
      */
+    public bool $accepted;
+
     public function __construct(
         public Application $application
-    ) {}
+    ) {
+        $this->accepted = $application->status === ApplicationStatus::ACCEPTED;
+    }
 
     /**
      * Get the message envelope.
      */
     public function envelope(): Envelope
     {
-        $accepted = $this->application->status
-            === ApplicationStatus::ACCEPTED;
+        $accepted = $this->accepted;
 
         return new Envelope(
             subject: $accepted
@@ -46,8 +49,7 @@ class ApplicationDecisionMail extends Mailable
             view: 'emails.application-decision',
             with: [
                 'application' => $this->application,
-                'accepted' => $this->application->status
-                    === ApplicationStatus::ACCEPTED,
+                'accepted' => $this->accepted,
             ],
         );
     }
@@ -65,8 +67,7 @@ class ApplicationDecisionMail extends Mailable
 
     public function build(): static
     {
-        $accepted = $this->application->status
-            === \App\Enums\ApplicationStatus::ACCEPTED;
+        $accepted = $this->accepted;
 
         return $this
             ->subject(
