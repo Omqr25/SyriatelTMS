@@ -430,9 +430,9 @@ class ApplicationService
                         : ApplicationStatus::REJECTED,
             ]);
             $application->fresh();
-            Mail::to($application->email)->queue(
-                new ApplicationDecisionMail($application)->afterCommit(),
-            );
+            $decisionMail = new ApplicationDecisionMail($application);
+            $decisionMail->afterCommit();
+            Mail::to($application->email)->queue($decisionMail);
 
             return $application->load(self::RESOURCE_RELATIONS);
         });
