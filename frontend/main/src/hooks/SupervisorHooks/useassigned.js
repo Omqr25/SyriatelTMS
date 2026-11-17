@@ -130,6 +130,7 @@ export default function useAssigned() {
     try {
       const data = await createEvaluationApi(id, body);
       toast.success(data.message);
+      return data;
     } catch (error) {
       console.log(error);
       setError(error);

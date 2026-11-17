@@ -268,6 +268,7 @@
   },
   "evaluation": {
     "evaluation": "Evaluation",
+    "evaluated": "Evaluated",
     "createTitle": "Create Trainee Evaluation",
     "editTitle": "Edit Trainee Evaluation",
     "subtitle": "Evaluate the trainee's performance and record feedback on their progress.",
