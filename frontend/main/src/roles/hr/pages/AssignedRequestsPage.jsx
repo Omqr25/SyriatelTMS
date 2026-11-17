@@ -1,45 +1,47 @@
 import { useTranslation } from "react-i18next";
+import { useSearchParams } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
 import Button from "../../../components/ui/Button";
 import Table from "../../../components/ui/Table";
 import styles from "./Pages.module.css";
 import useAssign from "../../../hooks/HrHooks/useAssigned";
 import Loading from "../../../components/ui/Loading";
 import { toast } from "react-toastify";
-import { useEffect, useState } from "react";
 import ScheduleInterviewModal from "../components/ScheduleInterviewModal";
 
 export default function AssignedRequestsPage() {
   const { t } = useTranslation("hr");
-
-  const [applicant, setApplicant] = useState([]);
-  const [actionLoading, setActionLoading] = useState("");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const scheduleId = searchParams.get("schedule");
+  const consumed = useRef(null);
+  const [applicant, setApplicant] = useState(null);
   const { loading, assigned, error, getAssigned } = useAssign();
-  const [modal, setModal] = useState(null); // { type: 'details' | 'assign' | 'schedule', applicant }
 
-  const closeModal = () => {
-    setModal(null);
-  };
+  useEffect(() => {
+    getAssigned();
+  }, [getAssigned]);
 
-  const rows = assigned;
+  useEffect(() => {
+    if (error) {
+      const message = error.response?.data?.message || error.message;
+      toast.error(Array.isArray(message) ? message.join("، ") : message);
+    }
+  }, [error]);
 
-  const handleScheduleInterview = async (a) => {
-    setActionLoading(a.id);
-    setApplicant(a);
-    setActionLoading(null);
-    if (!a) {
+  useEffect(() => {
+    if (!scheduleId) {
+      consumed.current = null;
       return;
     }
-    setModal({
-      type: "schedule",
-    });
-
-    if (error) {
-      console.log("error:", error);
-      const message =
-        error.response?.data?.message || error.message || "error in interview";
-      toast.error(message);
-    }
-  };
+    if (loading || error || consumed.current === scheduleId) return;
+    consumed.current = scheduleId;
+    const selected = assigned.find((row) => String(row.id) === scheduleId);
+    const next = new URLSearchParams(searchParams);
+    next.delete("schedule");
+    setSearchParams(next, { replace: true });
+    if (selected?.status === "qualified") setApplicant(selected);
+    else toast.error(t("assigned.scheduleUnavailable"));
+  }, [scheduleId, loading, error, assigned, searchParams, setSearchParams, t]);
 
   const columns = [
     {
@@ -57,7 +59,7 @@ export default function AssignedRequestsPage() {
       header: t("assigned.supervisor"),
       render: (a) => (
         <span className={styles.accent}>
-          {a.supervisors.name ?? t("assigned.unassigned")}
+          {a.supervisors?.name ?? t("assigned.unassigned")}
         </span>
       ),
     },
@@ -66,31 +68,26 @@ export default function AssignedRequestsPage() {
       header: t("label.actions", { ns: "common" }),
       render: (a) =>
         a.status === "qualified" && (
-          <Button
-            size="sm"
-            loading={a.id == actionLoading}
-            onClick={() => handleScheduleInterview(a)}
-          >
+          <Button size="sm" onClick={() => setApplicant(a)}>
             {t("applicants.scheduleInterview")}
           </Button>
         ),
     },
   ];
 
-  useEffect(() => {
-    getAssigned();
-  }, []);
-
   return loading ? (
     <Loading />
   ) : (
     <>
-      <Table columns={columns} rows={rows} emptyText={t("assigned.empty")} />
-
-      {modal?.type === "schedule" && applicant && (
+      <Table
+        columns={columns}
+        rows={assigned}
+        emptyText={t("assigned.empty")}
+      />
+      {applicant && (
         <ScheduleInterviewModal
           applicant={applicant}
-          onClose={closeModal}
+          onClose={() => setApplicant(null)}
           update={getAssigned}
         />
       )}
