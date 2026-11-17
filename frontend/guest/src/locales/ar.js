@@ -211,10 +211,10 @@ const ar = {
     group: "المجموعة الحالية",
     sourceOptions: [
       { value: "University Workshop", label: "ورشة جامعية" },
-      { value: "Social Media", label: "وسائل التواصل الاجتماعي" },
+      { value: "social media", label: "وسائل التواصل الاجتماعي" },
       { value: "Previous Internship", label: "تدريب سابق" },
       { value: "Hi-Tech Exhibition", label: "معرض التقانة Hi-Tech" },
-      { value: "Other", label: "أخرى" },
+      { value: "other", label: "أخرى" },
     ],
     placeholders: {
       name: "أدخل اسمك الكامل",

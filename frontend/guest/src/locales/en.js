@@ -211,10 +211,10 @@ const en = {
 
     sourceOptions: [
       { value: "University Workshop", label: "University Workshop" },
-      { value: "Social Media", label: "Social Media" },
+      { value: "social media", label: "Social Media" },
       { value: "Previous Internship", label: "Previous Internship" },
       { value: "Hi-Tech Exhibition", label: "Hi-Tech Exhibition" },
-      { value: "Other", label: "Other" },
+      { value: "other", label: "Other" },
     ],
     group: "Active Group",
     placeholders: {
