@@ -221,7 +221,7 @@ Route::prefix('v1')->group(function () {
             Route::prefix('task')->group(function () {
                 Route::get('{milestone_id}/tasks', [TaskController::class, 'findAll']);
                 Route::get('tasks/{task}', [TaskController::class, 'find']);
-                Route::get('{evidence_id}/download', [TaskController::class, 'downloadEvidence'])->name('evidences.download');
+                Route::get('{evidence_id}/download/{fileIndex?}', [TaskController::class, 'downloadEvidence'])->whereNumber(['evidence_id', 'fileIndex'])->name('evidences.download');
             });
         });
 

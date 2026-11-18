@@ -15,6 +15,13 @@ class Evidence extends Model
 
     protected $guarded=['id'];
 
+    protected $casts = ['files' => 'array'];
+
+    public function submittedFiles(): array
+    {
+        return $this->files ?? [['path' => $this->evidence, 'name' => null]];
+    }
+
     public function task()
     {
         return $this->belongsTo(Task::class);

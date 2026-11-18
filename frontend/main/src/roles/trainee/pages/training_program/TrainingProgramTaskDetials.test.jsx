@@ -33,7 +33,7 @@ describe('trainee task workspace', () => {
     expect(api.get).toHaveBeenCalledTimes(2);
   });
 
-  it('validates PDFs, submits for review, and retains the revision feedback', async () => {
+  it('validates a mixed upload, submits for review, and retains revision feedback', async () => {
     const old = { id: 1, submitted_at: '2026-11-17T10:00:00Z', feedback: { status: 'need fix', feedback: 'Add validation tests.' } };
     task = { ...task, status: 'need fix', can_start: false, can_submit: true, evidences: [old] };
     submitEvidence.mockImplementation(async () => { task = { ...task, status: 'for review', can_submit: false,
@@ -44,12 +44,16 @@ describe('trainee task workspace', () => {
     expect(await screen.findByRole('alert')).toBeTruthy();
     expect(screen.getByRole('button', { name: 'resubmit' }).disabled).toBe(true);
     const pdf = new File(['%PDF-1.4'], 'corrected.pdf', { type: 'application/pdf' });
-    fireEvent.change(input, { target: { files: [pdf] } });
+    const picture = new File(['png'], 'screenshot.png', { type: 'image/png' });
+    fireEvent.change(input, { target: { files: [pdf, picture, pdf, picture] } });
+    expect(await screen.findByText('tooManyFiles')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'resubmit' }).disabled).toBe(true);
+    fireEvent.change(input, { target: { files: [pdf, picture] } });
     expect(screen.getByRole('button', { name: 'resubmit' }).disabled).toBe(false);
     // jsdom does not populate a native file input value from its FileList.
     fireEvent.submit(input.closest('form'));
     await screen.findByText('submission 2');
-    expect(submitEvidence).toHaveBeenCalledWith('7', pdf);
+    expect(submitEvidence).toHaveBeenCalledWith('7', [pdf, picture]);
     expect(screen.getByText('Add validation tests.')).toBeTruthy();
     expect(screen.getAllByRole('button', { name: 'download' })).toHaveLength(2);
     expect(screen.queryByLabelText('choose')).toBeNull();

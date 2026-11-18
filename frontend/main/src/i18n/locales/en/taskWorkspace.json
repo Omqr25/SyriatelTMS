@@ -28,11 +28,11 @@
   "overdue": "The deadline has passed. Starting and uploading are closed. Contact your supervisor.",
   "startHint": "Start when you are ready to work. Your start time will be recorded.",
   "start": "Start task",
-  "revisionHint": "Review the feedback below, then upload your corrected PDF. Earlier submissions will be preserved.",
-  "submitHint": "Finished the work? Upload PDF evidence to send the task for review. Your supervisor will confirm completion.",
-  "choose": "Choose PDF evidence",
-  "fileHint": "PDF only · Maximum 10 MB",
-  "invalidFile": "Choose a PDF file no larger than 10 MB.",
+  "revisionHint": "Review the feedback, then upload revised evidence. Earlier submissions will be kept.",
+  "submitHint": "Upload your evidence to send the task to your supervisor for review.",
+  "choose": "Choose evidence files",
+  "fileHint": "Up to 3 PDF, JPEG, PNG, WebP or GIF files. Maximum 10 MB each.",
+  "invalidFile": "Choose a supported PDF or image file no larger than 10 MB.",
   "submit": "Submit for review",
   "resubmit": "Resubmit corrected evidence",
   "done": "Your supervisor approved this task. Well done.",
@@ -61,5 +61,6 @@
   "subtaskPending": "Pending subtask",
   "subtaskTitle": "Subtask title",
   "addSubtask": "Add subtask",
-  "removeSubtask": "Remove"
+  "removeSubtask": "Remove",
+  "tooManyFiles": "Choose up to 3 files per submission."
 }

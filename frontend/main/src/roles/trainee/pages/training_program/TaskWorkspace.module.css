@@ -292,3 +292,14 @@
   color: #237446;
   flex-shrink: 0;
 }
+
+.evidenceFiles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.evidenceFiles button {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}

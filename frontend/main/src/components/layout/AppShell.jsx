@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { NavLink, Outlet, useLocation } from 'react-router-dom';
+import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { BellRing, LogOut, Menu } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
@@ -36,7 +36,14 @@ export default function AppShell({ module }) {
 
       <aside className={`${styles.sidebar} ${menuOpen ? styles.sidebarOpen : ''}`}>
         <div className={styles.brand}>
-          <Logo height={50} />
+          <Link
+            className={styles.logoLink}
+            to={`${module.basePath}/dashboard`}
+            aria-label={`${t('appTitle')} · ${t('hr:nav.dashboard')}`}
+            onClick={() => setMenuOpen(false)}
+          >
+            <Logo height={50} />
+          </Link>
           <span className={styles.brandName}>{t('appTitle')}</span>
         </div>
 

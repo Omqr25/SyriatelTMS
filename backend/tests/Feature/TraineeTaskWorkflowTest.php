@@ -64,6 +64,45 @@ class TraineeTaskWorkflowTest extends TestCase
         $this->assertDatabaseCount('evidences', 2); $this->assertDatabaseCount('feedbacks', 2);
     }
 
+    public function test_mixed_evidence_submits_as_one_review_and_downloads_each_file(): void
+    {
+        $this->postJson($this->url('/start'))->assertOk();
+        $png = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jR8sAAAAASUVORK5CYII=');
+        $file = fn () => UploadedFile::fake()->createWithContent('screenshot.png', $png);
+        $pdf = fn () => UploadedFile::fake()->create('report.pdf', 10, 'application/pdf');
+        $url = $this->url('/evidence');
+
+        $this->postJson($url, ['evidences' => [$pdf(), $file(), $file(), $file()]])->assertUnprocessable();
+        $this->postJson($url, ['evidences' => [$file(), UploadedFile::fake()->create('data.txt', 1)]])->assertUnprocessable();
+        $this->assertDatabaseCount('evidences', 0);
+
+        $id = $this->postJson($url, ['evidences' => [$pdf(), $file(), $file()]])->assertOk()
+            ->assertJsonCount(3, 'data.files')->assertJsonPath('data.files.1.name', 'screenshot.png')
+            ->assertJsonMissingPath('data.files.1.path')->json('data.id');
+        $this->assertDatabaseCount('evidences', 1);
+        $this->assertSame(TaskStatus::ForReview, $this->task->fresh()->status);
+
+        $this->actingAs($this->trainer->user, 'api');
+        $download = '/api/v1/task/'.$id.'/download';
+        $this->get($download)->assertOk();
+        $this->get($download.'/1')->assertOk()->assertHeader('Content-Type', 'image/png');
+        $this->get($download.'/2')->assertOk();
+        $this->get($download.'/3')->assertNotFound();
+        $this->postJson($this->url('/feedback'), [
+            'evidence_id' => $id, 'status' => 'need fix', 'feedback' => 'Please revise both files.',
+        ])->assertOk();
+
+        $this->actingAs($this->trainee->user, 'api');
+        $this->postJson($url, ['evidences' => [$file()]])->assertOk()->assertJsonCount(1, 'data.files');
+        $this->getJson($this->url())->assertOk()->assertJsonCount(2, 'data.task.evidences')
+            ->assertJsonCount(3, 'data.task.evidences.0.files')
+            ->assertJsonPath('data.task.evidences.0.feedback.feedback', 'Please revise both files.');
+
+        // Submissions saved before the migration still use the original path.
+        Evidence::findOrFail($id)->update(['files' => null]);
+        $this->get($download)->assertOk();
+    }
+
     public function test_team_visibility_does_not_allow_mutations_or_private_feedback(): void
     {
         $this->task->update(['status' => TaskStatus::IN_PROGRESS]); $id=$this->upload()->assertOk()->json('data.id');
