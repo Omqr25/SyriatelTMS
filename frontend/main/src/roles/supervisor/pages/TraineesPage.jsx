@@ -7,9 +7,7 @@ import Loading from "../../../components/ui/Loading";
 import { useEffect, useState } from "react";
 import useAssigned from "../../../hooks/SupervisorHooks/useassigned";
 import EvaluationModal from "../components/EvaluationModal";
-import { Eye } from "lucide-react";
 import EvaluationDetailsModal from "../../hr/components/EvaluationDetailsModal";
-import evaluationStyles from "./TraineesPage.module.css";
 export default function TraineesPage() {
   const { t } = useTranslation("hr");
 
@@ -47,23 +45,23 @@ export default function TraineesPage() {
       header: t("interviews.supervisor"),
       render: (tr) => tr.supervisor,
     },
-      {
+    {
+      key: "score",
+      header: t("evaluation.score"),
+      render: (tr) => <bdi>{tr.evaluation?.score ?? "-"}</bdi>,
+    },
+    {
       key: "action",
       header: t("label.actions", { ns: "common" }),
       render: (tr) => tr.evaluation ? (
-        <div className={evaluationStyles.evaluation}>
-          <strong className={styles.strong}>
-            <bdi>{tr.evaluation.score} / 100</bdi>
-          </strong>
-          <Button
-            size="sm"
-            variant="secondary"
-            icon={Eye}
-            aria-label={`${t("action.viewDetails", { ns: "common" })}: ${tr.name}`}
-            title={t("action.viewDetails", { ns: "common" })}
-            onClick={() => setSelectedEvaluation(tr.evaluation)}
-          />
-        </div>
+        <Button
+          size="sm"
+          variant="secondary"
+          aria-label={`${t("action.viewDetails", { ns: "common" })}: ${tr.name}`}
+          onClick={() => setSelectedEvaluation(tr.evaluation)}
+        >
+          {t("action.viewDetails", { ns: "common" })}
+        </Button>
       ) : (
         <Button size="sm" onClick={() => handelCreateEvaluation(tr.id)}>
           {t("evaluation.evaluation")}
