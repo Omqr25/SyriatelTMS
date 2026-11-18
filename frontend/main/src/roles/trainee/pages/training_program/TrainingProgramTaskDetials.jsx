@@ -82,7 +82,9 @@ export default function TaskDetailsPage() {
     } catch (err) {
       const data = err.response?.data;
       setError(
-        data?.errors
+        err.response?.status === 413
+          ? t("uploadTooLarge")
+          : data?.errors
           ? Object.values(data.errors).flat().join(" ")
           : data?.message || t("failed"),
       );
@@ -341,34 +343,48 @@ export default function TaskDetailsPage() {
                   <strong>{t("choose")}</strong>
                   <span>{t("fileHint")}</span>
                   <input
-                    key={history.length}
                     aria-label={t("choose")}
                     type="file"
                     accept=".pdf,.jpg,.jpeg,.png,.webp,.gif"
                     multiple
-                    required
                     disabled={busy}
                     onChange={(event) => {
                       const selected = Array.from(event.target.files || []);
-                      const invalid = selected.some(file =>
+                      event.target.value = "";
+                      if (files.length + selected.length > 3) {
+                        setError(t("tooManyFiles"));
+                        return;
+                      }
+                      if (selected.some(file =>
                         file.size > 10 * 1024 * 1024 ||
                         !/\.(pdf|jpe?g|png|webp|gif)$/i.test(file.name),
-                      );
-                      setError("");
-                      if (selected.length > 3 || invalid) {
-                        setFiles([]);
-                        setError(t(selected.length > 3 ? "tooManyFiles" : "invalidFile"));
-                        event.target.value = "";
-                      } else {
-                        setFiles(selected);
+                      )) {
+                        setError(t("invalidFile"));
+                        return;
                       }
+                      setError("");
+                      setFiles([...files, ...selected]);
                     }}
                   />
                 </label>
                 {files.length > 0 && (
                   <ul className={styles.filename}>
                     {files.map((file, index) => (
-                      <li key={index}>{file.name} · {(file.size / 1024 / 1024).toFixed(2)} MB</li>
+                      <li key={index}>
+                        <span>{file.name} · {(file.size / 1024 / 1024).toFixed(2)} MB</span>
+                        <Button
+                          size="sm"
+                          variant="soft"
+                          aria-label={t("removeFile", { name: file.name })}
+                          disabled={busy}
+                          onClick={() => {
+                            setFiles(files.filter((_, position) => position !== index));
+                            setError("");
+                          }}
+                        >
+                          {t("remove")}
+                        </Button>
+                      </li>
                     ))}
                   </ul>
                 )}

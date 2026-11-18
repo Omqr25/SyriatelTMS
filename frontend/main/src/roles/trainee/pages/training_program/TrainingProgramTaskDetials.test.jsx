@@ -48,7 +48,10 @@ describe('trainee task workspace', () => {
     fireEvent.change(input, { target: { files: [pdf, picture, pdf, picture] } });
     expect(await screen.findByText('tooManyFiles')).toBeTruthy();
     expect(screen.getByRole('button', { name: 'resubmit' }).disabled).toBe(true);
-    fireEvent.change(input, { target: { files: [pdf, picture] } });
+    fireEvent.change(input, { target: { files: [pdf] } });
+    fireEvent.change(input, { target: { files: [picture] } });
+    expect(screen.getByText(/corrected.pdf/)).toBeTruthy();
+    expect(screen.getByText(/screenshot.png/)).toBeTruthy();
     expect(screen.getByRole('button', { name: 'resubmit' }).disabled).toBe(false);
     // jsdom does not populate a native file input value from its FileList.
     fireEvent.submit(input.closest('form'));

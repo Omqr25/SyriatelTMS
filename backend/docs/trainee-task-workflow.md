@@ -32,6 +32,10 @@ php artisan queue:restart
 
 The migration adds nullable `tasks.subtasks` JSON; existing tasks need no backfill. Continue running the configured queue worker and Laravel scheduler (`schedule:run` every minute, or `php artisan schedule:work` locally). The scheduler now also updates overdue tasks. Configure Firebase/device tokens for browser push; in-app notifications are stored independently. PHP/web-server upload limits must allow up to 30 MB plus multipart overhead per request.
 
+For local development, start the backend with `composer serve` from the `backend` directory. It runs at `http://127.0.0.1:8000` with upload limits that accommodate three attachments. If you use `php artisan serve` directly, run `php --ini` and set `upload_max_filesize = 50M`, `post_max_size = 50M`, and `max_file_uploads = 20` in the loaded PHP configuration, then restart the server. Docker users should rebuild the web server after the Nginx upload limit changes.
+
+The app downloads evidence through an authenticated JSON response and saves the file in the browser. This avoids handing an attachment response to download managers during an API request.
+
 From `frontend/main`:
 
 ```sh

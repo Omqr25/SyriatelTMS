@@ -31,4 +31,11 @@ class AddEvidenceRequest extends FormRequest
             'evidences.*' => ['required', ...$fileRules],
         ];
     }
+    public function messages(): array
+    {
+        return [
+            'evidence.uploaded' => __('task.evidence_upload_failed'),
+            'evidences.*.uploaded' => __('task.evidence_upload_failed'),
+        ];
+    }
 }
