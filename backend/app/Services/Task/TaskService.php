@@ -4,9 +4,13 @@ namespace App\Services\Task;
 
 use App\Enums\TaskStatus;
 use App\Enums\UserRole;
+use App\Enums\TraineeStatus;
+use App\Enums\UserStatus;
+use App\Models\Program;
+use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Carbon;
 use App\Exceptions\ErrorException;
 use App\Helpers\ApiCode;
-use App\Jobs\MarkTaskAsOverdueJob;
 use App\Models\Evidence;
 use App\Models\Feedback;
 use App\Models\Milestone;
@@ -14,10 +18,8 @@ use App\Models\Notification;
 use App\Models\Task;
 use App\Models\Trainee;
 use App\Models\User;
-use App\Notifications\TmsPushNotification;
 use App\Notifications\TaskEvidenceSubmittedNotification;
 use App\Services\File\FileStorageService;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
@@ -37,6 +39,8 @@ class TaskService
         $milestone=$this->findMilestone($milestone_id);
         Gate::forUser(auth('api')->user())->authorize('viewMilestone',  $milestone );
         return $milestone->tasks()
+            ->when((int) auth('api')->user()->trainer?->id !== (int) $milestone->program->trainer_id,
+                fn ($query) => $query->where('status', '!=', TaskStatus::DRAFT->value))
             ->with(['trainee', 'attachments'])
             ->orderByDesc('created_at')
             ->get();
@@ -74,83 +78,154 @@ class TaskService
         return $task;
     }
 
-    public function store(int $milestone_id, array $data)
+    public function store(int $milestoneId, array $data)
     {
-            $milestone=$this->findMilestone($milestone_id);
-            Gate::forUser(auth('api')->user())->authorize('viewMilestone', [Task::class, $milestone]);
-            return DB::transaction(function () use ($milestone, $data) {
+        $user = auth('api')->user();
+        $milestone = $this->findMilestone($milestoneId);
 
-                $trainee = Trainee::find($data['trainee_id']);
-                if (!$trainee) {
-                    throw new ErrorException(__('trainee.not_found'), ApiCode::NOT_FOUND);
-                }
-                $isTrainee = $trainee->user->roles->contains(fn ($role)   => $role->role->value === UserRole::TRAINEE->value);
-                if (!$isTrainee) {
-                    throw new ErrorException (__('trainee.not_a_trainee', ['id' => $trainee->id]));
-                }
-                if ($trainee->department_id != $milestone->program->department_id || $trainee->trainer_id != $milestone->program->trainer_id) {
-                    throw new ErrorException (__('trainee.trainee_not_in_team'));
-                }
-    //            dd($milestone->program->training_program_id);
-                if ($trainee->application->training_program_id != $milestone->program->training_program_id) {
-                    throw new ErrorException (__('trainee.trainee_not_in_training_program'));
-                }
-                $data['status'] = TaskStatus::PENDING->value;
-                $data['priority'] = $data['priority'] ?? 5;
-                $task = $milestone->tasks()->create($data);
-
-                $task->attachments()->createMany(collect($data['attachments'] ?? [])
-                    ->map(fn (string $path) => ['path' => $path,])->all());
-                MarkTaskAsOverdueJob::dispatch($task)->delay($task->deadline);
-                $notification = Notification::create([
-                    'title' => 'New Task',
-                    'description' => 'your Supervisor assigned task to you , start working .',
-                    'notifier_id' => $task->milestone->program->trainer->user->id,
-                ]);
-
-                $notification->notified()->create([
-                    'notified_id' => $trainee->user->id,
-                ]);
-                $trainee->user->notify(new TmsPushNotification(
-                    title: 'New Task',
-                    body: 'your Supervisor assigned task to you , start working',
-                    data: [
-                        'type' => 'task assigned',
-                        'task_id' => $task->id,
-                    ],
-                ));
-                return $task->load(['trainee', 'attachments']);
-            });
-    }
-
-    public function update(int $task_id, array $data)
-    {
-        $task=$this->find($task_id);
-        Gate::forUser(auth('api')->user())->authorize('update', $task);
-        return DB::transaction(function () use ($task, $data) {
-            $task->update($data);
-            if (array_key_exists('attachments', $data)) {
-                $task->attachments()->delete();
-                $task->attachments()->createMany(collect($data['attachments'] ?? [])
-                    ->map(fn (string $path) => ['path' => $path])->all());
-            }
-            MarkTaskAsOverdueJob::dispatch($task)->delay($task->deadline);
-
-            return $task->fresh()->load(['trainee', 'attachments']);
+        return DB::transaction(function () use ($milestone, $user, $data) {
+            $program = Program::lockForUpdate()->findOrFail($milestone->program_id);
+            Gate::forUser($user)->authorize('update', $program);
+            $phase = $program->milestones()->findOrFail($milestone->id);
+            $tasks = $this->createForPhase($phase, $program, $data, $user);
+            return array_key_exists('trainee_ids', $data) ? $tasks : $tasks[0];
         });
     }
 
-    public function delete(int $task_id): void
+    // Called inside the task or program creation transaction.
+    public function createForPhase(Milestone $phase, Program $program, array $data, User $user): array
     {
-        $task=$this->find($task_id);
-        Gate::forUser(auth('api')->user())->authorize('delete', $task);
-        DB::transaction(function () use ($task) {
+        $data['deadline'] = $this->validateDeadline($program, $data['deadline']);
+        $ids = $data['trainee_ids'] ?? (isset($data['trainee_id']) ? [$data['trainee_id']] : []);
+        $attachments = $data['attachments'] ?? [];
+        unset($data['trainee_ids'], $data['trainee_id'], $data['attachments']);
+
+        $tasks = [];
+        foreach ($ids ?: [null] as $id) {
+            $trainee = $id === null ? null : $this->eligibleTrainee($program, $id);
+            $task = $phase->tasks()->create($data + [
+                'trainee_id' => $id,
+                'status' => $trainee ? TaskStatus::PENDING : TaskStatus::DRAFT,
+            ]);
+            $this->saveAttachments($task, $attachments);
+            if ($trainee) {
+                $this->notifyTaskUser($trainee->user, $user, $task, 'New task assigned', 'task_assigned');
+            }
+            $tasks[] = $task->load(['trainee', 'attachments']);
+        }
+        return $tasks;
+    }
+
+    public function update(int $taskId, array $data): Task
+    {
+        return DB::transaction(function () use ($taskId, $data) {
+            $existing = Task::findOrFail($taskId);
+            $program = Program::lockForUpdate()->findOrFail($existing->milestone->program_id);
+            $task = Task::lockForUpdate()->findOrFail($taskId);
+            $user = auth('api')->user();
+            Gate::forUser($user)->authorize('update', $task);
+
+            if (isset($data['deadline'])) {
+                $data['deadline'] = $this->validateDeadline($program, $data['deadline']);
+            }
+
+            $trainee = null;
+            if (array_key_exists('trainee_id', $data) && (int) $task->trainee_id !== (int) $data['trainee_id']) {
+                if ($data['trainee_id'] === null || !$task->deadline->isFuture() && !isset($data['deadline'])
+                    || !in_array($task->status, [TaskStatus::DRAFT, TaskStatus::PENDING], true)) {
+                    throw ValidationException::withMessages(['trainee_id' => __('task.cannot_reassign')]);
+                }
+                $trainee = $this->eligibleTrainee($program, $data['trainee_id']);
+                $data['status'] = TaskStatus::PENDING;
+            }
+
+            $attachments = $data['attachments'] ?? null;
+            unset($data['attachments']);
+            $task->fill($data);
+            if (!$task->isDirty() && ($attachments === null || $task->attachments()->orderBy('id')->pluck('path')->all() === $attachments)) {
+                throw ValidationException::withMessages(['task' => __('task.no_changes')]);
+            }
+
+            if ($task->status === TaskStatus::OVERDUE && $task->isDirty('deadline') && $task->deadline->isFuture()) {
+                $lastFeedback = $task->evidences()->latest('id')->first()?->targetFeedback;
+                $task->status = $lastFeedback?->status === TaskStatus::NeedFix
+                    ? TaskStatus::NeedFix
+                    : ($task->started_at ? TaskStatus::IN_PROGRESS : TaskStatus::PENDING);
+            }
+            $task->save();
+
+            if ($attachments !== null) {
+                $task->attachments()->delete();
+                $this->saveAttachments($task, $attachments);
+            }
+            if ($trainee) {
+                $this->notifyTaskUser($trainee->user, $user, $task, 'New task assigned', 'task_assigned');
+            }
+            return $task->refresh()->load(['trainee', 'attachments']);
+        });
+    }
+
+    public function delete(int $taskId): void
+    {
+        DB::transaction(function () use ($taskId) {
+            $task = Task::lockForUpdate()->findOrFail($taskId);
+            Gate::forUser(auth('api')->user())->authorize('delete', $task);
             $task->attachments()->delete();
             $task->delete();
         });
     }
 
+    private function validateDeadline(Program $program, string $deadline): Carbon
+    {
+        $date = Carbon::parse($deadline)->setTimezone(config('app.timezone'));
+        if ($program->deadline && !$date->lt($program->deadline)) {
+            throw ValidationException::withMessages(['deadline' => __('task.before_program_deadline')]);
+        }
+        return $date;
+    }
 
+    public function eligibleTrainees(Program $program)
+    {
+        return Trainee::query()->with('user')
+            ->where('trainer_id', $program->trainer_id)
+            ->where('department_id', $program->department_id)
+            ->where('status', TraineeStatus::ACTIVE)
+            ->whereHas('application', fn ($query) => $query->where('training_program_id', $program->training_program_id))
+            ->whereHas('user', fn ($query) => $query->where('status', UserStatus::ACTIVE)
+                ->whereHas('roles', fn ($roles) => $roles->where('role', UserRole::TRAINEE)));
+    }
+
+    private function eligibleTrainee(Program $program, int $id): Trainee
+    {
+        $trainee = $this->eligibleTrainees($program)->find($id);
+        if (!$trainee) {
+            throw ValidationException::withMessages(['trainee_id' => __('trainee.trainee_not_in_team')]);
+        }
+        return $trainee;
+    }
+
+    private function saveAttachments(Task $task, array $attachments): void
+    {
+        $task->attachments()->createMany(array_map(fn ($path) => ['path' => $path], $attachments));
+    }
+
+    private function notifyTaskUser(User $recipient, User $sender, Task $task, string $title, string $type, array $details = []): void
+    {
+        Notification::create([
+            'title' => $title,
+            'description' => $task->name,
+            'notifier_id' => $sender->id,
+        ])->notified()->create(['notified_id' => $recipient->id]);
+
+        DB::afterCommit(function () use ($recipient, $title, $task, $type, $details) {
+            try {
+                $recipient->notify(new TaskEvidenceSubmittedNotification($title, $task->name,
+                    ['type' => $type, 'task_id' => $task->id] + $details));
+            } catch (\Throwable $exception) {
+                report($exception);
+            }
+        });
+    }
 
     public function addFeedback(int $task_id, array $data, User $user)
     {
@@ -167,6 +242,9 @@ class TaskService
             ]);
             $task->update(['status' => $feedback->status,
                 'completed_at' => $feedback->status === TaskStatus::COMPLETED ? now() : null]);
+            $this->notifyTaskUser($task->trainee->user, $user, $task,
+                $feedback->status === TaskStatus::COMPLETED ? 'Task approved' : 'Task changes requested',
+                'task_feedback_added', ['evidence_id' => $evidence->id]);
             return $feedback->load('trainer');
         });
     }

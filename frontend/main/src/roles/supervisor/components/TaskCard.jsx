@@ -17,6 +17,7 @@ export default function TaskCard({ task }) {
   if (!task) return null;
 
   const statusMap = {
+    draft: "DRAFT",
     pending: "PENDING",
     "in progress": "IN_PROGRESS",
     completed: "COMPLETED",
@@ -103,7 +104,7 @@ export default function TaskCard({ task }) {
             styles[`status_${normalizedStatus}`] || styles.status_UNKNOWN
           }`}
         >
-          {t(`task.status.${normalizedStatus}`, {
+          {normalizedStatus === "DRAFT" ? t("draft", { ns: "supervisorTask" }) : normalizedStatus === "PENDING" ? t("statuses.pending", { ns: "taskWorkspace" }) : t(`task.status.${normalizedStatus}`, {
             defaultValue: task?.status || t("task.status.UNKNOWN"),
           })}
         </span>

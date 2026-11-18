@@ -34,7 +34,13 @@ class TaskController extends Controller
     public function store(StoreTaskRequest $request, int $milestone_id)
     {
         $task = $this->taskService->store($milestone_id, $request->validated());
-        return $this->success(TaskResource::make($task));
+        return $this->success(is_array($task) ? TaskResource::collection($task) : TaskResource::make($task));
+    }
+
+    public function findInMilestone(int $milestoneId, int $taskId)
+    {
+        abort_unless(Task::whereKey($taskId)->where('milestone_id', $milestoneId)->exists(), 404);
+        return $this->find($taskId);
     }
 
     public function find(int $task_id)

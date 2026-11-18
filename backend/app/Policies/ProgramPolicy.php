@@ -26,7 +26,7 @@ class ProgramPolicy
      */
     public function view(User $user, Program $program): bool
     {
-        return false;
+        return $this->owns($user, $program);
     }
 
     /**

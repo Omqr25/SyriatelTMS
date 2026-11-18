@@ -1,0 +1,12 @@
+{
+  "draft": "Draft",
+  "assignees": "Assign trainees",
+  "draftHint": "Select trainees to create an individual task for each. Leave everyone unchecked to save a private draft.",
+  "saveDraft": "Save draft",
+  "saveAssignment": "Save assignment",
+  "noChanges": "Change at least one field before saving.",
+  "candidateError": "Could not load eligible trainees.",
+  "loadingCandidates": "Loading trainees…",
+  "noCandidates": "No eligible trainees are available.",
+  "removeStaged": "Remove task"
+}

@@ -33,6 +33,7 @@ import styles from "./TaskDetailsPage.module.css";
 import api from "../../../Api/axios";
 
 const STATUS_MAP = {
+  draft: "DRAFT",
   pending: "PENDING",
   in_progress: "IN_PROGRESS",
   "in progress": "IN_PROGRESS",
@@ -89,13 +90,14 @@ export default function TaskDetailsPage() {
   );
 
   const latestEvidence = evidences.length
-    ? evidences[evidences.length - 1]
+    ? evidences.reduce((latest, item) => item.id > latest.id ? item : latest)
     : null;
 
   const normalizedStatus = normalizeStatus(task?.status);
 
   const statusLabels = {
-    PENDING: t("task.status.pending"),
+    DRAFT: t("draft", { ns: "supervisorTask" }),
+    PENDING: t("statuses.pending", { ns: "taskWorkspace" }),
     IN_PROGRESS: t("task.status.inProgress"),
     SUBMITTED: t("task.status.submitted"),
     COMPLETED: t("task.status.completed"),
@@ -245,9 +247,9 @@ export default function TaskDetailsPage() {
       toast.success(response?.message || t("task.success.feedbackSaved"));
 
       setFeedbackAction(null);
-      refreshTask();
+      await getTask(taskId, true);
     } catch (error) {
-      toast.error(getErrorMessage(error, t("task.errors.feedbackFailed")));
+      throw new Error(getErrorMessage(error, t("task.errors.feedbackFailed")));
     } finally {
       setLoadingAction(false);
     }
@@ -264,7 +266,7 @@ export default function TaskDetailsPage() {
       toast.success(response?.message || t("task.success.deleted"));
 
       setDeleteModel(false);
-      navigate(-1);
+      navigate(task.program_id ? `/supervisor/program/details/${task.program_id}` : "/supervisor/programs");
     } catch (error) {
       toast.error(getErrorMessage(error, t("task.errors.deleteFailed")));
     } finally {
@@ -333,7 +335,7 @@ export default function TaskDetailsPage() {
                 </Button>
 
                 <Button
-                  disabled={task.status === "completed"}
+                  disabled={!task.can_delete}
                   onClick={() => setDeleteModel(true)}
                   size="sm"
                   icon={Trash}
@@ -506,7 +508,7 @@ export default function TaskDetailsPage() {
             <Button
               variant="primary"
               icon={ClipboardCheck}
-              disabled={!latestEvidence?.id || !canReview || loadingAction}
+              disabled={!latestEvidence?.id || Boolean(latestEvidence?.feedback?.id) || !canReview || loadingAction}
               loading={loadingAction && feedbackAction === "evaluate"}
               onClick={() => setFeedbackAction("evaluate")}
             >
@@ -516,7 +518,7 @@ export default function TaskDetailsPage() {
             <Button
               variant="secondary"
               icon={RotateCcw}
-              disabled={!latestEvidence?.id || !canReview || loadingAction}
+              disabled={!latestEvidence?.id || Boolean(latestEvidence?.feedback?.id) || !canReview || loadingAction}
               loading={loadingAction && feedbackAction === "revision"}
               onClick={() => setFeedbackAction("revision")}
             >
@@ -580,6 +582,7 @@ export default function TaskDetailsPage() {
       {showUpdateTask && (
         <CreateTaskModal
           task={task}
+          programId={task.program_id}
           onClose={() => setShowUpdateTask(false)}
           onUpdated={() => {
             setShowUpdateTask(false);

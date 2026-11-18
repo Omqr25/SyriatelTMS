@@ -114,7 +114,7 @@ class TaskPolicy
             return Response::allow();
         }
 
-        return $this->inTeam($user, $task->milestone)
+        return $task->status !== TaskStatus::DRAFT && $this->inTeam($user, $task->milestone)
             ? Response::allow() : Response::deny(__('task.unauthorized_view'));
     }
 
@@ -138,7 +138,7 @@ class TaskPolicy
             );
         }
 
-        if ($task->status == TaskStatus::COMPLETED || $task->status==TaskStatus::OVERDUE) {
+        if ($task->status === TaskStatus::COMPLETED) {
             return Response::deny(
                 __('task.completed_task_update')
             );
@@ -179,9 +179,9 @@ class TaskPolicy
         }
 
 
-        if ($task->status  == TaskStatus::COMPLETED) {
+        if ($task->status !== TaskStatus::DRAFT || $task->trainee_id || $task->evidences()->exists()) {
             return Response::deny(
-                __('task.completed_task_delete')
+                __('task.draft_only_delete')
             );
         }
 

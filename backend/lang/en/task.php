@@ -1,11 +1,16 @@
 <?php
 
 return [
+    'draft_only_delete' => 'Only unassigned drafts can be removed.',
+    'no_changes' => 'Change at least one task field before saving.',
+    'cannot_reassign' => 'Choose an eligible trainee before work starts, with a future deadline.',
+    'before_program_deadline' => 'The task deadline must be before the program deadline.',
+    'phase_has_tasks' => 'A phase or program containing tasks cannot be removed.',
     'not_trainer'=>'You are not authorized to manage this program tasks.',
     'unauthorized_management'=>'You are not authorized to manage tasks in this training program.',
     'unauthorized_view'=>'You are not authorized to view this task.',
     'unauthorized_update'=>'You are not authorized to update this task.',
-    'completed_task_update'=>'You cannot update a task that has a completed or overdue status.',
+    'completed_task_update'=>'You cannot update a task that has a completed status.',
     'completed_task_delete'=>'You cannot delete a task that has a completed status.',
     'unauthorized_delete'=>'You are not authorized to delete this task.',
     'assigned_task'=>'You cannot remove a task that has been assigned to trainees.',
