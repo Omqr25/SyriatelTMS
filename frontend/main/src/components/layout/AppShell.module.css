@@ -231,3 +231,16 @@
     border-inline-start: 0;
   }
 }
+
+
+@media (max-width: 580px) {
+  .roleWithHeading { display: none; }
+  .titleGroup h2 {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+  }
+  .menuBtn, .tools { flex-shrink: 0; }
+  .tools { gap: 8px; }
+}

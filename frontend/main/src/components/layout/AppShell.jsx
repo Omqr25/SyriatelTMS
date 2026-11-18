@@ -77,8 +77,10 @@ export default function AppShell({ module }) {
             >
               <Menu size={22} />
             </button>
-            <h2>{current ? t(current.labelKey) : ''}</h2>
-            <Badge tone="red">{roleName}</Badge>
+            {current && <h2>{t(current.labelKey)}</h2>}
+            <span className={current ? styles.roleWithHeading : undefined}>
+              <Badge tone="red">{roleName}</Badge>
+            </span>
           </div>
 
           <div className={styles.tools}>
@@ -87,7 +89,7 @@ export default function AppShell({ module }) {
               </button>
             <LanguageSwitcher />
             <div className={styles.user}>
-              <span className={styles.avatar}>{module.role.slice(0, 2)}</span>
+              <span className={styles.avatar} title={roleName} aria-label={roleName}>{module.role.slice(0, 2)}</span>
               <span className={styles.userName}>{roleName}</span>
             </div>
             <div>

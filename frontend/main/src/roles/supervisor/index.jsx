@@ -24,7 +24,7 @@ import InterviewsPage from "./pages/InterviewsPage";
 import TraineesPage from "./pages/TraineesPage";
 // import EvaluationsPage from './pages/EvaluationsPage';
 import ProgramsPage from "./pages/ProgramsPage";
-import ProgramDetails from "./pages/ProgramDetails";
+import MilestoneWorkspace from "./pages/MilestoneWorkspace";
 import TaskDetailsPage from "./pages/TaskDetailsPage";
 import Revaluation from "./pages/Revaluation";
 import VacationRequest from "./pages/VacationRequest";
@@ -110,7 +110,11 @@ export const supervisorModule = {
   extraRoutes: [
     {
       path: "program/details/:programId",
-      Component: ProgramDetails,
+      Component: ProgramsPage,
+    },
+    {
+      path: "programs/:programId/milestones/:milestoneId",
+      Component: MilestoneWorkspace,
     },
     {
       path: "tasks/details/:taskId",

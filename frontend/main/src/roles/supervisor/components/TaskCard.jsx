@@ -2,16 +2,14 @@ import { Link } from "react-router-dom";
 import {
   CalendarDays,
   UserRound,
-  Building2,
   Paperclip,
-  FileCheck2,
   ArrowUpLeft,
 } from "lucide-react";
 
 import { useTranslation } from "react-i18next";
 import styles from "./TaskCard.module.css";
 
-export default function TaskCard({ task }) {
+export default function TaskCard({ task, returnTo, showAssignee = true }) {
   const { t, i18n } = useTranslation();
 
   if (!task) return null;
@@ -44,12 +42,10 @@ export default function TaskCard({ task }) {
     }).format(parsedDate);
   };
 
-  const isOverdue =
-    task.deadline && new Date(task.deadline).getTime() < Date.now();
-
   return (
     <Link
       to={`/supervisor/tasks/details/${task.id}`}
+      state={returnTo ? { returnTo } : undefined}
       className={styles.card}
       aria-label={`${t("task.viewDetails")}: ${task.name}`}
     >
@@ -69,36 +65,21 @@ export default function TaskCard({ task }) {
         <div className={styles.infoItem}>
           <CalendarDays size={16} />
           <span>
-            {t("task.deadline")}: {task.deadline.split(" ")[0]}
+            {t("task.deadline")}: {formatDate(task.deadline_iso || task.deadline)}
           </span>
         </div>
 
-        <div className={styles.infoItem}>
-          <UserRound size={16} />
-          <span>{task.trainee?.name || t("task.unknownTrainee")}</span>
-        </div>
-
-        <div className={styles.infoItem}>
-          <Building2 size={16} />
-          <span>
-            {task.trainee?.department?.name || t("task.unknownDepartment")}
-          </span>
-        </div>
+        {showAssignee && task.trainee && (
+          <div className={styles.infoItem}>
+            <UserRound size={16} aria-hidden="true" />
+            <span>{task.trainee.name}</span>
+          </div>
+        )}
       </div>
 
       <div className={`${styles.footer}  ${
             styles[`status_${normalizedStatus}`] || styles.status_UNKNOWN
           }`}>
-        {/* <span
-          className={`${styles.deadlineBadge} ${
-            isOverdue ? styles.overdue : ""
-          }`}
-        >
-          {isOverdue
-            ? t("task.overdue")
-            : t("task.taskDeadline")}
-        </span> */}
-
         <span
           className={`${styles.deadlineBadge} ${
             styles[`status_${normalizedStatus}`] || styles.status_UNKNOWN
@@ -115,10 +96,6 @@ export default function TaskCard({ task }) {
             {task.attachments?.length ?? 0}
           </span>
 
-          <span title={t("task.submissions")}>
-            <FileCheck2 size={15} />
-            {task.evidences?.length ?? 0}
-          </span>
         </div>
       </div>
     </Link>

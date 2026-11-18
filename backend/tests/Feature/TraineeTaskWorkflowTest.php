@@ -230,7 +230,13 @@ class TraineeTaskWorkflowTest extends TestCase
             'priority' => 1, 'trainee_ids' => [$this->trainee->id, $peer->id]];
         $this->getJson('/api/v1/program/'.$phase->program_id.'/task-candidates')
             ->assertOk()->assertJsonCount(2, 'data');
-        $ids = $this->postJson($url, $payload)->assertOk()->assertJsonCount(2, 'data')->json('data.*.id');
+        $created = $this->postJson($url, $payload)->assertOk()->assertJsonCount(2, 'data');
+        $ids = $created->json('data.*.id');
+        $groups = $created->json('data.*.assignment_group_id');
+        $this->assertNotEmpty($groups[0]);
+        $this->assertSame($groups[0], $groups[1]);
+        $this->getJson('/api/v1/program/'.$phase->program_id)
+            ->assertOk()->assertJsonPath('data.phases.0.tasks.1.assignment_group_id', $groups[0]);
         $this->assertNotSame($ids[0], $ids[1]);
         $peer->update(['status' => 'inactive']);
         $this->postJson($url, $payload)->assertUnprocessable();
