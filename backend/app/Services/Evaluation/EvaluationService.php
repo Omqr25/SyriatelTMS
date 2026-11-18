@@ -4,16 +4,15 @@ namespace App\Services\Evaluation;
 
 
 use App\Enums\EvaluationRequestStatus;
+use App\Enums\UserRole;
 use App\Exceptions\ErrorException;
 use App\Helpers\ApiCode;
 use App\Http\Resources\Evaluation\EvaluationResource;
 use App\Models\Evaluation;
-use App\Models\Notification;
 use App\Models\ReevaluationRequest;
 use App\Models\Trainee;
 use App\Models\User;
-use App\Notifications\TmsPushNotification;
-use App\Services\Notification\NotificationService;
+use App\Services\Notification\InboxPublisher;
 use App\Services\Organization\TraineeService;
 use App\Services\Organization\TrainerService;
 use App\Services\Training\TrainingProgramService;
@@ -27,7 +26,7 @@ class EvaluationService
      * Create a new class instance.
      */
     public function __construct(protected TraineeService $traineeService , protected  TrainerService $trainerService,
-    protected TrainingProgramService  $trainingProgramService,protected NotificationService $notificationService)
+    protected TrainingProgramService  $trainingProgramService,protected InboxPublisher $inbox)
     {
         //
     }
@@ -41,6 +40,7 @@ class EvaluationService
     {
         return DB::transaction(function () use ($user, $trainee_id, $data)
         {
+            Trainee::whereKey($trainee_id)->lockForUpdate()->first();
             Gate::forUser($user)->authorize('create', [Evaluation::class, $trainee_id]);
             $criterias = $data['indicators'];
             $score = collect($criterias)->avg(fn (array $criteria) => (float) $criteria['score']);
@@ -58,35 +58,14 @@ class EvaluationService
                     'notice' => $criteria['notice'] ?? null,
                 ]);
             }
-            $trainee=$evaluation->trainee->user;
+            $recipients = User::whereHas('roles', fn ($query) => $query->where('role', UserRole::TRAINING_TEAM->value))
+                ->pluck('id')->push($evaluation->trainee->user_id)->unique();
+            $this->inbox->publish(
+                $user, $recipients, 'evaluation_completed', (string) $evaluation->id,
+                'Evaluation Completed', 'A trainee evaluation has been completed.',
+                ['evaluation_id' => $evaluation->id],
+            );
 
-            $notification = Notification::create([
-                'title' => 'Evaluation Completed',
-                'description' =>  'Your trainer has evaluated your performance. View your evaluation for details.',
-                'notifier_id' =>auth('api')->id(),
-            ]);
-
-            $notification->notified()->create([
-                'notified_id' => $trainee->id,
-            ]);
-
-            $trainee->notify(new TmsPushNotification(
-                title: 'Evaluation Completed',
-                body: 'Your trainer has evaluated your performance. View your evaluation for details.',
-                data: [
-                    'type' => 'evaluation_completed',
-                    'evaluation_id' => $evaluation->id,
-                ],
-            ));
-            $t=User::find(1);
-            $t->notify(new TmsPushNotification(
-                title: 'Evaluation Completed',
-                body: 'Your trainer has evaluated your performance. View your evaluation for details.',
-                data: [
-                    'type' => 'evaluation_completed',
-                    'evaluation_id' => $evaluation->id,
-                ],
-            ));
             return $evaluation->load('criteria');
         });
     }
@@ -171,50 +150,31 @@ class EvaluationService
                     'status' => EvaluationRequestStatus::PENDING,
                 ]);
 
-            // TODO: Notify the responsible supervisor.
-
-
-            $trainer=$evaluation->trainer->user;
-            $trainee=$evaluation->trainee;
-            $notification = Notification::create([
-                'title' => 'New Reevaluation Request',
-                'description' => $trainee->user->name . ' has submitted an reevaluation request.',
-                'notifier_id' =>auth('api')->id(),
-            ]);
-
-            $notification->notified()->create([
-                'notified_id' => $trainer->id,
-            ]);
-            $trainer->notify(new TmsPushNotification(
-                title: 'New Reevaluation Request',
-                body: $trainee->user->name . ' has submitted an reevaluation request.',
-                data: [
-                    'type' => 'revaluation_request_created',
-                    'reevaluation_request_id' => $reevaluation_request->id,
-                    'trainee_id' => $trainee->id,
-                ],
-            ));
+            $this->inbox->publish(
+                $user, [$evaluation->trainer->user_id], 'reevaluation_request_created', (string) $reevaluation_request->id,
+                'New Reevaluation Request', $user->name . ' has submitted a reevaluation request.',
+                ['reevaluation_request_id' => $reevaluation_request->id],
+            );
             return $reevaluation_request;
         });
     }
 
     public function decide(int $request_id, array $data)
     {
-        $reevaluation = $this->findRequest($request_id);
-        Gate::forUser(auth('api')->user())->authorize('decideReevaluation', $reevaluation);
-        return DB::transaction(function () use ($reevaluation, $data){
-             $reevaluation->update([
+        return DB::transaction(function () use ($request_id, $data) {
+            $reevaluation = ReevaluationRequest::lockForUpdate()->find($request_id)
+                ?? $this->findRequest($request_id);
+            $user = auth('api')->user();
+            Gate::forUser($user)->authorize('decideReevaluation', $reevaluation);
+            $reevaluation->update([
                 'status' => $data['decision'],
                 'decision_note' => $data['decision_note'],
-
             ]);
-            $reevaluation->save();
-            $evaluation=$reevaluation->evaluation;
-            if ($data['decision'] == EvaluationRequestStatus::ACCEPTED->value)
-            {
+            $evaluation = $reevaluation->evaluation;
+            if ($data['decision'] === EvaluationRequestStatus::ACCEPTED->value) {
                 $criterias = $data['indicators'];
                 $score = collect($criterias)->avg(fn (array $criteria) => (float) $criteria['score']);
-                Gate::forUser(auth('api')->user())->authorize('update', $evaluation);
+                Gate::forUser($user)->authorize('update', $evaluation);
                 $evaluation->update([
                     'score' => round($score, 2),
                     'description' => $data['description'] ?? $evaluation->description,
@@ -228,32 +188,12 @@ class EvaluationService
                         'notice' => $criteria['notice'] ?? null,
                     ]);
                 }
-                $trainee=$evaluation->trainee->user;
-                // TODO: Notify the trainee.
-
-                $notification = Notification::create([
-                    'title' => 'Reevaluation Completed',
-                    'description' => 'Your trainer has completed your reevaluation. View your updated result.',
-                    'notifier_id' =>auth('api')->id(),
-                ]);
-
-                $notification->notified()->create([
-                    'notified_id' => $trainee->id,
-                ]);
-                $trainee->notify(new TmsPushNotification(
-                    title: 'Reevaluation Completed',
-                    body: 'Your trainer has completed your reevaluation. View your updated result.',
-                    data: [
-                        'type' => 'reevaluation_completed',
-                        'evaluation_id' => $evaluation->id,
-                    ],
-                ));
-
+                $this->inbox->publish(
+                    $user, [$evaluation->trainee->user_id], 'reevaluation_completed', (string) $reevaluation->id,
+                    'Reevaluation Completed', 'Your trainer has completed your reevaluation. View your updated result.',
+                    ['evaluation_id' => $evaluation->id],
+                );
             }
-
-
-
-
 
             return $reevaluation->load('evaluation.criteria');
         });

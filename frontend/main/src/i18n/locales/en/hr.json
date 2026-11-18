@@ -296,6 +296,11 @@
   },
 
   "notificationsPage": {
+    "bellLabel": "Notifications, {{count}} unread",
+    "unread": "Unread",
+    "markRead": "Mark as read",
+    "markAllRead": "Mark all as read",
+    "markError": "Could not update the read status. Please try again.",
     "title": "Notifications",
     "subtitle": "Stay up to date with your latest alerts",
     "listTitle": "All Notifications",

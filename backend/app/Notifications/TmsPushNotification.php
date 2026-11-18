@@ -30,7 +30,13 @@ class TmsPushNotification extends Notification implements ShouldQueue
      */
     public function via(object $notifiable): array
     {
-        return [   'database', FcmChannel::class];
+        return [FcmChannel::class];
+    }
+
+    public function shouldSend(object $notifiable, string $channel): bool
+    {
+        // Older queued notification jobs can still carry the original channel list.
+        return $channel === FcmChannel::class;
     }
 
     /**

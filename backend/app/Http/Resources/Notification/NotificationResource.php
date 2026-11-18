@@ -18,6 +18,10 @@ class NotificationResource extends JsonResource
             'id' => $this->id,
             'title' => $this->title,
             'description' => $this->description,
+            'type' => $this->type,
+            'metadata' => $this->metadata,
+            'read' => $this->whenHas('recipient_read', fn () => (bool) $this->recipient_read || $this->recipient_read_at !== null),
+            'read_at' => $this->whenHas('recipient_read_at'),
             'notifier_id' => $this->notifier_id,
             'notifier_name' => $this->whenLoaded(
                 'notifier',

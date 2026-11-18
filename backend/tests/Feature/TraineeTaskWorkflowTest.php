@@ -5,7 +5,8 @@ use App\Models\{User, Role, Trainee, Trainer, Department, Application, TrainingP
 use App\Enums\TaskStatus;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\{Notification, Storage};
+use Illuminate\Support\Facades\{Bus, Storage};
+use App\Jobs\DeliverInboxPush;
 use Tests\TestCase;
 
 class TraineeTaskWorkflowTest extends TestCase
@@ -18,7 +19,7 @@ class TraineeTaskWorkflowTest extends TestCase
     {
         parent::setUp();
         config(['jwt.secret' => str_repeat('test-secret-', 8)]);
-        Notification::fake(); Storage::fake('private');
+        Bus::fake([DeliverInboxPush::class]); Storage::fake('private');
         $department = Department::factory()->create();
         $this->trainer = Trainer::factory()->create(['user_id' => $this->user('SUPERVISOR')->id, 'department_id' => $department->id]);
         $cycle = TrainingProgram::factory()->create();
@@ -56,7 +57,7 @@ class TraineeTaskWorkflowTest extends TestCase
         $this->assertSame($this->trainer->id, Feedback::first()->trainer_id);
         $this->actingAs($this->trainee->user, 'api'); $this->upload()->assertForbidden();
         $this->get('/api/v1/task/'.$first.'/download')->assertOk();
-        Notification::assertSentToTimes($this->trainer->user, \App\Notifications\TaskEvidenceSubmittedNotification::class, 2);
+        $this->assertDatabaseCount('notification_deliveries', 4);
         $this->assertDatabaseCount('notifications', 4);
         $this->assertDatabaseCount('notifieds', 4);
         $this->assertSame(2, $this->trainee->user->notified()->count());
@@ -158,9 +159,9 @@ class TraineeTaskWorkflowTest extends TestCase
         $this->assertDatabaseCount('feedbacks',0);
     }
 
-    public function test_push_failure_does_not_undo_evidence_or_in_app_notification(): void
+    public function test_queue_dispatch_failure_does_not_undo_evidence_or_in_app_notification(): void
     {
-        Notification::shouldReceive('send')->andThrow(new \RuntimeException('Push unavailable'));
+        Bus::shouldReceive('dispatch')->with(\Mockery::type(DeliverInboxPush::class))->andThrow(new \RuntimeException('Push unavailable'));
         $this->task->update(['status' => TaskStatus::IN_PROGRESS]);
         $id = $this->upload()->assertOk()->json('data.id');
         $this->assertSame(TaskStatus::ForReview, $this->task->fresh()->status);

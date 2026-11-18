@@ -21,7 +21,6 @@ export default function LoginPage() {
   const [role, setRole] = useState(ROLES.HR);
   const [loading, setLoading] = useState(false);
 
-  const [token, setToken] = useState("");
 
   if (user)
     return (
@@ -47,27 +46,15 @@ export default function LoginPage() {
         throw new Error("هذا الدور غير مدعوم حاليًا");
       }
 
-      const getToken = async () => {
-        const permission = await Notification.requestPermission();
-        if (permission === "granted") {
-          const token = await requestForToken();
-          if (token) {
-            // console.log("notification Token :", token);
-            setToken(token);
-            try {
-              await registerNotificationTokenApi(token);
-              console.log("Notification token registered successfully");
-            } catch (error) {
-              console.error(
-                "Failed to register notification token:",
-                error.response?.data || error.message,
-              );
-            }
-          }
+      const session = localStorage.getItem("syriatel-tms:access-token");
+      const registerPush = async () => {
+        if (!("Notification" in window) || await Notification.requestPermission() !== "granted") return;
+        const token = await requestForToken();
+        if (token && session === localStorage.getItem("syriatel-tms:access-token")) {
+          await registerNotificationTokenApi(token);
         }
       };
-
-      getToken();
+      registerPush().catch((error) => console.warn("Could not register browser notifications:", error.message));
 
       navigate(module.basePath, {
         replace: true,

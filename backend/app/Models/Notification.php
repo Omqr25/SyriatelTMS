@@ -13,7 +13,12 @@ class Notification extends Model
         'title',
         'description',
         'notifier_id',
+        'event_key',
+        'type',
+        'metadata',
     ];
+
+    protected $casts = ['metadata' => 'array'];
 
     public function notifier()
     {

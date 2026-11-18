@@ -14,12 +14,11 @@ use App\Mail\ApplicationDecisionMail;
 use App\Models\Application;
 use App\Models\ApplicationAssign;
 use App\Models\Interview;
-use App\Models\Notification;
 use App\Models\Role;
 use App\Models\Trainee;
 use App\Models\Trainer;
 use App\Models\User;
-use App\Notifications\TmsPushNotification;
+use App\Services\Notification\InboxPublisher;
 use App\Services\File\FileStorageService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -54,6 +53,7 @@ class ApplicationService
     public function __construct(
         protected FileStorageService $fileStorageService,
         protected TrainingProgramService $trainingProgramService,
+        protected InboxPublisher $inbox,
     ) {
         //
     }
@@ -332,27 +332,10 @@ class ApplicationService
             }
             $trainer = $supervisor->user;
 
-            DB::transaction(function () use ($trainer) {
-                $notification = Notification::create([
-                    'title' => 'New interview',
-                    'description' => 'Training Team Scheduled interview for you .',
-                    'notifier_id' => auth('api')->id(),
-                ]);
-
-                $notification->notified()->create([
-                    'notified_id' => $trainer->id,
-                ]);
-            });
-            $trainer->notify(
-                new TmsPushNotification(
-                    title: 'New interview',
-                    body: 'Training Team Scheduled interview for you .',
-                    data: [
-                        'type' => 'interview',
-                        'interview_id' => $interview->id,
-                        'application_id' => $application_id,
-                    ],
-                ),
+            $this->inbox->publish(
+                auth('api')->user(), [$trainer->id], 'interview', (string) $interview->id,
+                'New interview', 'The training team scheduled an interview for you.',
+                ['interview_id' => $interview->id, 'application_id' => $application_id],
             );
 
             return $interview->load(['trainer.user', 'application']);

@@ -339,3 +339,26 @@
     font-size: 11px;
   }
 }
+
+
+.unread {
+  display: inline-block;
+  inline-size: 8px;
+  block-size: 8px;
+  margin-inline-start: 8px;
+  border-radius: 50%;
+  background: var(--red-600);
+}
+
+.itemActions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-block-start: 8px;
+}
+
+.itemActions a {
+  color: var(--red-700);
+  text-decoration: underline;
+}

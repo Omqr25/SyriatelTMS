@@ -5,10 +5,9 @@ namespace App\Services\Announcemnts;
 use App\Enums\UserStatus;
 use App\Models\Announcement;
 use App\Models\Application;
-use App\Models\Notification;
 use App\Models\Trainee;
 use App\Models\User;
-use App\Notifications\TmsPushNotification;
+use App\Services\Notification\InboxPublisher;
 use App\Services\Training\TrainingProgramService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -18,7 +17,7 @@ class AnnoncementService
     /**
      * Create a new class instance.
      */
-    public function __construct(protected  TrainingProgramService $trainingProgramService)
+    public function __construct(protected TrainingProgramService $trainingProgramService, protected InboxPublisher $inbox)
     {
         //
     }
@@ -77,26 +76,13 @@ class AnnoncementService
                 $announcement->audiences()->create([
                     'audience_id' => $trainee->id,
                 ]);
-                $notification = Notification::create([
-                    'title' => 'New Announcement',
-                    'description' => 'New Announcement was published for you ' . $announcement->title,
-                    'notifier_id' =>auth('api')->id(),
-                ]);
-
-                $notification->notified()->create([
-                    'notified_id' => $trainee->id,
-                ]);
-                $trainee->notify(new TmsPushNotification(
-                    title: 'New Announcement',
-                    body: 'New Announcement was published for you ' . $announcement->title,
-                    data: [
-                        'type' => 'Announcement',
-                        'announcement_id' => $announcement->id,
-                    ],
-                ));
             }
 
-           // TODO : notify trainees
+            $this->inbox->publish(
+                $sender, $trainees->modelKeys(), 'announcement', (string) $announcement->id,
+                'New Announcement', 'A new announcement was published: ' . $announcement->title,
+                ['announcement_id' => $announcement->id],
+            );
 
             return $announcement->load('publisher')->loadCount('audiences');
         });

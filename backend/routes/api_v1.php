@@ -23,7 +23,7 @@ use Illuminate\Support\Facades\Route;
 Route::post('/debug-device-token', [
     \App\Http\Controllers\Notification\DeviceTokenController::class,
     'storeToken',
-]);
+])->middleware('auth:api');
 
 Route::get('/health-check', function () {
     return response()->json([
@@ -53,7 +53,6 @@ Route::get('/test-queue', function () {
     ]);
 });
 
-Route::get('/testNotification', [NotificationController::class, 'sendNotification']);
 Route::prefix('v1')->group(function () {
 
 
@@ -88,7 +87,11 @@ Route::prefix('v1')->group(function () {
             Route::post('/device-tokens', [DeviceTokenController::class, 'storeToken']);
             Route::delete('/device-tokens', [DeviceTokenController::class, 'deleteToken']);
             Route::get('/', [NotificationController::class, 'index']);
-            Route::patch('/{id}/read', [NotificationController::class, 'markAsRead']);
+            Route::get('myNotifications', [NotificationController::class, 'myNotifications']);
+            Route::get('sentByMe', [NotificationController::class, 'index']);
+            Route::get('unread-count', [NotificationController::class, 'unreadCount']);
+            Route::patch('read-all', [NotificationController::class, 'markAllAsRead']);
+            Route::patch('{id}/read', [NotificationController::class, 'markAsRead'])->whereNumber('id');
 
         });
 
@@ -269,9 +272,5 @@ Route::prefix('v1')->group(function () {
         Route::get('{application_id}/attachments/{type}', [ApplicationController::class, 'downloadAttachment'])->name('applications.attachments.download');
     });
 
-    Route::prefix('notification')->group(function (){
-       Route::get('myNotifications',[NotificationController::class ,'myNotifications']);
-       Route::get('sentByMe',[NotificationController::class,'index']);
-    });
 
 });
