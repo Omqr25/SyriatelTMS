@@ -49,7 +49,7 @@ class TraineeService
             ->whereHas('application', function ($query) use ($training_program) {
                 $query->where('training_program_id', $training_program->id);
             })
-            ->with(['user', 'department', 'trainer', 'application'])
+            ->with(['user', 'department', 'trainer.user', 'application', 'evaluation.criteria'])
             ->get();
 //        return Trainee::where('status' , TraineeStatus::ACTIVE)
 //            ->where('trainer_id',$trainer->id)

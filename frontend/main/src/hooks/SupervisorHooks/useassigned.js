@@ -130,6 +130,9 @@ export default function useAssigned() {
     setLoadingAction(id);
     try {
       const data = await createEvaluationApi(id, body);
+      setMyTrainees((previous) => previous.map((trainee) =>
+        String(trainee.id) === String(id) ? { ...trainee, evaluation: data.data } : trainee
+      ));
       toast.success(data.message);
       return data;
     } catch (error) {
