@@ -3,6 +3,7 @@ import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { BellRing, LogOut, Menu } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
+import { NotificationProvider, useNotifications } from '../../context/NotificationContext';
 import Badge from '../ui/Badge';
 import Logo from './Logo';
 import LanguageSwitcher from './LanguageSwitcher';
@@ -14,8 +15,18 @@ import { useNavigate } from "react-router-dom";
  * يُغذّى بـ module (انظر src/roles/index.js) فيعرض قائمة الدور المناسب.
  */
 export default function AppShell({ module }) {
+  const { token, user } = useAuth();
+  return (
+    <NotificationProvider key={token} userId={user?.sub}>
+      <ShellContent module={module} />
+    </NotificationProvider>
+  );
+}
+
+function ShellContent({ module }) {
   const { t } = useTranslation();
   const { logout } = useAuth();
+  const { unreadCount } = useNotifications();
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -84,9 +95,19 @@ export default function AppShell({ module }) {
           </div>
 
           <div className={styles.tools}>
-              <button    onClick={() => navigate("notification") } className={styles.BellRing}  >
-                    <BellRing  ></BellRing>
-              </button>
+            <button
+              type="button"
+              onClick={() => navigate(`${module.basePath}/notification`)}
+              className={styles.BellRing}
+              aria-label={t('hr:notificationsPage.bellLabel', { count: unreadCount })}
+            >
+              <BellRing />
+              {unreadCount > 0 && (
+                <span className={styles.unreadBadge} aria-hidden="true">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              )}
+            </button>
             <LanguageSwitcher />
             <div className={styles.user}>
               <span className={styles.avatar} title={roleName} aria-label={roleName}>{module.role.slice(0, 2)}</span>

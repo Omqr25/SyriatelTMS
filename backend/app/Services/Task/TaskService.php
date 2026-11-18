@@ -14,11 +14,10 @@ use App\Helpers\ApiCode;
 use App\Models\Evidence;
 use App\Models\Feedback;
 use App\Models\Milestone;
-use App\Models\Notification;
 use App\Models\Task;
 use App\Models\Trainee;
 use App\Models\User;
-use App\Notifications\TaskEvidenceSubmittedNotification;
+use App\Services\Notification\InboxPublisher;
 use App\Services\File\FileStorageService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -30,7 +29,7 @@ class TaskService
     /**
      * Create a new class instance.
      */
-    public function __construct(protected FileStorageService $fileStorageService)
+    public function __construct(protected FileStorageService $fileStorageService, protected InboxPublisher $inbox)
     {
         //
     }
@@ -112,7 +111,10 @@ class TaskService
             ]);
             $this->saveAttachments($task, $attachments);
             if ($trainee) {
-                $this->notifyTaskUser($trainee->user, $user, $task, 'New task assigned', 'task_assigned');
+                $this->inbox->publish(
+                    $user, [$trainee->user_id], 'task_assigned', (string) $task->id,
+                    'New task assigned', $task->name, ['task_id' => $task->id],
+                );
             }
             $tasks[] = $task->load(['trainee', 'attachments']);
         }
@@ -162,7 +164,10 @@ class TaskService
                 $this->saveAttachments($task, $attachments);
             }
             if ($trainee) {
-                $this->notifyTaskUser($trainee->user, $user, $task, 'New task assigned', 'task_assigned');
+                $this->inbox->publish(
+                    $user, [$trainee->user_id], 'task_assigned', $task->id.':'.Str::uuid(),
+                    'New task assigned', $task->name, ['task_id' => $task->id],
+                );
             }
             return $task->refresh()->load(['trainee', 'attachments']);
         });
@@ -212,24 +217,6 @@ class TaskService
         $task->attachments()->createMany(array_map(fn ($path) => ['path' => $path], $attachments));
     }
 
-    private function notifyTaskUser(User $recipient, User $sender, Task $task, string $title, string $type, array $details = []): void
-    {
-        Notification::create([
-            'title' => $title,
-            'description' => $task->name,
-            'notifier_id' => $sender->id,
-        ])->notified()->create(['notified_id' => $recipient->id]);
-
-        DB::afterCommit(function () use ($recipient, $title, $task, $type, $details) {
-            try {
-                $recipient->notify(new TaskEvidenceSubmittedNotification($title, $task->name,
-                    ['type' => $type, 'task_id' => $task->id] + $details));
-            } catch (\Throwable $exception) {
-                report($exception);
-            }
-        });
-    }
-
     public function addFeedback(int $task_id, array $data, User $user)
     {
         return DB::transaction(function () use ($task_id, $data, $user) {
@@ -245,9 +232,11 @@ class TaskService
             ]);
             $task->update(['status' => $feedback->status,
                 'completed_at' => $feedback->status === TaskStatus::COMPLETED ? now() : null]);
-            $this->notifyTaskUser($task->trainee->user, $user, $task,
+            $this->inbox->publish(
+                $user, [$task->trainee->user_id], 'task_feedback_added', (string) $feedback->id,
                 $feedback->status === TaskStatus::COMPLETED ? 'Task approved' : 'Task changes requested',
-                'task_feedback_added', ['evidence_id' => $evidence->id]);
+                $task->name, ['task_id' => $task->id, 'evidence_id' => $evidence->id],
+            );
             return $feedback->load('trainer');
         });
     }
@@ -275,19 +264,11 @@ class TaskService
                 $task->update(['status' => TaskStatus::ForReview, 'completed_at' => null]);
                 $trainer = $task->milestone->program->trainer->user;
                 $title = $revision ? 'Revised task evidence' : 'Task ready for review';
-                $notification = Notification::create(['title' => $title,
-                    'description' => $user->name . ': ' . $task->name, 'notifier_id' => $user->id]);
-                $notification->notified()->create(['notified_id' => $trainer->id]);
-                DB::afterCommit(function () use ($trainer, $title, $task, $evidence) {
-                    try {
-                        $trainer->notify(new TaskEvidenceSubmittedNotification($title, $task->name,
-                            ['type' => 'task_evidence_submitted', 'task_id' => $task->id, 'evidence_id' => $evidence->id]));
-                    } catch (\Throwable $exception) {
-                        // The in-app notification and evidence are durable. A push
-                        // outage must not report a failed submission or delete its file.
-                        report($exception);
-                    }
-                });
+                $this->inbox->publish(
+                    $user, [$trainer->id], 'task_evidence_submitted', (string) $evidence->id,
+                    $title, $user->name . ': ' . $task->name,
+                    ['task_id' => $task->id, 'evidence_id' => $evidence->id],
+                );
                 return $evidence->load('task');
             });
         } catch (\Throwable $exception) {

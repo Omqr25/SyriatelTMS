@@ -4,11 +4,9 @@ namespace App\Services\Attendance;
 
 use App\Enums\VacationRequestStatus;
 use App\Exceptions\ErrorException;
-use App\Models\Notification;
 use App\Models\User;
 use App\Models\VacationRequest;
-use App\Notifications\TmsPushNotification;
-use App\Services\Notification\NotificationService;
+use App\Services\Notification\InboxPublisher;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -18,7 +16,7 @@ class VacationRequestService
     /**
      * Create a new class instance.
      */
-    public function __construct(protected NotificationService $notificationService)
+    public function __construct(protected InboxPublisher $inbox)
     {
         //
     }
@@ -41,36 +39,24 @@ class VacationRequestService
     {
         $trainee = $user->trainee;
         Gate::forUser($user)->authorize('create', VacationRequest::class);
-        $vacation_request= VacationRequest::create([
-            'trainee_id' => $trainee->id,
-            'trainer_id' => $trainee->trainer_id,
-            'start_date' => $data['start_date'],
-            'end_date'   => $data['end_date'],
-            'reason'     => $data['reason'],
-            'status'     => VacationRequestStatus::PENDING->value,
-        ]);
-
-        $trainer=$vacation_request->trainer->user;
-        $notification = Notification::create([
-            'title' => 'New Vacation Request',
-            'description' => $user->name . ' has submitted a vacation request.',
-            'notifier_id' =>auth('api')->id(),
-        ]);
-
-        $notification->notified()->create([
-            'notified_id' => $trainer->id,
-        ]);
-        $trainer->notify(new TmsPushNotification(
-            title: 'New Vacation Request',
-            body: $user->name . ' has submitted a vacation request.',
-            data: [
-                'type' => 'vacation_request_created',
-                'vacation_request_id' => $vacation_request->id,
+        return DB::transaction(function () use ($user, $trainee, $data) {
+            $vacation = VacationRequest::create([
                 'trainee_id' => $trainee->id,
-            ],
-        ));
+                'trainer_id' => $trainee->trainer_id,
+                'start_date' => $data['start_date'],
+                'end_date' => $data['end_date'],
+                'reason' => $data['reason'],
+                'status' => VacationRequestStatus::PENDING->value,
+            ]);
 
-        return $vacation_request;
+            $this->inbox->publish(
+                $user, [$vacation->trainer->user_id], 'vacation_request_created', (string) $vacation->id,
+                'New Vacation Request', $user->name . ' has submitted a vacation request.',
+                ['vacation_request_id' => $vacation->id],
+            );
+
+            return $vacation;
+        });
     }
 
     public function find(int $request_id)
@@ -101,11 +87,10 @@ class VacationRequestService
     public function decide(int $request_id, string $status)
     {
         return DB::transaction(function () use ($request_id, $status) {
-            $vacation_request = $this->find($request_id);
+            $vacation_request = VacationRequest::lockForUpdate()->find($request_id) ?? $this->find($request_id);
             Gate::forUser(auth('api')->user())->authorize('decide', $vacation_request);
             $vacation_request->update(['status' => $status]);
             $vacation_request->refresh();
-            //TODO :  Send the trainee a notification here, after the decision is saved.
             $trainee=$vacation_request->trainee->user;
             if ($status === 'accepted') {
                 $title = 'Vacation Request Approved';
@@ -114,25 +99,10 @@ class VacationRequestService
                 $title = 'Vacation Request Rejected';
                 $body = 'Your trainer has rejected your vacation request.';
             }
-            $notification = Notification::create([
-                'title' => $title,
-                'description' => $body,
-                'notifier_id' =>auth('api')->id(),
-            ]);
-
-            $notification->notified()->create([
-                'notified_id' => $trainee->id,
-            ]);
-            $trainee->notify(new TmsPushNotification(
-                title: $title,
-                body: $body,
-                data: [
-                    'type' => 'vacation_request_decided',
-                    'vacation_request_id' => $vacation_request->id,
-                    'status' => $status,
-                ],
-            ));
-
+            $this->inbox->publish(
+                auth('api')->user(), [$trainee->id], 'vacation_request_decided', (string) $vacation_request->id,
+                $title, $body, ['vacation_request_id' => $vacation_request->id, 'status' => $status],
+            );
 
             return $vacation_request;
         });

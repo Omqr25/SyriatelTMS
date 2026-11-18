@@ -187,6 +187,7 @@
 }
 
 .BellRing {
+  position: relative;
   color: #737780;
   background: transparent;
   border: none;
@@ -243,4 +244,17 @@
   }
   .menuBtn, .tools { flex-shrink: 0; }
   .tools { gap: 8px; }
+}
+
+
+.unreadBadge {
+  position: absolute;
+  inset-block-start: -5px;
+  inset-inline-end: -7px;
+  border-radius: 999px;
+  padding: 1px 4px;
+  background: var(--red-600);
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
 }

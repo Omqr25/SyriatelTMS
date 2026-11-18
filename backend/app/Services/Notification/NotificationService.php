@@ -3,53 +3,41 @@
 namespace App\Services\Notification;
 
 use App\Models\Notification;
-use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
-
+use App\Models\User;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class NotificationService
 {
-    /**
-     * Create a new class instance.
-     */
-    public function __construct(
-//        private readonly Messaging $messaging
-    ) {}
-
-
-
-    public function index(Request $request)
+    public function sent(User $user, int $limit): LengthAwarePaginator
     {
-        $notifications = $request->user('api')
-            ->notifications()
-            ->latest()
-            ->paginate(perPage : $request['limit'] ?? 10 , page : $request['page'] ?? 1);
-
-        return $notifications;
-    }
-    public function myNotifications(Request $request)
-    {
-        $notifications = Notification::whereHas('notified', function ($query)  use ($request) {
-            $query->where('notified_id', $request->user('api')->id);
-        })->latest()->paginate(perPage : $request['limit'] ?? 10 , page : $request['page'] ?? 1);
-        return $notifications;
+        return $user->sentNotifications()->latest()->orderByDesc('id')->paginate($limit);
     }
 
-    public function markAsRead(
-        Request $request,
-        string $id
-    ): JsonResponse {
-        $notification = $request->user('api')
-            ->notifications()
-            ->whereKey($id)
-            ->firstOrFail();
+    public function received(User $user, int $limit): LengthAwarePaginator
+    {
+        return Notification::query()
+            ->join('notifieds', 'notifications.id', '=', 'notifieds.notification_id')
+            ->where('notifieds.notified_id', $user->id)
+            ->select('notifications.*', 'notifieds.read as recipient_read', 'notifieds.read_at as recipient_read_at')
+            ->latest('notifications.created_at')->orderByDesc('notifications.id')
+            ->paginate($limit);
+    }
 
-        $notification->markAsRead();
+    public function unreadCount(User $user): int
+    {
+        return $user->notified()->whereNull('read_at')->where('read', false)->count();
+    }
 
-        return response()->json([
-            'code' => 200,
-            'message' => 'Notification marked as read.',
-            'data' => null,
-        ]);
+    public function markAsRead(User $user, int $notificationId): void
+    {
+        $recipient = $user->notified()->where('notification_id', $notificationId)->firstOrFail();
+        $user->notified()->whereKey($recipient->id)->whereNull('read_at')->where('read', false)
+            ->update(['read_at' => now(), 'read' => true]);
+    }
+
+    public function markAllAsRead(User $user): void
+    {
+        $user->notified()->whereNull('read_at')->where('read', false)
+            ->update(['read_at' => now(), 'read' => true]);
     }
 }

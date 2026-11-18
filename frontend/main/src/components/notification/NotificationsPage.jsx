@@ -2,14 +2,49 @@ import { useEffect, useState } from "react";
 import { Bell, ChevronLeft, ChevronRight, RefreshCw } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import api from '../../Api/axios'
+import { Link } from "react-router-dom";
+import { getInbox, markAllNotificationsRead, markNotificationRead } from "../../Api/notificationApi";
+import { useNotifications } from "../../context/NotificationContext";
+import { useAuth } from "../../context/AuthContext";
+import Button from "../ui/Button";
 import styles from "./NotificationsPage.module.css";
+
+const DESTINATIONS = {
+  HR: { evaluation_completed: "/hr/evaluations" },
+  SUPERVISOR: {
+    interview: "/supervisor/interviews",
+    reevaluation_request_created: "/supervisor/re-evaluations",
+    vacation_request_created: "/supervisor/vacation-request",
+  },
+  TRAINEE: {
+    evaluation_completed: "/trainee/evaluation",
+    reevaluation_completed: "/trainee/evaluation",
+    vacation_request_decided: "/trainee/vacations",
+    announcement: "/trainee/announcements",
+  },
+};
+
+function destination(notification, role) {
+  const taskId = notification.metadata?.task_id;
+  if (Number.isSafeInteger(taskId) && taskId > 0) {
+    if (role === "SUPERVISOR" && notification.type === "task_evidence_submitted") {
+      return `/supervisor/tasks/details/${taskId}`;
+    }
+    if (role === "TRAINEE" && ["task_assigned", "task_feedback_added"].includes(notification.type)) {
+      return `/trainee/tasks/details/${taskId}`;
+    }
+  }
+  return DESTINATIONS[role]?.[notification.type];
+}
 
 export default function NotificationsPage() {
   const { t, i18n } = useTranslation("hr");
 
   const [notifications, setNotifications] = useState([]);
-  const [reloadKey, setReloadKey] = useState(0);
+  const { unreadCount, revision, refresh } = useNotifications();
+  const { user } = useAuth();
+  const [marking, setMarking] = useState(false);
+  const [actionError, setActionError] = useState(false);
   const [page, setPage] = useState(1);
   const [meta, setMeta] = useState({
     current_page: 1,
@@ -24,53 +59,33 @@ export default function NotificationsPage() {
   const isArabic = i18n.language.startsWith("ar");
 
   useEffect(() => {
-    let isMounted = true;
+    const request = new AbortController();
 
-    const fetchNotifications = async () => {
-      setLoading(true);
+    getInbox(page, request.signal).then((result) => {
+      if (request.signal.aborted) return;
+      setNotifications([...new Map(result.data.map((item) => [item.id, item])).values()]);
+      setMeta(result.meta);
       setError("");
+    }).catch((err) => {
+      if (!request.signal.aborted) setError(err.response?.data?.message || t("notificationsPage.loadError"));
+    }).finally(() => {
+      if (!request.signal.aborted) setLoading(false);
+    });
+    return () => request.abort();
+  }, [page, revision, t]);
 
-      try {
-        const response = await api.get(
-          "/notification/myNotifications",
-          {
-            params: { page },
-          }
-        );
-
-        const result = response.data;
-        // console.log(result)
-        if (!isMounted) return;
-
-        setNotifications(result.data ?? []);
-        setMeta(
-          result.meta ?? {
-            current_page: page,
-            last_page: 1,
-            total: 0,
-            per_page: 10,
-          }
-        );
-      } catch (err) {
-        if (!isMounted) return;
-
-        setError(
-          err.response?.data?.message ||
-            t("notificationsPage.loadError")
-        );
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
-      }
-    };
-
-    fetchNotifications();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [page, reloadKey,t]);
+  const markRead = async (id) => {
+    setMarking(true);
+    setActionError(false);
+    try {
+      await (id === undefined ? markAllNotificationsRead() : markNotificationRead(id));
+      refresh();
+    } catch {
+      setActionError(true);
+    } finally {
+      setMarking(false);
+    }
+  };
 
   const formatDate = (date) => {
     if (!date) return "";
@@ -102,6 +117,7 @@ export default function NotificationsPage() {
       return;
     }
 
+    setLoading(true);
     setPage(newPage);
   };
 
@@ -132,13 +148,15 @@ export default function NotificationsPage() {
 
           <button
             type="button"
-            onClick={() => setPage((current) => current)}
+            onClick={refresh}
           >
             <RefreshCw size={16} />
             {t("notificationsPage.retry")}
           </button>
         </div>
       )}
+
+      {actionError && <p role="alert">{t("notificationsPage.markError")}</p>}
 
       <section className={styles.panel}>
         <div className={styles.panelHeader}>
@@ -150,6 +168,9 @@ export default function NotificationsPage() {
               })}
             </p>
           </div>
+          <Button size="sm" variant="secondary" disabled={marking || unreadCount === 0} onClick={() => markRead()}>
+            {t("notificationsPage.markAllRead")}
+          </Button>
         </div>
 
         {loading ? (
@@ -166,26 +187,44 @@ export default function NotificationsPage() {
         ) : (
           <>
             <div className={styles.notificationList}>
-              {notifications.map((notification) => (
-                <article
-                  key={notification.id}
-                  className={styles.notificationItem}
-                >
-                  <div className={styles.notificationIcon}>
-                    <Bell size={21} />
-                  </div>
+              {notifications.map((notification) => {
+                const href = destination(notification, user?.roles?.[0]);
+                return (
+                  <article
+                    key={notification.id}
+                    className={styles.notificationItem}
+                  >
+                    <div className={styles.notificationIcon}>
+                      <Bell size={21} />
+                    </div>
 
-                  <div className={styles.notificationContent}>
-                    <h3>{notification.title}</h3>
+                    <div className={styles.notificationContent}>
+                      <h3>
+                        {notification.title}
+                        {!notification.read && <span className={styles.unread} aria-label={t("notificationsPage.unread")} />}
+                      </h3>
 
-                    <p>{notification.description}</p>
+                      <p>{notification.description}</p>
 
-                    <span className={styles.date}>
-                      {formatDate(notification.created_at)}
-                    </span>
-                  </div>
-                </article>
-              ))}
+                      <span className={styles.date}>
+                        {formatDate(notification.created_at)}
+                      </span>
+                      <div className={styles.itemActions}>
+                        {!notification.read && (
+                          <Button size="sm" variant="secondary" disabled={marking} onClick={() => markRead(notification.id)}>
+                            {t("notificationsPage.markRead")}
+                          </Button>
+                        )}
+                        {href && (
+                          <Link to={href}>
+                            {t("common:action.viewDetails")}
+                          </Link>
+                        )}
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
             </div>
 
             <footer className={styles.pagination}>

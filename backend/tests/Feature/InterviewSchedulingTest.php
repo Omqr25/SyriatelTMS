@@ -10,9 +10,9 @@ use App\Models\Role;
 use App\Models\Trainer;
 use App\Models\TrainingProgram;
 use App\Models\User;
-use App\Notifications\TmsPushNotification;
+use App\Jobs\DeliverInboxPush;
+use App\Models\Notification;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
-use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
@@ -28,7 +28,6 @@ class InterviewSchedulingTest extends TestCase
         $hr->roles()->attach(Role::firstOrCreate(['role' => 'HR']));
         $this->actingAs($hr, 'api');
         Queue::fake();
-        Notification::fake();
     }
 
     private function trainer(): Trainer
@@ -64,7 +63,11 @@ class InterviewSchedulingTest extends TestCase
         foreach (['applicant', 'supervisor'] as $recipient) {
             Queue::assertPushed(SendInterviewEmailJob::class, fn ($job) => $job->recipient === $recipient && $job->application->id === $application->id && $job->interview->id === $interview->id);
         }
-        Notification::assertSentTo($trainer->user, TmsPushNotification::class, fn ($notification) => $notification->data['application_id'] === $application->id && $notification->data['interview_id'] === $interview->id);
+        $notification = Notification::where('event_key', 'interview:'.$interview->id)->firstOrFail();
+        $this->assertSame($application->id, $notification->metadata['application_id']);
+        $recipient = $notification->notified()->where('notified_id', $trainer->user_id)->firstOrFail();
+        $this->assertDatabaseHas('notification_deliveries', ['notified_id' => $recipient->id]);
+        Queue::assertPushed(DeliverInboxPush::class);
     }
 
     public function test_conflict_for_the_same_supervisor_does_not_change_status_or_send_notifications(): void
@@ -80,7 +83,7 @@ class InterviewSchedulingTest extends TestCase
         $this->assertSame('qualified', $application->fresh()->status->value);
         $this->assertSame(0, $application->interviews()->count());
         Queue::assertNothingPushed();
-        Notification::assertNothingSent();
+        $this->assertDatabaseCount('notification_deliveries', 0);
     }
 
     public function test_different_supervisors_can_have_the_same_appointment_time(): void
