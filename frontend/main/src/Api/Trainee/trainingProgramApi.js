@@ -10,9 +10,9 @@ export const startTask = async (taskId) => {
   return response.data;
 };
 
-export const submitEvidence = async (taskId, evidence) => {
+export const submitEvidence = async (taskId, files) => {
   const formData = new FormData();
-  formData.append("evidence", evidence);
+  files.forEach(file => formData.append("evidences[]", file));
   const response = await api.post(`task/tasks/${taskId}/evidence`, formData);
   return response.data;
 };

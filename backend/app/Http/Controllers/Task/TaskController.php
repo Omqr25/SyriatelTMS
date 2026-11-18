@@ -80,9 +80,9 @@ class TaskController extends Controller
         $evidence = $this->taskService->addEvidence($task_id, $request->user('api'), $request->validated());
         return $this->success(EvidenceResource::make($evidence));
     }
-    public function downloadEvidence(int $evidence_id)
+    public function downloadEvidence(int $evidence_id, int $fileIndex = 0)
     {
-        return $this->taskService->downloadEvidence( $evidence_id);
+        return $this->taskService->downloadEvidence($evidence_id, $fileIndex);
     }
 
     public function startTask(int $task_id)

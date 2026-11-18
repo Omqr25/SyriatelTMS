@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   CalendarDays,
   UserRound,
@@ -30,7 +30,7 @@ import {
 } from "../../../Api/SupervisorApi/supervisorApi";
 
 import styles from "./TaskDetailsPage.module.css";
-import api from "../../../Api/axios";
+import { downloadTaskEvidence, evidenceFiles } from "../../../Api/taskEvidenceApi";
 
 const STATUS_MAP = {
   draft: "DRAFT",
@@ -158,26 +158,6 @@ export default function TaskDetailsPage() {
     );
   };
 
-  const getEvidenceUrl = (evidence) => {
-    return (
-      evidence?.url ||
-      evidence?.evidence ||
-      evidence?.path ||
-      evidence?.file_path ||
-      ""
-    );
-  };
-
-  const getEvidenceName = (evidence, index) => {
-    return (
-      evidence?.original_name ||
-      evidence?.file_name ||
-      evidence?.fileName ||
-      evidence?.name ||
-      `${t("task.submittedFile")} ${index + 1}`
-    );
-  };
-
   const getFeedbackText = (evidence) => {
     if (!evidence?.feedback) return "";
 
@@ -203,26 +183,22 @@ export default function TaskDetailsPage() {
     }
   };
 
-  const [downloading, setDownloading] = useState(null);
-  async function downloadEvidence(evidence) {
-    if (downloading) return;
-    setDownloading(evidence.id);
+  const [downloading, setDownloading] = useState(false);
+  const downloadInProgress = useRef(false);
+
+  async function downloadEvidence(evidence, file) {
+    if (downloadInProgress.current) return;
+    downloadInProgress.current = true;
+    setDownloading(true);
+    const toastId = `task-evidence-download-${task.id}`;
+    toast.dismiss(toastId);
     try {
-      const { data } = await api.get(`task/${evidence.id}/download`, {
-        responseType: "blob",
-      });
-      const url = URL.createObjectURL(data);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `task-${task.id}-evidence-${evidence.id}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      await downloadTaskEvidence(task.id, evidence.id, file);
     } catch {
-      toast.error(t("downloadFailed", { ns: "taskWorkspace" }));
+      toast.error(t("downloadFailed", { ns: "taskWorkspace" }), { toastId });
     } finally {
-      setDownloading(null);
+      downloadInProgress.current = false;
+      setDownloading(false);
     }
   }
 
@@ -446,7 +422,6 @@ export default function TaskDetailsPage() {
             {evidences.length > 0 ? (
               <div className={styles.submissions}>
                 {evidences.map((evidence, index) => {
-                  const url = getEvidenceUrl(evidence);
                   const feedback = getFeedbackText(evidence);
 
                   return (
@@ -468,26 +443,21 @@ export default function TaskDetailsPage() {
                         )}
                       </div>
 
-                      {url ? (
+                      {evidenceFiles(evidence).map(file => (
                         <button
+                          key={file.index}
                           type="button"
-                          onClick={() => downloadEvidence(evidence)}
-                          disabled={downloading !== null}
+                          onClick={() => downloadEvidence(evidence, file)}
+                          disabled={downloading}
                           className={styles.submissionFile}
                         >
                           <FileText size={19} />
-
                           <span className={styles.fileName}>
-                            {getEvidenceName(evidence, index)}
+                            {file.name || `${t("task.submittedFile")} ${file.index + 1}`}
                           </span>
-
                           <ExternalLink size={16} />
                         </button>
-                      ) : (
-                        <p className={styles.muted}>
-                          {t("task.noSubmissionFile")}
-                        </p>
-                      )}
+                      ))}
 
                       {feedback && (
                         <div className={styles.feedback}>

@@ -251,9 +251,9 @@ class TaskService
 
     public function addEvidence(int $task_id, User $user, array $data)
     {
-        $path = null;
+        $paths = [];
         try {
-            return DB::transaction(function () use ($task_id, $user, $data, &$path) {
+            return DB::transaction(function () use ($task_id, $user, $data, &$paths) {
                 $task = Task::whereKey($task_id)->lockForUpdate()->firstOrFail();
                 Gate::forUser($user)->authorize('submit', $task);
                 $revision = $task->status === TaskStatus::NeedFix;
@@ -261,9 +261,14 @@ class TaskService
                     $previous = $task->evidences()->latest('id')->first();
                     abort_unless($previous?->targetFeedback?->status === TaskStatus::NeedFix, 422, __('task.evidence_add_error'));
                 }
-                $path = $this->fileStorageService->store($data['evidence'], "evidences/{$task->id}");
-                abort_unless($path, 500);
-                $evidence = $task->evidences()->create(['evidence' => $path]);
+                $files = [];
+                foreach ($data['evidences'] ?? [$data['evidence']] as $file) {
+                    $path = $this->fileStorageService->store($file, "evidences/{$task->id}");
+                    abort_unless($path, 500);
+                    $paths[] = $path;
+                    $files[] = ['path' => $path, 'name' => $file->getClientOriginalName()];
+                }
+                $evidence = $task->evidences()->create(['evidence' => $files[0]['path'], 'files' => $files]);
                 $task->update(['status' => TaskStatus::ForReview, 'completed_at' => null]);
                 $trainer = $task->milestone->program->trainer->user;
                 $title = $revision ? 'Revised task evidence' : 'Task ready for review';
@@ -283,22 +288,23 @@ class TaskService
                 return $evidence->load('task');
             });
         } catch (\Throwable $exception) {
-            if ($path) Storage::disk('private')->delete($path);
+            if ($paths) Storage::disk('private')->delete($paths);
             throw $exception;
         }
     }
 
-    public function downloadEvidence(int $evidence_id)
+    public function downloadEvidence(int $evidence_id, int $fileIndex = 0)
     {
         $evidence=Evidence::find($evidence_id);
         if (!$evidence) {
             throw new ErrorException(__('task.evidence_not_found'), ApiCode::NOT_FOUND);
         }
         Gate::forUser(auth('api')->user())->authorize('manageEvidence', $evidence->task);
-        abort_unless(Storage::disk('private')->exists($evidence->evidence), 404, 'Evidence file not found.');
+        $path = $evidence->submittedFiles()[$fileIndex]['path'] ?? null;
+        abort_unless($path && Storage::disk('private')->exists($path), 404, 'Evidence file not found.');
         /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
         $disk = Storage::disk('private');
-        return $disk->download($evidence->evidence);
+        return $disk->download($path);
     }
 
     public function startTask(int $task_id)

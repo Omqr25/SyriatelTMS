@@ -11,6 +11,7 @@ import {
   Download,
 } from "lucide-react";
 import api from "../../../../Api/axios";
+import { downloadTaskEvidence, evidenceFiles } from "../../../../Api/taskEvidenceApi";
 import {
   startTask,
   submitEvidence,
@@ -26,7 +27,7 @@ export default function TaskDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
-  const [file, setFile] = useState(null);
+  const [files, setFiles] = useState([]);
   const [success, setSuccess] = useState("");
   const [retry, setRetry] = useState(0);
   const load = async () =>
@@ -37,7 +38,7 @@ export default function TaskDetailsPage() {
     setTask(null);
     setError("");
     setSuccess("");
-    setFile(null);
+    setFiles([]);
     load()
       .then((data) => {
         if (active) setTask(data);
@@ -69,7 +70,7 @@ export default function TaskDetailsPage() {
     setSuccess("");
     try {
       await action();
-      setFile(null);
+      setFiles([]);
       // Lock the old actions immediately, even if refreshing details fails.
       setTask((current) => ({
         ...current,
@@ -89,21 +90,11 @@ export default function TaskDetailsPage() {
       setBusy(false);
     }
   }
-  async function download(evidence) {
+  async function download(evidence, file) {
     setBusy(true);
     setError("");
     try {
-      const { data } = await api.get(`task/${evidence.id}/download`, {
-        responseType: "blob",
-      });
-      const url = URL.createObjectURL(data),
-        link = document.createElement("a");
-      link.href = url;
-      link.download = `task-${taskId}-evidence-${evidence.id}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      await downloadTaskEvidence(taskId, evidence.id, file);
     } catch {
       setError(t("downloadFailed"));
     } finally {
@@ -259,15 +250,20 @@ export default function TaskDetailsPage() {
                       </strong>
                       <time>{date(evidence.submitted_at)}</time>
                     </header>
-                    <Button
-                      size="sm"
-                      variant="soft"
-                      icon={Download}
-                      onClick={() => download(evidence)}
-                      disabled={busy}
-                    >
-                      {t("download")}
-                    </Button>
+                    <div className={styles.evidenceFiles}>
+                      {evidenceFiles(evidence).map(file => (
+                        <Button
+                          key={file.index}
+                          size="sm"
+                          variant="soft"
+                          icon={Download}
+                          onClick={() => download(evidence, file)}
+                          disabled={busy}
+                        >
+                          {file.name || t("download")}
+                        </Button>
+                      ))}
+                    </div>
                     {evidence.feedback ? (
                       <div className={styles.feedback}>
                         <span
@@ -334,7 +330,7 @@ export default function TaskDetailsPage() {
               <form
                 onSubmit={(event) => {
                   event.preventDefault();
-                  if (file) act(() => submitEvidence(taskId, file));
+                  if (files.length) act(() => submitEvidence(taskId, files));
                 }}
               >
                 <p>
@@ -348,34 +344,39 @@ export default function TaskDetailsPage() {
                     key={history.length}
                     aria-label={t("choose")}
                     type="file"
-                    accept=".pdf,application/pdf"
+                    accept=".pdf,.jpg,.jpeg,.png,.webp,.gif"
+                    multiple
                     required
                     disabled={busy}
                     onChange={(event) => {
-                      const selected = event.target.files?.[0];
-                      setFile(null);
+                      const selected = Array.from(event.target.files || []);
+                      const invalid = selected.some(file =>
+                        file.size > 10 * 1024 * 1024 ||
+                        !/\.(pdf|jpe?g|png|webp|gif)$/i.test(file.name),
+                      );
                       setError("");
-                      if (
-                        selected &&
-                        (selected.size > 10 * 1024 * 1024 ||
-                          !selected.name.toLowerCase().endsWith(".pdf"))
-                      ) {
-                        setError(t("invalidFile"));
+                      if (selected.length > 3 || invalid) {
+                        setFiles([]);
+                        setError(t(selected.length > 3 ? "tooManyFiles" : "invalidFile"));
                         event.target.value = "";
-                      } else setFile(selected);
+                      } else {
+                        setFiles(selected);
+                      }
                     }}
                   />
                 </label>
-                {file && (
-                  <p className={styles.filename}>
-                    {file.name} · {(file.size / 1024 / 1024).toFixed(2)} MB
-                  </p>
+                {files.length > 0 && (
+                  <ul className={styles.filename}>
+                    {files.map((file, index) => (
+                      <li key={index}>{file.name} · {(file.size / 1024 / 1024).toFixed(2)} MB</li>
+                    ))}
+                  </ul>
                 )}
                 <Button
                   fullWidth
                   icon={UploadCloud}
                   type="submit"
-                  disabled={!file}
+                  disabled={!files.length}
                   loading={busy}
                 >
                   {t(status === "need fix" ? "resubmit" : "submit")}

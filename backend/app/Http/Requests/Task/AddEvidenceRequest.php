@@ -22,8 +22,13 @@ class AddEvidenceRequest extends FormRequest
      */
     public function rules(): array
     {
+        $fileRules = ['file', 'max:10240', 'mimes:pdf,jpg,jpeg,png,webp,gif'];
+
         return [
-            'evidence' => ['required', 'file', 'max:10240', 'mimes:pdf',],
+            // Retain compatibility with clients that still send a single file.
+            'evidence' => ['required_without:evidences', 'prohibits:evidences', ...$fileRules],
+            'evidences' => ['required_without:evidence', 'array', 'list', 'min:1', 'max:3'],
+            'evidences.*' => ['required', ...$fileRules],
         ];
     }
 }
