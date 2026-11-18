@@ -8,7 +8,12 @@
 
 <h2>Interview Scheduled</h2>
 
-<p>Dear {{ $application->full_name }},</p>
+<p><strong>Applicant:</strong> {{ $application->full_name }}</p>
+
+<p>
+    <strong>Department:</strong>
+    {{ $interview->trainer?->department?->name ?? 'Not specified' }}
+</p>
 
 <p>
     We are pleased to inform you that you have been selected

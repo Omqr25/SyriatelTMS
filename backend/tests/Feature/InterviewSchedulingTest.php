@@ -60,7 +60,10 @@ class InterviewSchedulingTest extends TestCase
         $this->assertSame($time, $interview->time->toDateTimeString());
         $this->assertSame('HQ meeting room', $interview->location);
         $this->assertSame('for interview', $application->fresh()->status->value);
-        Queue::assertPushed(SendInterviewEmailJob::class, fn ($job) => $job->application->id === $application->id && $job->interview->id === $interview->id);
+        Queue::assertPushed(SendInterviewEmailJob::class, 2);
+        foreach (['applicant', 'supervisor'] as $recipient) {
+            Queue::assertPushed(SendInterviewEmailJob::class, fn ($job) => $job->recipient === $recipient && $job->application->id === $application->id && $job->interview->id === $interview->id);
+        }
         Notification::assertSentTo($trainer->user, TmsPushNotification::class, fn ($notification) => $notification->data['application_id'] === $application->id && $notification->data['interview_id'] === $interview->id);
     }
 

@@ -325,10 +325,11 @@ class ApplicationService
                 'status' => ApplicationStatus::FOR_INTERVIEW,
             ]);
 
-            SendInterviewEmailJob::dispatch(
-                $application,
-                $interview,
-            )->afterCommit();
+            // Each recipient retries independently: supervisor mail failure cannot
+            // prevent the applicant from receiving their appointment details.
+            foreach (['applicant', 'supervisor'] as $recipient) {
+                SendInterviewEmailJob::dispatch($application, $interview, $recipient)->afterCommit();
+            }
             $trainer = $supervisor->user;
 
             DB::transaction(function () use ($trainer) {
