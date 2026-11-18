@@ -5,18 +5,15 @@ namespace App\Mail;
 use App\Models\Application;
 use App\Models\Interview;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Mail\Mailables\Address;
 
 class InterviewScheduledMail extends Mailable
 {
     use Queueable, SerializesModels;
-
 
     /**
      * Create a new message instance.
@@ -25,8 +22,8 @@ class InterviewScheduledMail extends Mailable
         public Application $application,
         public Interview $interview
     ) {
+        $interview->loadMissing(['trainer.department']);
     }
-
 
     /**
      * Get the message envelope.
@@ -34,7 +31,7 @@ class InterviewScheduledMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Interview Scheduled Mail',
+            subject: 'Your Syriatel Interview Appointment',
         );
 
     }
