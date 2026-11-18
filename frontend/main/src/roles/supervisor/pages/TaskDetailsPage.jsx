@@ -11,7 +11,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 
 import Card from "../../../components/ui/Card";
@@ -66,8 +66,14 @@ export default function TaskDetailsPage() {
   const { t, i18n } = useTranslation();
   const { taskId } = useParams();
   const navigate = useNavigate();
+  const { state } = useLocation();
 
   const { task, getTask, loading } = useAssigned();
+  const returnTo = state?.returnTo?.startsWith("/supervisor/programs/")
+    ? state.returnTo
+    : task?.program_id && task?.milestone_id
+      ? "/supervisor/programs/" + task.program_id + "/milestones/" + task.milestone_id
+      : "/supervisor/programs";
 
   const [feedbackAction, setFeedbackAction] = useState(null);
   const [loadingAction, setLoadingAction] = useState(false);
@@ -242,7 +248,7 @@ export default function TaskDetailsPage() {
       toast.success(response?.message || t("task.success.deleted"));
 
       setDeleteModel(false);
-      navigate(task.program_id ? `/supervisor/program/details/${task.program_id}` : "/supervisor/programs");
+      navigate(returnTo, { replace: true });
     } catch (error) {
       toast.error(getErrorMessage(error, t("task.errors.deleteFailed")));
     } finally {
@@ -268,7 +274,7 @@ export default function TaskDetailsPage() {
             <AlertCircle size={32} />
             <h2>{t("task.notFound.title")}</h2>
             <p>{t("task.notFound.description")}</p>
-            <Button onClick={() => navigate(-1)}>{t("task.back")}</Button>
+            <Button onClick={() => navigate(returnTo)}>{t("task.back")}</Button>
           </div>
         </Card>
       </div>
@@ -278,6 +284,7 @@ export default function TaskDetailsPage() {
   return (
     <>
       <div className={styles.page}>
+        <div><Button variant="secondary" size="sm" onClick={() => navigate(returnTo)}>{t("task.back")}</Button></div>
         <header className={styles.pageHeader}>
           <div className={styles.headingContent}>
             <h1 className={styles.title}>{task.name || t("task.untitled")}</h1>

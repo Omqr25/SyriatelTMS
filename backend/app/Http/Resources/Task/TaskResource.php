@@ -21,6 +21,8 @@ class TaskResource extends JsonResource
             'can_submit' => $gate->allows('submit', $this->resource),
             'can_delete' => $gate->allows('delete', $this->resource),
             'can_assign' => $gate->allows('update', $this->resource) && in_array($this->status, [\App\Enums\TaskStatus::DRAFT, \App\Enums\TaskStatus::PENDING], true),
+            'milestone_id' => $this->milestone_id,
+            'assignment_group_id' => $this->when($gate->allows('manageFeedback', $this->resource), $this->assignment_group_id),
             'program_id' => $this->milestone?->program_id,
             'is_mine' => $this->trainee_id !== null && (int) $this->trainee_id === (int) $user->trainee?->id,
             'deadline_iso' => $this->deadline?->toIso8601String(),

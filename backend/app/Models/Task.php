@@ -24,6 +24,7 @@ class Task extends Model
         'started_at',
         'completed_at',
         'trainee_id',
+        'assignment_group_id',
     ];
 
     protected function casts(): array

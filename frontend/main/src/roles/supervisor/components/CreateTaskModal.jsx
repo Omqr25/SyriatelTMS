@@ -7,9 +7,9 @@ import { Field, Input, Select, Textarea } from "../../../components/ui/Field";
 import Button from "../../../components/ui/Button";
 
 import styles from "./CreateTaskModal.module.css";
-import api from "../../../Api/axios";
 import {
   createTaskApi,
+  getTaskCandidatesApi,
   updateTaskApi,
 } from "../../../Api/SupervisorApi/supervisorApi";
 import { toast } from "react-toastify";
@@ -41,16 +41,19 @@ export default function CreateTaskModal({
   onUpdated,
   programId,
   onStage,
+  recipients,
 }) {
   const isEditMode = Boolean(task);
+  const fixedRecipients = !isEditMode && recipients !== undefined;
   const { t } = useTranslation("common");
 
   const [myTrainees, setMyTrainees] = useState([]);
   const [candidateError, setCandidateError] = useState("");
-  const [loadingCandidates, setLoadingCandidates] = useState(true);
+  const [loadingCandidates, setLoadingCandidates] = useState(!fixedRecipients);
   const [candidateAttempt, setCandidateAttempt] = useState(0);
   const [form, setForm] = useState(() => ({
     ...initialForm,
+    trainee_ids: recipients?.map(person => person.id) ?? [],
     ...(task
       ? {
           name: task.name ?? "",
@@ -157,17 +160,18 @@ export default function CreateTaskModal({
     if (payload.deadline) payload.deadline = new Date(payload.deadline).toISOString();
 
     try {
+      let result;
       if (onStage) {
         onStage(payload);
       } else if (isEditMode) {
         const data = await updateTaskApi(task.id, payload);
         toast.success(data.message);
       } else {
-        const data = await createTaskApi(phase?.id, payload);
-        toast.success(data.message);
+        result = await createTaskApi(phase?.id, payload);
+        if (!fixedRecipients) toast.success(result.message);
       }
 
-      await onUpdated?.();
+      await onUpdated?.(result);
       onClose();
     } catch (err) {
       setError(
@@ -182,22 +186,21 @@ export default function CreateTaskModal({
   };
 
   useEffect(() => {
-    if (isEditMode && !task.can_assign) {
+    if (fixedRecipients || (isEditMode && !task.can_assign)) {
       setLoadingCandidates(false);
       return;
     }
     const controller = new AbortController();
     setLoadingCandidates(true);
     setCandidateError("");
-    api.get(programId ? `program/${programId}/task-candidates` : "program/task-candidates", {
-      signal: controller.signal,
-    }).then(({ data }) => setMyTrainees(data.data)).catch(() => {
+    getTaskCandidatesApi(programId, { signal: controller.signal })
+      .then(({ data }) => setMyTrainees(data)).catch(() => {
       if (!controller.signal.aborted) setCandidateError(t("candidateError", { ns: "supervisorTask" }));
     }).finally(() => {
       if (!controller.signal.aborted) setLoadingCandidates(false);
     });
     return () => controller.abort();
-  }, [programId, candidateAttempt, isEditMode, task?.can_assign, t]);
+  }, [programId, candidateAttempt, isEditMode, task?.can_assign, fixedRecipients, t]);
 
   return (
     <Modal title={t(isEditMode ? "task.edit" : "task.create", { ns: "common" })} onClose={() => { if (!loading) onClose(); }}>
@@ -248,6 +251,13 @@ export default function CreateTaskModal({
               {myTrainees.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}
             </Select>
           </Field>
+        ) : fixedRecipients ? (
+          <section className={styles.subtasks} aria-label={t("supervisorTask:assignees")}>
+            <strong>{recipients.length ? t("supervisorTask:assignees") : t("supervisorTask:draft")}</strong>
+            {recipients.length > 0 && (
+              <ul className={styles.recipientList}>{recipients.map(person => <li key={person.id}>{person.name}</li>)}</ul>
+            )}
+          </section>
         ) : (
           <fieldset className={styles.subtasks}>
             <legend>{t("assignees", { ns: "supervisorTask" })}</legend>

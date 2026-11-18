@@ -31,13 +31,19 @@ export const createProgramApi = async (data) => {
   return response.data;
 };
 
-export const getMyProgramApi = async () => {
-  const response = await api.get("program/ownedPrograms");
+export const getMyProgramApi = async (config) => {
+  const response = await api.get("program/ownedPrograms", config);
   return response.data;
 };
 
-export const getProgramApi = async (id) => {
-  const response = await api.get(`program/${id}`);
+export const getProgramApi = async (id, config) => {
+  const response = await api.get(`program/${id}`, config);
+  return response.data;
+};
+
+export const getTaskCandidatesApi = async (id, config) => {
+  const path = id ? `program/${id}/task-candidates` : "program/task-candidates";
+  const response = await api.get(path, config);
   return response.data;
 };
 

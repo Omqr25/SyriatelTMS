@@ -129,3 +129,10 @@
   align-items: center;
   gap: 8px;
 }
+
+.recipientList {
+  margin: 0;
+  padding-inline-start: 20px;
+  max-height: 9rem;
+  overflow: auto;
+}

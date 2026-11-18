@@ -23,6 +23,7 @@ use App\Services\File\FileStorageService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class TaskService
 {
@@ -100,11 +101,13 @@ class TaskService
         $attachments = $data['attachments'] ?? [];
         unset($data['trainee_ids'], $data['trainee_id'], $data['attachments']);
 
+        $groupId = count($ids) > 1 ? (string) Str::uuid() : null;
         $tasks = [];
         foreach ($ids ?: [null] as $id) {
             $trainee = $id === null ? null : $this->eligibleTrainee($program, $id);
             $task = $phase->tasks()->create($data + [
                 'trainee_id' => $id,
+                'assignment_group_id' => $groupId,
                 'status' => $trainee ? TaskStatus::PENDING : TaskStatus::DRAFT,
             ]);
             $this->saveAttachments($task, $attachments);

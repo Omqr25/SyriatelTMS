@@ -94,16 +94,11 @@ export default function CreateProgramModal({
     };
 
     try {
-      // console.log("payload:", payload);
-      if (update) {
-        const data = await updateProgramApi(id, payload);
-        // console.log( "update",data)
-        toast.success(data.message);
-      } else {
-        const data = await createProgramApi(payload);
-        toast.success(data.message);
-      }
-       await onSuccess()
+      const result = update
+        ? await updateProgramApi(id, payload)
+        : await createProgramApi(payload);
+      toast.success(result.message);
+      await onSuccess?.(result.data);
       onClose();
     } catch (err) {
       const message =
