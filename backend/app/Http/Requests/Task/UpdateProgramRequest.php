@@ -32,7 +32,7 @@ class UpdateProgramRequest extends FormRequest
             'phases' => ['sometimes', 'array'],
             'phases.*.id' => ['sometimes', 'integer', 'distinct'],
             'phases.*.name' => ['required', 'string', 'max:255'],
-            'phases.*.description' => ['required', 'nullable', 'string'],
+            'phases.*.description' => ['present', 'nullable', 'string'],
         ];
 
     }
@@ -41,7 +41,7 @@ class UpdateProgramRequest extends FormRequest
         return [
             function (Validator $validator) {
                 $training_program=TrainingProgram::where('status', TrainingProgramStatus::OPEN)->latest()->first();
-                if (! $training_program || ! $this->filled('deadline')) {
+                if (! $training_program || ! $this->filled('deadline') || $validator->errors()->has('deadline')) {
                     return;
                 }
 

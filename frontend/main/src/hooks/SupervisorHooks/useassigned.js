@@ -104,6 +104,7 @@ export default function useAssigned() {
     } catch (error) {
       console.log(error);
       setError(error);
+      throw error;
     } finally {
       setLoadingAction("");
     }

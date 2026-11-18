@@ -57,8 +57,9 @@ class TraineeTaskWorkflowTest extends TestCase
         $this->actingAs($this->trainee->user, 'api'); $this->upload()->assertForbidden();
         $this->get('/api/v1/task/'.$first.'/download')->assertOk();
         Notification::assertSentToTimes($this->trainer->user, \App\Notifications\TaskEvidenceSubmittedNotification::class, 2);
-        $this->assertDatabaseCount('notifications', 2);
-        $this->assertDatabaseCount('notifieds', 2);
+        $this->assertDatabaseCount('notifications', 4);
+        $this->assertDatabaseCount('notifieds', 4);
+        $this->assertSame(2, $this->trainee->user->notified()->count());
         $this->assertDatabaseHas('notifieds', ['notified_id' => $this->trainer->user_id]);
         $this->assertDatabaseCount('evidences', 2); $this->assertDatabaseCount('feedbacks', 2);
     }
@@ -126,7 +127,7 @@ class TraineeTaskWorkflowTest extends TestCase
     public function test_subtasks_are_saved_by_supervisor_and_visible_read_only_to_team(): void
     {
         $this->actingAs($this->trainer->user, 'api');
-        $payload = ['name'=>'API exercise', 'description'=>'Build an endpoint', 'deadline'=>now()->addDay()->toIso8601String(),
+        $payload = ['name'=>'API exercise', 'priority'=>2, 'description'=>'Build an endpoint', 'deadline'=>now()->addDay()->toIso8601String(),
             'trainee_id'=>$this->trainee->id, 'instructions'=>'Follow the specification',
             'subtasks'=>[['title'=>'Write the API', 'completed'=>false], ['title'=>'Read the specification', 'completed'=>true]]];
         $id = $this->postJson('/api/v1/task/'.$this->task->milestone_id.'/tasks', $payload)->assertOk()->json('data.id');
@@ -136,6 +137,91 @@ class TraineeTaskWorkflowTest extends TestCase
         $this->actingAs($this->trainer->user, 'api')->putJson('/api/v1/task/tasks/'.$id, ['subtasks'=>[['title'=>'', 'completed'=>false]]])->assertUnprocessable();
         $this->putJson('/api/v1/task/tasks/'.$id, ['subtasks'=>[['title'=>'API done', 'completed'=>true]]])->assertOk()
             ->assertJsonPath('data.subtasks.0.completed', true);
+    }
+
+    public function test_supervisor_drafts_are_private_and_only_drafts_can_be_removed(): void
+    {
+        $phase = $this->task->milestone;
+        $this->actingAs($this->trainer->user, 'api');
+        $payload = ['name' => 'Draft exercise', 'deadline' => now()->addDay()->toIso8601String(), 'priority' => 2];
+        $url = '/api/v1/task/'.$phase->id.'/tasks';
+        $id = $this->postJson($url, $payload)->assertOk()->assertJsonPath('data.status', 'draft')->json('data.id');
+        $draft = '/api/v1/task/tasks/'.$id;
+        $this->getJson($draft)->assertOk()->assertJsonPath('data.task.can_delete', true);
+        $this->deleteJson($this->url())->assertForbidden();
+        $this->putJson($draft, ['name' => 'Draft exercise'])->assertUnprocessable();
+
+        $this->actingAs($this->trainee->user, 'api');
+        $this->getJson($draft)->assertForbidden();
+        $this->getJson($url)->assertOk()->assertJsonCount(1, 'data');
+        $this->getJson('/api/v1/myProgram')->assertOk()->assertJsonCount(1, 'data.phases.0.tasks');
+
+        $this->actingAs($this->trainer->user, 'api');
+        $this->putJson($draft, ['trainee_id' => $this->trainee->id])->assertOk()
+            ->assertJsonPath('data.status', 'pending')->assertJsonPath('data.can_delete', false);
+        $this->deleteJson($draft)->assertForbidden();
+        $other = $this->postJson($url, $payload)->assertOk()->json('data.id');
+        $this->deleteJson('/api/v1/task/tasks/'.$other)->assertOk();
+        $this->assertDatabaseMissing('tasks', ['id' => $other]);
+
+        $this->actingAs($this->trainee->user, 'api')->postJson($draft.'/start')->assertOk();
+    }
+
+    public function test_bulk_assignments_are_independent_and_reject_ineligible_trainees_atomically(): void
+    {
+        $phase = $this->task->milestone;
+        $phase->program->update(['deadline' => now()->addDays(4)]);
+        $peer = Trainee::factory()->create([
+            'user_id' => $this->user('TRAINEE')->id,
+            'department_id' => $this->trainee->department_id,
+            'trainer_id' => $this->trainer->id,
+            'application_id' => Application::factory()->create([
+                'training_program_id' => $phase->program->training_program_id,
+            ])->id,
+        ]);
+        $this->actingAs($this->trainer->user, 'api');
+        $url = '/api/v1/task/'.$phase->id.'/tasks';
+        $payload = ['name' => 'Shared exercise', 'deadline' => now()->addDay()->toIso8601String(),
+            'priority' => 1, 'trainee_ids' => [$this->trainee->id, $peer->id]];
+        $this->getJson('/api/v1/program/'.$phase->program_id.'/task-candidates')
+            ->assertOk()->assertJsonCount(2, 'data');
+        $ids = $this->postJson($url, $payload)->assertOk()->assertJsonCount(2, 'data')->json('data.*.id');
+        $this->assertNotSame($ids[0], $ids[1]);
+        $peer->update(['status' => 'inactive']);
+        $this->postJson($url, $payload)->assertUnprocessable();
+        $this->assertDatabaseCount('tasks', 3);
+        $this->putJson($this->url(), ['trainee_id' => $peer->id])->assertUnprocessable();
+        $this->putJson($this->url(), ['deadline' => now()->addDays(5)->toIso8601String()])->assertUnprocessable();
+        $this->putJson($this->url(), ['deadline' => 'invalid'])->assertUnprocessable();
+        $this->task->update(['status' => TaskStatus::COMPLETED]);
+        $this->putJson($this->url(), ['name' => 'New name'])->assertForbidden();
+        $this->deleteJson($this->url())->assertForbidden();
+        $this->actingAs($this->trainee->user, 'api')->postJson('/api/v1/task/tasks/'.$ids[0].'/start')->assertOk();
+        $this->assertSame(TaskStatus::PENDING, Task::findOrFail($ids[1])->status);
+    }
+
+    public function test_program_creation_saves_staged_tasks_and_phase_updates_preserve_them(): void
+    {
+        $phase = $this->task->milestone;
+        $program = $phase->program;
+        $this->actingAs($this->trainer->user, 'api');
+        $existing = '/api/v1/program/'.$program->id;
+        $this->putJson($existing, ['phases' => [['id' => $phase->id, 'name' => 'Renamed', 'description' => null]]])
+            ->assertOk();
+        $this->assertDatabaseHas('tasks', ['id' => $this->task->id, 'milestone_id' => $phase->id]);
+        $this->putJson($existing, ['phases' => []])->assertUnprocessable();
+        $this->deleteJson($existing)->assertUnprocessable();
+
+        TrainingProgram::factory()->create(['end_date' => now()->addDays(30), 'created_at' => now()->addSecond()]);
+        $task = ['name' => 'Staged draft', 'deadline' => now()->addDays(2)->toIso8601String(), 'priority' => 1, 'trainee_ids' => []];
+        $payload = ['title' => 'New program', 'description' => 'Training tasks', 'deadline' => now()->addDays(4)->toDateString(),
+            'phases' => [['name' => 'First phase', 'tasks' => [$task]]]];
+        $invalid = $payload;
+        $invalid['phases'][0]['tasks'][0]['deadline'] = now()->addDays(5)->toIso8601String();
+        $this->postJson('/api/v1/program', $invalid)->assertUnprocessable();
+        $this->assertDatabaseMissing('programs', ['title' => 'New program']);
+        $this->postJson('/api/v1/program', $payload)->assertOk()
+            ->assertJsonPath('data.phases.0.tasks.0.status', 'draft');
     }
 
     public function test_overdue_jobs_preserve_pending_review_and_approved_tasks(): void

@@ -165,6 +165,8 @@ Route::prefix('v1')->group(function () {
             Route::prefix('program')->group(function () {
                 Route::get('ownedPrograms', [ProgramController::class, 'ownedPrograms']);
                 Route::post('/', [ProgramController::class, 'store']);
+                Route::get('task-candidates', [ProgramController::class, 'taskCandidates']);
+                Route::get('{program_id}/task-candidates', [ProgramController::class, 'taskCandidates'])->whereNumber('program_id');
                 Route::get('{program_id}', [ProgramController::class, 'find']);
                 Route::put('{program_id}', [ProgramController::class, 'update']);
                 Route::delete('{program_id}', [ProgramController::class, 'delete']);
@@ -174,7 +176,7 @@ Route::prefix('v1')->group(function () {
 
             Route::prefix('task')->group(function () {
                 Route::get('{milestone_id}',[TaskController::class, 'findAll'])->whereNumber('milestone_id');
-                Route::get('{milestone_id}/{task_id}',[TaskController::class, 'find'])->whereNumber(['milestone_id', 'task_id']);
+                Route::get('{milestone_id}/{task_id}',[TaskController::class, 'findInMilestone'])->whereNumber(['milestone_id', 'task_id']);
                 Route::post('{milestone_id}/tasks', [TaskController::class, 'store']);
                 Route::put('tasks/{task}', [TaskController::class, 'update']);
                 Route::delete('tasks/{task}', [TaskController::class, 'delete']);

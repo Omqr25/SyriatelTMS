@@ -21,6 +21,11 @@ class ProgramController extends Controller
     {
 
     }
+    public function taskCandidates(Request $request, ?int $programId = null)
+    {
+        return $this->success($this->programService->taskCandidates($request->user('api'), $programId));
+    }
+
     public function ownedPrograms(Request $request)
     {
         $programs=$this->programService->ownedPrograms($request);

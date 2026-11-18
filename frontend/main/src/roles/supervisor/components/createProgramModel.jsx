@@ -15,7 +15,7 @@ import { Field, Input, Textarea } from "../../../components/ui/Field";
 import { createProgramApi ,updateProgramApi} from "../../../Api/SupervisorApi/supervisorApi";
 import styles from "./CreateProgramModal.module.css";
 import { toast } from "react-toastify";
-import useAssigned from "../../../hooks/SupervisorHooks/useassigned";
+import CreateTaskModal from "./CreateTaskModal";
 
 const createPhase = () => ({
   id: `${Date.now()}-${Math.random()}`,
@@ -35,10 +35,11 @@ export default function CreateProgramModal({
   const [program, setProgram] = useState({
     name: program2?.title || "",
     description: program2?.description || "",
-    endDate: program2?.deadline || "",
+    endDate: program2?.deadline?.slice(0, 10) || "",
   });
 
   const [phases, setPhases] = useState(program2?.phases || [createPhase()]);
+  const [taskPhase, setTaskPhase] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -83,9 +84,12 @@ export default function CreateProgramModal({
     setLoading(true);
     const payload = {
       ...program,
-      phases: phases.map(({ name, description }) => ({
+      endDate: program.endDate === program2?.deadline?.slice(0, 10) ? undefined : program.endDate,
+      phases: phases.map(({ id, name, description, tasks }) => ({
+        ...(program2 && typeof id === "number" ? { id } : {}),
+        ...(!program2 && tasks ? { tasks } : {}),
         name: name.trim(),
-        description: description.trim(),
+        description: (description || "").trim(),
       })),
     };
 
@@ -103,7 +107,7 @@ export default function CreateProgramModal({
       onClose();
     } catch (err) {
       const message =
-        err.response?.data?.message || err.message || t("program.saveError");
+        Object.values(err.response?.data?.errors || {}).flat().join(" ") || err.response?.data?.message || err.message || t("program.saveError");
       toast.error(message);
       setError(Array.isArray(message) ? message.join("، ") : message);
     } finally {
@@ -111,6 +115,14 @@ export default function CreateProgramModal({
 
     }
   };
+
+  if (taskPhase !== null) {
+    return <CreateTaskModal onClose={() => setTaskPhase(null)} onStage={payload => {
+      setPhases(previous => previous.map(phase => phase.id === taskPhase
+        ? { ...phase, tasks: [...(phase.tasks || []), payload] }
+        : phase));
+    }} />;
+  }
 
   return (
     <Modal title={t("program.createTitle")} onClose={onClose}>
@@ -135,7 +147,7 @@ export default function CreateProgramModal({
                 name="endDate"
                 value={program.endDate}
                 onChange={handleProgramChange}
-                min={new Date().toLocaleDateString("en-CA")}
+                min={program2 ? undefined : new Date().toLocaleDateString("en-CA")}
                 required
               />
             </div>
@@ -210,11 +222,26 @@ export default function CreateProgramModal({
                   </Field>
                 </div>
 
+                {!program2 && <div className={styles.fullWidth}>
+                  <Button size="sm" type="button" icon={Plus} variant="secondary" onClick={() => setTaskPhase(phase.id)}>
+                    {t("task.add", { ns: "common" })}
+                  </Button>
+                  {!!phase.tasks?.length && <ul>
+                    {phase.tasks.map((task, index) => <li key={index}>
+                      {task.name}{" "}
+                      <Button size="sm" type="button" variant="secondary" onClick={() =>
+                        handlePhaseChange(phase.id, "tasks", phase.tasks.filter((_, item) => item !== index))}>
+                        {t("removeStaged", { ns: "supervisorTask" })}
+                      </Button>
+                    </li>)}
+                  </ul>}
+                </div>}
+
                 <button
                   type="button"
                   className={styles.deleteButton}
                   onClick={() => removePhase(phase.id)}
-                  disabled={phases.length === 1 || loading}
+                  disabled={phases.length === 1 || loading || Boolean(program2 && phase.tasks?.length)}
                   title={t("program.removePhase")}
                   aria-label={t("program.removePhase")}
                 >

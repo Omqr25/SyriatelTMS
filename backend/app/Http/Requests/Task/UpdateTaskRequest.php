@@ -2,11 +2,8 @@
 
 namespace App\Http\Requests\Task;
 
-use App\Models\Milestone;
-use Carbon\Carbon;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Validator;
 
 class UpdateTaskRequest extends FormRequest
 {
@@ -26,40 +23,18 @@ class UpdateTaskRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['sometimes', 'string', 'max:255'],
-            'description' => ['sometimes', 'string'],
-            'deadline' => ['sometimes', 'date', 'after:today'],
-            'priority' => ['sometimes', 'integer', 'between:1,10'],
-            'instructions' => ['sometimes', 'string'],
+            'name' => ['sometimes', 'required', 'string', 'max:150'],
+            'description' => ['sometimes', 'nullable', 'string', 'max:2000'],
+            'deadline' => ['sometimes', 'date', 'after:now'],
+            'priority' => ['sometimes', 'integer', 'between:1,3'],
+            'instructions' => ['sometimes', 'nullable', 'string'],
             'subtasks' => ['sometimes', 'array', 'max:50'],
             'subtasks.*' => ['array:title,completed'],
             'subtasks.*.title' => ['required', 'string', 'max:255'],
             'subtasks.*.completed' => ['required', 'boolean'],
             'attachments' => ['sometimes', 'array'],
-            'attachments.*' => ['string', 'required'],
-            'trainee_id' => ['sometimes','integer', 'exists:trainees,id'],
-        ];
-    }
-    public function after(): array
-    {
-        return [
-            function (Validator $validator) {
-                $milestone_id = $this->route('milestone_id');
-                $milestone = Milestone::with('program')->find($milestone_id);
-                if (! $milestone || ! $this->filled('deadline')) {
-                    return;
-                }
-                $program = $milestone->program;
-                if (! $program?->deadline) {
-                    return;
-                }
-                if (! Carbon::parse($this->input('deadline'))->lt($program->deadline)) {
-                    $validator->errors()->add(
-                        'deadline',
-                        "The task deadline must be before the program deadline {$program->deadline->format('Y-m-d H:i')}."
-                    );
-                }
-            },
+            'attachments.*' => ['required', 'url:http,https'],
+            'trainee_id' => ['sometimes', 'nullable', 'integer', 'exists:trainees,id'],
         ];
     }
 }

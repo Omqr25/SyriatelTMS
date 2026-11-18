@@ -1,5 +1,5 @@
 import { Plus, NotepadTextDashed, Trash, SquarePen } from "lucide-react";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import Button from "../../../components/ui/Button";
 import Card from "../../../components/ui/Card";
@@ -11,7 +11,8 @@ import Loading from "../../../components/ui/Loading";
 import { toast } from "react-toastify";
 import CreateProgramModal from "../components/createProgramModel";
 import useAssigned from "../../../hooks/SupervisorHooks/useassigned";
-import api from "../../../Api/axios";
+import CreateTaskModal from "../components/CreateTaskModal";
+import TaskCard from "../components/TaskCard";
 
 export default function ProgramsPage() {
   const { t } = useTranslation("hr");
@@ -21,21 +22,7 @@ export default function ProgramsPage() {
   const [deleteID, setDeleteId] = useState("");
   const [hanselModel, setHandelModel] = useState(false);
 
-  // Task Management States
-  const [showAddTaskModal, setShowAddTaskModal] = useState(false);
-  const [selectedMilestoneId, setSelectedMilestoneId] = useState(null);
-  const [milestoneTasks, setMilestoneTasks] = useState({}); // { [milestoneId]: [tasks] }
-  const [taskLoading, setTaskLoading] = useState(false);
-
-  // Form state for creating a task
-  const [taskForm, setTaskForm] = useState({
-    name: "",
-    description: "",
-    trainee_id: "",
-    deadline: "",
-    priority: "medium", // Add default priority
-    attachments: [],
-  });
+  const [taskPhase, setTaskPhase] = useState(null);
 
   const navigate = useNavigate();
   const {
@@ -49,40 +36,17 @@ export default function ProgramsPage() {
     deleteProgram,
   } = useAssigned();
 
-  // Fetch tasks for each milestone when program data is available
-  const fetchTasksForMilestones = useCallback(async (milestones) => {
-    if (!milestones || milestones.length === 0) return;
-    const tasksMap = {};
-    try {
-      for (const milestone of milestones) {
-        const response = await api.get(`/task/${milestone.id}/tasks`);
-        tasksMap[milestone.id] = response.data.data || response.data;
-      }
-      setMilestoneTasks(tasksMap);
-    } catch (err) {
-      console.error("Failed to fetch milestone tasks", err);
-    }
-  }, []);
+  const firstProgramId = myPrograms?.[0]?.id;
+  useEffect(() => { getMyPrograms().catch(() => {}); }, [getMyPrograms]);
+  useEffect(() => {
+    if (firstProgramId) getProgram(firstProgramId);
+  }, [firstProgramId, getProgram]);
 
   useEffect(() => {
-    getMyPrograms();
-  }, [getMyPrograms]);
-
-  useEffect(() => {
-    if (myPrograms && myPrograms.length > 0) {
-      const activeProgram = myPrograms[0]; // Displaying the existing program
-      getProgram(activeProgram.id).then((res) => {
-        if (res?.phases) {
-          fetchTasksForMilestones(res.phases);
-        }
-      });
-    }
-  }, [myPrograms, getProgram, fetchTasksForMilestones]);
-
-  if (error) {
+    if (!error) return;
     const message = error.response?.data?.message || error.message || "error";
     toast.error(Array.isArray(message) ? message.join("، ") : message);
-  }
+  }, [error]);
 
   const handelProgram = async (id) => {
     await getProgram(id);
@@ -94,47 +58,9 @@ export default function ProgramsPage() {
     setDeleteId(id);
   };
 
-  const handleOpenAddTask = (milestoneId) => {
-    setSelectedMilestoneId(milestoneId);
-    setTaskForm({
-      name: "",
-      description: "",
-      trainee_id: "",
-      deadline: "",
-      priority: 5,
-      attachments: [],
-    });
-    setShowAddTaskModal(true);
-  };
-
-  const handleCreateTask = async (e) => {
-    e.preventDefault();
-    if (!selectedMilestoneId) return;
-    setTaskLoading(true);
-    try {
-      await api.post(`/task/${selectedMilestoneId}/tasks`, taskForm);
-      toast.success(
-        t("task.createdSuccessfully", {
-          defaultValue: "Task created successfully",
-        }),
-      );
-      setShowAddTaskModal(false);
-      // Refresh tasks for this milestone
-      const response = await api.get(`/task/${selectedMilestoneId}/tasks`);
-      setMilestoneTasks((prev) => ({
-        ...prev,
-        [selectedMilestoneId]: response.data.data || response.data,
-      }));
-    } catch (err) {
-      const msg = err.response?.data?.message || err.message;
-      toast.error(msg);
-    } finally {
-      setTaskLoading(false);
-    }
-  };
-
-  const currentProgram =
-    program || (myPrograms && myPrograms.length > 0 ? myPrograms[0] : null);
+  const currentProgram = firstProgramId
+    ? (program?.id === firstProgramId ? program : myPrograms[0])
+    : null;
 
   return loading ? (
     <Loading />
@@ -224,7 +150,7 @@ export default function ProgramsPage() {
                     <Button
                       icon={Plus}
                       size="sm"
-                      onClick={() => handleOpenAddTask(milestone.id)}
+                      onClick={() => setTaskPhase(milestone)}
                     >
                       {t("task.add", { defaultValue: "Add Task" })}
                     </Button>
@@ -256,70 +182,8 @@ export default function ProgramsPage() {
                     >
                       {t("task.list", { defaultValue: "Tasks" })}
                     </h5>
-                    {milestoneTasks[milestone.id] &&
-                    milestoneTasks[milestone.id].length > 0 ? (
-                      milestoneTasks[milestone.id].map((task) => (
-                        <div
-                          key={task.id}
-                          style={{
-                            background: "#f9fafb",
-                            padding: "10px",
-                            borderRadius: "6px",
-                            marginBottom: "8px",
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                          }}
-                        >
-                          <div>
-                            <strong style={{ fontSize: "13px" }}>
-                              {task.name}
-                            </strong>
-                            <p
-                              style={{
-                                fontSize: "12px",
-                                color: "#6b7280",
-                                margin: "2px 0 0 0",
-                              }}
-                            >
-                              {task.description}
-                            </p>
-                            {task.trainee && (
-                              <span
-                                style={{ fontSize: "11px", color: "#2563eb" }}
-                              >
-                                Assignee:{" "}
-                                {task.trainee.user?.name || task.trainee.id}
-                              </span>
-                            )}
-                          </div>
-                          <div
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: "8px",
-                            }}
-                          >
-                            <span
-                              style={{
-                                fontSize: "11px",
-                                padding: "2px 8px",
-                                borderRadius: "12px",
-                                background:
-                                  task.status === "completed"
-                                    ? "#d1fae5"
-                                    : "#fee2e2",
-                                color:
-                                  task.status === "completed"
-                                    ? "#065f46"
-                                    : "#991b1b",
-                              }}
-                            >
-                              {task.status}
-                            </span>
-                          </div>
-                        </div>
-                      ))
+                    {milestone.tasks?.length > 0 ? (
+                      milestone.tasks.map(task => <TaskCard key={task.id} task={task} />)
                     ) : (
                       <p style={{ fontSize: "12px", color: "#9ca3af" }}>
                         {t("task.noTasks", {
@@ -356,161 +220,10 @@ export default function ProgramsPage() {
         </div>
       )}
 
-      {/* Add Task Modal */}
-      {showAddTaskModal && (
-        <Modal
-          onClose={() => setShowAddTaskModal(false)}
-          title={t("task.addTitle", { defaultValue: "Add New Task" })}
-        >
-          <form onSubmit={handleCreateTask}>
-            <div style={{ marginBottom: "12px" }}>
-              <label
-                style={{
-                  display: "block",
-                  fontSize: "13px",
-                  marginBottom: "4px",
-                }}
-              >
-                {t("task.title", { defaultValue: "Title" })}
-              </label>
-              <input
-                type="text"
-                required
-                value={taskForm.name}
-                onChange={(e) =>
-                  setTaskForm({ ...taskForm, name: e.target.value })
-                }
-                style={{
-                  width: "100%",
-                  padding: "8px",
-                  borderRadius: "4px",
-                  border: "1px solid #d1d5db",
-                }}
-              />
-            </div>
-            <div style={{ marginBottom: "12px" }}>
-              <label
-                style={{
-                  display: "block",
-                  fontSize: "13px",
-                  marginBottom: "4px",
-                }}
-              >
-                {t("task.description", { defaultValue: "Description" })}
-              </label>
-              <textarea
-                value={taskForm.description}
-                onChange={(e) =>
-                  setTaskForm({ ...taskForm, description: e.target.value })
-                }
-                style={{
-                  width: "100%",
-                  padding: "8px",
-                  borderRadius: "4px",
-                  border: "1px solid #d1d5db",
-                }}
-              />
-            </div>
-            <div style={{ marginBottom: "12px" }}>
-              <label
-                style={{
-                  display: "block",
-                  fontSize: "13px",
-                  marginBottom: "4px",
-                }}
-              >
-                {t("task.traineeId", { defaultValue: "Trainee ID" })}
-              </label>
-              <input
-                type="number"
-                required
-                value={taskForm.trainee_id}
-                onChange={(e) =>
-                  setTaskForm({ ...taskForm, trainee_id: e.target.value })
-                }
-                style={{
-                  width: "100%",
-                  padding: "8px",
-                  borderRadius: "4px",
-                  border: "1px solid #d1d5db",
-                }}
-              />
-            </div>
-
-            <div style={{ marginBottom: "12px" }}>
-              <label
-                style={{
-                  display: "block",
-                  fontSize: "13px",
-                  marginBottom: "4px",
-                }}
-              >
-                Priority (1-10)
-              </label>
-
-              <input
-                type="number"
-                min="1"
-                max="10"
-                step="1"
-                required
-                value={taskForm.priority}
-                onChange={(e) =>
-                  setTaskForm({
-                    ...taskForm,
-                    priority: e.target.value,
-                  })
-                }
-                style={{
-                  width: "100%",
-                  padding: "8px",
-                  borderRadius: "4px",
-                  border: "1px solid #d1d5db",
-                }}
-              />
-            </div>
-
-            <div style={{ marginBottom: "15px" }}>
-              <label
-                style={{
-                  display: "block",
-                  fontSize: "13px",
-                  marginBottom: "4px",
-                }}
-              >
-                {t("task.deadline", { defaultValue: "Deadline" })}
-              </label>
-              <input
-                type="datetime-local"
-                required
-                value={taskForm.deadline}
-                onChange={(e) =>
-                  setTaskForm({ ...taskForm, deadline: e.target.value })
-                }
-                style={{
-                  width: "100%",
-                  padding: "8px",
-                  borderRadius: "4px",
-                  border: "1px solid #d1d5db",
-                }}
-              />
-            </div>
-            <div
-              style={{ display: "flex", justifyContent: "end", gap: "10px" }}
-            >
-              <Button
-                type="button"
-                variant=""
-                onClick={() => setShowAddTaskModal(false)}
-              >
-                {t("action.cancel", { ns: "common" })}
-              </Button>
-              <Button type="submit" loading={taskLoading}>
-                {t("action.save", { ns: "common", defaultValue: "Save" })}
-              </Button>
-            </div>
-          </form>
-        </Modal>
+      {taskPhase && (
+        <CreateTaskModal phase={taskPhase} programId={currentProgram.id}
+          onClose={() => setTaskPhase(null)}
+          onUpdated={() => getProgram(currentProgram.id, true)} />
       )}
 
       {showAdd && (
@@ -527,7 +240,7 @@ export default function ProgramsPage() {
           onSubmit={""}
           loading={""}
           program2={program}
-          onSuccess={() => getMyPrograms(true)}
+          onSuccess={() => getProgram(program.id, true)}
         />
       )}
 
@@ -553,9 +266,11 @@ export default function ProgramsPage() {
 
             <Button
               onClick={async () => {
-                toast.success(await deleteProgram(deleteID));
+                try {
+                  toast.success(await deleteProgram(deleteID));
+                } catch { return; }
                 setDeleteModel(false);
-                getMyPrograms();
+                getMyPrograms().catch(() => {});
               }}
               loading={loadingAction == deleteID}
               size="sm"

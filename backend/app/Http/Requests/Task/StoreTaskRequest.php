@@ -2,12 +2,8 @@
 
 namespace App\Http\Requests\Task;
 
-use App\Models\Milestone;
-use App\Models\Program;
-use Carbon\Carbon;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Validator;
 
 class StoreTaskRequest extends FormRequest
 {
@@ -26,49 +22,27 @@ class StoreTaskRequest extends FormRequest
      */
     public function rules(): array
     {
+        return self::taskRules();
+    }
+
+    public static function taskRules(): array
+    {
         return [
             'name' => ['required', 'string', 'max:150'],
             'description' => ['nullable', 'string','max:2000'],
             'deadline' => ['required', 'date', 'after:now'],
-            'priority' => ['nullable', 'integer', 'between:1,10'],
+            'priority' => ['required', 'integer', 'between:1,3'],
             'instructions' => ['nullable', 'string'],
             'subtasks' => ['sometimes', 'array', 'max:50'],
             'subtasks.*' => ['array:title,completed'],
             'subtasks.*.title' => ['required', 'string', 'max:255'],
             'subtasks.*.completed' => ['required', 'boolean'],
             'attachments' => ['nullable', 'array'],
-            'attachments.*' => ['string', 'required'],
-            'trainee_id' => ['required','integer', 'exists:trainees,id'],
+            'attachments.*' => ['required', 'url:http,https'],
+            'trainee_ids' => ['sometimes', 'array', 'max:100'],
+            'trainee_ids.*' => ['required', 'integer', 'distinct', 'exists:trainees,id'],
+            'trainee_id' => ['nullable', 'integer', 'exists:trainees,id', 'prohibits:trainee_ids'],
         ];
 
-    }
-    public function after(): array
-    {
-        return [
-            function (Validator $validator) {
-                $milestone_id = $this->route('milestone_id');
-                $milestone = Milestone::with('program')->find($milestone_id);
-                if (! $milestone || ! $this->filled('deadline')) {
-                    return;
-                }
-//                $program = $milestone->program;
-//                if (! $program?->deadline) {
-//                    return;
-//                }
-                $programDeadline = $milestone->program?->deadline;
-
-                if (!$programDeadline) {
-                    return;
-                }
-                $taskDeadline = Carbon::parse($this->input('deadline'));
-                $programDeadline = Carbon::parse($programDeadline);
-                if ( $taskDeadline > $programDeadline) {
-                    $validator->errors()->add(
-                        'deadline',
-                        "The task deadline must be before the program deadline {$programDeadline->format('Y-m-d H:i')}."
-                    );
-                }
-            },
-        ];
     }
 }
