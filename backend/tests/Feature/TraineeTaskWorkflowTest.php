@@ -86,6 +86,11 @@ class TraineeTaskWorkflowTest extends TestCase
         $download = '/api/v1/task/'.$id.'/download';
         $this->get($download)->assertOk();
         $this->get($download.'/1')->assertOk()->assertHeader('Content-Type', 'image/png');
+        // App downloads get byte-identical data without an HTTP attachment response.
+        $response = $this->getJson($download.'/1?format=json', ['Origin' => 'http://localhost:5173'])
+            ->assertOk()->assertHeader('Access-Control-Allow-Origin', '*')
+            ->assertHeaderMissing('Content-Disposition')->assertJsonPath('mime_type', 'image/png');
+        $this->assertSame($png, base64_decode($response->json('content'), true));
         $this->get($download.'/2')->assertOk();
         $this->get($download.'/3')->assertNotFound();
         $this->postJson($this->url('/feedback'), [
@@ -111,6 +116,7 @@ class TraineeTaskWorkflowTest extends TestCase
         $this->actingAs($peer->user, 'api')->getJson($this->url())->assertOk()->assertJsonMissingPath('data.task.evidences')->assertJsonPath('data.task.can_submit', false);
         $this->postJson($this->url('/start'))->assertForbidden(); $this->upload()->assertForbidden();
         $this->getJson('/api/v1/task/'.$id.'/download')->assertForbidden();
+        $this->getJson('/api/v1/task/'.$id.'/download?format=json')->assertForbidden();
         $this->getJson('/api/v1/myProgram')->assertOk()->assertJsonPath('data.phases.0.tasks.0.id', $this->task->id);
         $otherDepartment = Department::factory()->create();
         $otherTrainer = Trainer::factory()->create(['user_id' => $this->user('SUPERVISOR')->id, 'department_id' => $otherDepartment->id]);

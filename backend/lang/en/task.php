@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'evidence_upload_failed' => 'The server could not receive an evidence file. Check the PHP upload limits and try again.',
     'draft_only_delete' => 'Only unassigned drafts can be removed.',
     'no_changes' => 'Change at least one task field before saving.',
     'cannot_reassign' => 'Choose an eligible trainee before work starts, with a future deadline.',

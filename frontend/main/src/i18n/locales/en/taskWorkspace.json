@@ -31,7 +31,7 @@
   "revisionHint": "Review the feedback, then upload revised evidence. Earlier submissions will be kept.",
   "submitHint": "Upload your evidence to send the task to your supervisor for review.",
   "choose": "Choose evidence files",
-  "fileHint": "Up to 3 PDF, JPEG, PNG, WebP or GIF files. Maximum 10 MB each.",
+  "fileHint": "Add up to 3 PDF, JPEG, PNG, WebP or GIF files, together or one at a time. Maximum 10 MB each.",
   "invalidFile": "Choose a supported PDF or image file no larger than 10 MB.",
   "submit": "Submit for review",
   "resubmit": "Resubmit corrected evidence",
@@ -62,5 +62,8 @@
   "subtaskTitle": "Subtask title",
   "addSubtask": "Add subtask",
   "removeSubtask": "Remove",
-  "tooManyFiles": "Choose up to 3 files per submission."
+  "tooManyFiles": "Choose up to 3 files per submission.",
+  "remove": "Remove",
+  "removeFile": "Remove {{name}}",
+  "uploadTooLarge": "The server rejected the upload size. Check the server upload limits and try again."
 }

@@ -175,6 +175,15 @@
 .filename {
   overflow-wrap: anywhere;
   font-size: 13px;
+  padding-inline-start: 0;
+}
+
+.filename li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-block: 8px;
 }
 .resources {
   display: flex;

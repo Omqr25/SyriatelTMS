@@ -293,17 +293,30 @@ class TaskService
         }
     }
 
-    public function downloadEvidence(int $evidence_id, int $fileIndex = 0)
+    public function downloadEvidence(int $evidence_id, int $fileIndex = 0, bool $asJson = false)
     {
         $evidence=Evidence::find($evidence_id);
         if (!$evidence) {
             throw new ErrorException(__('task.evidence_not_found'), ApiCode::NOT_FOUND);
         }
         Gate::forUser(auth('api')->user())->authorize('manageEvidence', $evidence->task);
-        $path = $evidence->submittedFiles()[$fileIndex]['path'] ?? null;
+        $file = $evidence->submittedFiles()[$fileIndex] ?? null;
+        $path = $file['path'] ?? null;
         abort_unless($path && Storage::disk('private')->exists($path), 404, 'Evidence file not found.');
         /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
         $disk = Storage::disk('private');
+        // The app saves a browser blob from JSON. Serving an attachment to XHR
+        // can hand the response to a download manager before the app sees it.
+        if ($asJson) {
+            $bytes = $disk->get($path);
+            abort_if($bytes === null || $bytes === '', 404, 'Evidence file not found.');
+
+            return response()->json([
+                'content' => base64_encode($bytes),
+                'mime_type' => $disk->mimeType($path) ?: 'application/octet-stream',
+            ], 200, ['Cache-Control' => 'private, no-store']);
+        }
+
         return $disk->download($path);
     }
 
