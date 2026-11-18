@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Organization;
 
+use App\Http\Resources\Evaluation\TraineeEvaluationResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -20,6 +21,7 @@ class AllTraineeResource extends JsonResource
             'email'=>$this->user->email,
             'department'=>$this->department->name,
             'supervisor'=>$this->trainer->user->name,
+            'evaluation' => TraineeEvaluationResource::make($this->whenLoaded('evaluation')),
         ];
     }
 }
