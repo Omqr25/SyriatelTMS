@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { ENGLISH_SCORES_CHANGED } from "../../../Api/HrApi/englishScoreImportsApi";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Button from "../../../components/ui/Button";
@@ -28,6 +29,7 @@ export default function ApplicantsPage() {
   const {
     applicants,
     loading,
+    loadApplicants,
     // Applicant
     loadApplicant,
     applicant,
@@ -49,6 +51,14 @@ export default function ApplicantsPage() {
     // reject
     reject,
   } = useApplicants();
+
+  useEffect(() => {
+    const refreshScores = (event) => {
+      if (event.key === ENGLISH_SCORES_CHANGED) loadApplicants();
+    };
+    window.addEventListener("storage", refreshScores);
+    return () => window.removeEventListener("storage", refreshScores);
+  }, [loadApplicants]);
 
   const handleViewDetails = async (id) => {
     const data = await loadApplicant(id);
@@ -88,6 +98,11 @@ export default function ApplicantsPage() {
     },
     { key: "email", header: c("label.email") },
     { key: "gpa", header: c("label.gpa"), render: (a) => `${a.gpa}%` },
+    {
+      key: "english_test_score",
+      header: t("englishScores:score"),
+      render: (a) => <bdi>{a.english_test_score ?? "—"}</bdi>,
+    },
     {
       key: "status",
       header: c("label.status"),

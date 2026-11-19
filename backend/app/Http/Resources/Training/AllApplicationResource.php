@@ -20,6 +20,7 @@ class AllApplicationResource extends JsonResource
             'email'=>$this->email,
             'status'=>$this->status,
             'gpa'=>$this->gpa,
+            'english_test_score' => $this->english_test_score,
 
             ];
     }

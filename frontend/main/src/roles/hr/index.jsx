@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import AnnouncementsPage from './pages/AnnouncementsPage';
 import ApplicantsPage from './pages/ApplicantsPage';
+import EnglishScoreImportsPage from './pages/EnglishScoreImportsPage';
 import AssignedRequestsPage from './pages/AssignedRequestsPage';
 import AttendancePage from './pages/AttendancePage';
 import DashboardPage from './pages/DashboardPage';
@@ -27,6 +28,7 @@ export const hrModule = {
   nav: [
     { path: 'dashboard', icon: LayoutDashboard, labelKey: 'hr:nav.dashboard', Component: DashboardPage },
     { path: 'applicants', icon: Users, labelKey: 'hr:nav.applicants', Component: ApplicantsPage },
+    { path: 'english-score-imports', icon: FileText, labelKey: 'englishScores:nav', Component: EnglishScoreImportsPage },
     { path: 'assigned-requests', icon: ListChecks, labelKey: 'hr:nav.assignedRequests', Component: AssignedRequestsPage },
     { path: 'interviews', icon: CalendarCheck, labelKey: 'hr:nav.interviews', Component: InterviewsPage },
     { path: 'trainees', icon: GraduationCap, labelKey: 'hr:nav.trainees', Component: TraineesPage },

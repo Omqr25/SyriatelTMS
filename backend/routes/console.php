@@ -12,6 +12,7 @@ Artisan::command('notifications:deliver {--limit=25}', function (\App\Services\N
     $this->info("Due notification deliveries remaining: $remaining");
 })->purpose('Deliver pending inbox pushes and recover missed queue dispatches');
 
+Schedule::command('model:prune', ['--model' => [\App\Models\EnglishScoreImport::class]])->daily();
 Schedule::command('notifications:deliver')->everyMinute()->withoutOverlapping(10)->runInBackground();
 Schedule::command('training-programs:remind-hr')->hourly()->withoutOverlapping();
 Schedule::command('training-programs:update-status')

@@ -14,6 +14,7 @@ use App\Http\Controllers\Organization\TrainerController;
 use App\Http\Controllers\Task\ProgramController;
 use App\Http\Controllers\Task\TaskController;
 use App\Http\Controllers\Training\ApplicationController;
+use App\Http\Controllers\Training\EnglishScoreImportController;
 use App\Http\Controllers\Training\TrainingProgramController;
 use App\Jobs\TestQueueJob;
 use App\Http\Resources\Dashboard\HrDashboardResource;
@@ -119,6 +120,15 @@ Route::prefix('v1')->group(function () {
                 Route::post('{training_program_id}/archive', [TrainingProgramController::class, 'archive']);
                 Route::post('{training_program_id}/restore', [TrainingProgramController::class, 'restore']);
                 Route::delete('{training_program_id}', [TrainingProgramController::class, 'delete']);
+            });
+
+            Route::prefix('english-score-imports')->middleware(\App\Http\Middleware\UseEnglishScoreImportLocale::class)->group(function () {
+                Route::get('/', [EnglishScoreImportController::class, 'index']);
+                Route::get('template', [EnglishScoreImportController::class, 'template']);
+                Route::post('preview', [EnglishScoreImportController::class, 'preview'])->middleware('throttle:10,1');
+                Route::post('{id}/confirm', [EnglishScoreImportController::class, 'confirm'])->whereNumber('id');
+                Route::get('{id}/rows', [EnglishScoreImportController::class, 'rows'])->whereNumber('id');
+                Route::get('{id}/exceptions', [EnglishScoreImportController::class, 'downloadExceptions'])->whereNumber('id');
             });
 
             Route::prefix('application')->group(function () {
