@@ -42,6 +42,13 @@ const initialFiles = {
   personalPhoto: null,
 };
 
+const attachmentFields = {
+  academic_qualification: "academicQualification",
+  cv: "cv",
+  national_id: "nationalID",
+  personal_photo: "personalPhoto",
+};
+
 export default function Application() {
   const { t, i18n } = useTranslation();
 
@@ -111,16 +118,11 @@ export default function Application() {
     const selectedFile = event.target.files?.[0] || null;
     if (!selectedFile) return;
 
-    if (selectedFile.size > MAX_FILE_SIZE) {
-      toast.error(
-        t("form.errors.fileSize") || "File size must not exceed 5 MB",
-      );
-      event.target.value = "";
-      return;
-    }
+    const tooLarge = selectedFile.size > MAX_FILE_SIZE;
+    if (tooLarge) event.target.value = "";
 
-    setFiles((prev) => ({ ...prev, [fieldName]: selectedFile }));
-    setErrors((prev) => ({ ...prev, [fieldName]: "" }));
+    setFiles((prev) => ({ ...prev, [fieldName]: tooLarge ? null : selectedFile }));
+    setErrors((prev) => ({ ...prev, [fieldName]: tooLarge ? t("form.errors.fileSize") : "" }));
     setTouched((prev) => ({ ...prev, [fieldName]: true }));
   };
 
@@ -164,10 +166,9 @@ export default function Application() {
 
     setLoading(true);
     const formData = new FormData();
-    formData.append("academic_qualification", files.academicQualification);
-    formData.append("cv", files.cv);
-    formData.append("national_id", files.nationalID);
-    formData.append("personal_photo", files.personalPhoto);
+    for (const [apiField, formField] of Object.entries(attachmentFields)) {
+      formData.append(apiField, files[formField]);
+    }
     formData.append("training_program_id", Group);
 
     formData.append("full_name", form.fullname);
@@ -194,14 +195,20 @@ export default function Application() {
       setSubmitted(true);
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (error) {
-      const message = error.response?.data?.message;
-      if (Array.isArray(message)) {
-        message.forEach((msg) => toast.error(msg));
+      const response = error.response?.data;
+      const attachmentErrors = {};
+      for (const [apiField, messages] of Object.entries(response?.errors ?? {})) {
+        if (Object.hasOwn(attachmentFields, apiField) && messages[0]) {
+          attachmentErrors[attachmentFields[apiField]] = messages[0];
+        }
+      }
+      if (Object.keys(attachmentErrors).length > 0) {
+        setErrors((previous) => ({ ...previous, ...attachmentErrors }));
+        toast.error(t("form.errors.submitFailed"));
+      } else if (Array.isArray(response?.message)) {
+        response.message.forEach((message) => toast.error(message));
       } else {
-        toast.error(
-          message ||
-            "Error submitting the application. Please try again later.",
-        );
+        toast.error(response?.message || t("form.errors.submitFailed"));
       }
     } finally {
       setLoading(false);
@@ -648,7 +655,7 @@ function FileField({
         error ? styles.fileErrorContainer : ""
       }`}
     >
-      <label>
+      <label htmlFor={name}>
         {label}
         {required && <em>*</em>}
       </label>
@@ -664,12 +671,15 @@ function FileField({
         </small>
         <input
           type="file"
+          id={name}
           accept={type}
+          aria-invalid={Boolean(error)}
+          aria-describedby={error ? `${name}-error` : undefined}
           onChange={(event) => onChange(event, name)}
         />
       </div>
       {error && (
-        <span className={styles.errorText}>
+        <span id={`${name}-error`} className={styles.errorText}>
           <AlertCircle size={14} /> {error}
         </span>
       )}

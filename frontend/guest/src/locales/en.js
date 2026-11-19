@@ -240,6 +240,7 @@ const en = {
       invalidNationalId: "National ID must be exactly 11 digits",
       invalidGpa: "GPA must be a valid number between 0 and 100",
       fileSize: "File size must not exceed 5 MB",
+      submitFailed: "Could not submit the application. Please try again.",
       fixErrors: "Please fix the validation errors before submitting",
     },
   },

@@ -8,10 +8,33 @@ use App\Enums\HowHeard;
 use App\Enums\YearOfStudy;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Validation\Rule;
 
 class StoreApplicationRequest extends FormRequest
 {
+    public function messages(): array
+    {
+        $messages = [];
+
+        foreach (['cv', 'personal_photo', 'national_id', 'academic_qualification'] as $field) {
+            $file = $this->file($field);
+            if (! $file instanceof UploadedFile || $file->isValid()) {
+                continue;
+            }
+
+            $message = match ($file->getError()) {
+                UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE => 'size',
+                UPLOAD_ERR_PARTIAL => 'partial',
+                UPLOAD_ERR_NO_TMP_DIR, UPLOAD_ERR_CANT_WRITE, UPLOAD_ERR_EXTENSION => 'server',
+                default => 'failed',
+            };
+            $messages["{$field}.uploaded"] = __("application_upload.{$message}");
+        }
+
+        return $messages;
+    }
+
     /**
      * Determine if the user is authorized to make this request.
      */
