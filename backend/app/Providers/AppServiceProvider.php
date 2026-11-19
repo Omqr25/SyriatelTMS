@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Console\ServeCommand;
 use App\Models\Interview;
 use App\Models\Milestone;
 use App\Models\ReevaluationRequest;
@@ -9,6 +10,7 @@ use App\Policies\EvaluationPolicy;
 use App\Policies\InterviewPolicy;
 use App\Policies\TaskPolicy;
 use Illuminate\Auth\Notifications\ResetPassword;
+use Illuminate\Foundation\Console\ServeCommand as LaravelServeCommand;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
@@ -20,7 +22,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->extend(LaravelServeCommand::class, fn () => new ServeCommand);
     }
 
     /**
