@@ -27,11 +27,11 @@ class TrainingProgramController extends Controller
         return $this->success(TrainingProgramResource::collection($programs), __('training_program.create'), ApiCode::CREATED);
     }
 
-    public function management(Request $request)
+    public function management()
     {
         return $this->success([
             'can_manage' => true,
-            'can_archive' => $request->user()->can('administer-training-programs'),
+            'can_archive' => true,
             'programs' => TrainingProgramResource::collection(
                 $this->trainingProgramService->findAll(withManagement: true, includeArchived: true)
             ),

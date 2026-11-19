@@ -17,6 +17,7 @@ class StoreTrainingProgramRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'draft' => ['sometimes', 'boolean'],
             'name' => ['required', 'string', 'max:30'],
             'description' => ['nullable', 'string', 'max:100'],
             'application_start_date' => ['required', 'date_format:Y-m-d'],

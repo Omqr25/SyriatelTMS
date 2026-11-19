@@ -10,7 +10,7 @@ import Button from "../ui/Button";
 import styles from "./NotificationsPage.module.css";
 
 const DESTINATIONS = {
-  HR: { evaluation_completed: "/hr/evaluations" },
+  HR: { evaluation_completed: "/hr/evaluations", training_program_registration_reminder: "/hr/registration" },
   SUPERVISOR: {
     interview: "/supervisor/interviews",
     reevaluation_request_created: "/supervisor/re-evaluations",

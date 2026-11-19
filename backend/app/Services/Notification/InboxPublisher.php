@@ -13,7 +13,7 @@ use Throwable;
 class InboxPublisher
 {
     public function publish(
-        User $sender,
+        ?User $sender,
         iterable $recipientIds,
         string $type,
         string $eventId,
@@ -29,7 +29,7 @@ class InboxPublisher
             'type' => $type,
             'title' => $title,
             'description' => $description,
-            'notifier_id' => $sender->id,
+            'notifier_id' => $sender?->id,
             'metadata' => $metadata,
         ]);
 

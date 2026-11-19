@@ -116,8 +116,8 @@ Route::prefix('v1')->group(function () {
                 Route::get('management/list', [TrainingProgramController::class, 'management']);
                 Route::post('/', [TrainingProgramController::class, 'store']);
                 Route::put('{training_program_id}', [TrainingProgramController::class, 'update']);
-                Route::post('{training_program_id}/archive', [TrainingProgramController::class, 'archive'])->middleware('can:administer-training-programs');
-                Route::post('{training_program_id}/restore', [TrainingProgramController::class, 'restore'])->middleware('can:administer-training-programs');
+                Route::post('{training_program_id}/archive', [TrainingProgramController::class, 'archive']);
+                Route::post('{training_program_id}/restore', [TrainingProgramController::class, 'restore']);
                 Route::delete('{training_program_id}', [TrainingProgramController::class, 'delete']);
             });
 

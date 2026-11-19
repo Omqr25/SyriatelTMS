@@ -13,6 +13,7 @@ Artisan::command('notifications:deliver {--limit=25}', function (\App\Services\N
 })->purpose('Deliver pending inbox pushes and recover missed queue dispatches');
 
 Schedule::command('notifications:deliver')->everyMinute()->withoutOverlapping(10)->runInBackground();
+Schedule::command('training-programs:remind-hr')->hourly()->withoutOverlapping();
 Schedule::command('training-programs:update-status')
     ->everyMinute();
 Schedule::command('app:update-overdue-tasks')

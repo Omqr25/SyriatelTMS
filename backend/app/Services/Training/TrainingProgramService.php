@@ -54,13 +54,16 @@ class TrainingProgramService
     {
         return DB::transaction(function () use ($data, $actor) {
             $this->lockCalendar();
-            $program = new TrainingProgram($data);
+            $program = new TrainingProgram(Arr::except($data, ['draft']));
+            $program->archived_at = ! empty($data['draft']) ? now() : null;
             $program->description ??= '';
             $this->validateCalendar($program);
             $this->applyRegistrationStatus($program);
             $program->save();
             $this->audit($program, $actor, 'create', null, $this->snapshot($program));
-            $this->scheduleTransitions($program, self::DATES);
+            if (! $program->archived_at) {
+                $this->scheduleTransitions($program, self::DATES);
+            }
 
             return $program;
         }, 3);
@@ -115,6 +118,9 @@ class TrainingProgramService
                 $program->revision++;
                 $program->save();
                 $this->audit($program, $actor, $archive ? 'archive' : 'restore', $before, $this->snapshot($program));
+                if (! $archive) {
+                    $this->scheduleTransitions($program, self::DATES);
+                }
             }
 
             return $program->loadExists(self::LINKS);

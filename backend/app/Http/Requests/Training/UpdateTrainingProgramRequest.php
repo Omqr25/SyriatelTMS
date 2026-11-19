@@ -7,6 +7,7 @@ class UpdateTrainingProgramRequest extends StoreTrainingProgramRequest
     public function rules(): array
     {
         $rules = parent::rules();
+        unset($rules['draft']);
         // Retain support for partial updates and existing longer names/descriptions.
         $rules['name'] = ['required', 'string', 'max:255'];
         $rules['description'] = ['nullable', 'string'];

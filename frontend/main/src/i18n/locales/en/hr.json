@@ -248,6 +248,9 @@
   "registration": {
     "title": "Training programs",
     "add": "Add new course",
+    "publishNow": "Publish program",
+    "saveDraft": "Save as draft",
+    "draftSaved": "Program saved as a draft.",
     "startDate": "Start date",
     "endDate": "End date",
     "startDateRegistration": "Registration start date",
@@ -277,7 +280,7 @@
       "registration_closed": "Registration closed",
       "in_progress": "Training in progress",
       "completed": "Completed",
-      "archived": "Archived"
+      "archived": "Draft / archived"
     },
     "blocks": {
       "opened": "Registration has already started. This program cannot be deleted.",
@@ -286,9 +289,9 @@
       "archived": "Archived programs are protected from deletion."
     },
     "archive": "Archive",
-    "restore": "Restore",
+    "restore": "Publish",
     "archived": "Program archived.",
-    "restored": "Program restored.",
+    "restored": "Program published.",
     "search": "Search by program name",
     "current": "All unarchived programs",
     "all": "All programs, including archived",
@@ -296,7 +299,7 @@
     "confirmAction": {
       "delete": "Delete “{{name}}”? This permanently removes the program.",
       "archive": "Archive “{{name}}”? New applications will close. Existing records will be kept.",
-      "restore": "Restore “{{name}}” to the calendar? Registration will follow its saved dates."
+      "restore": "Publish “{{name}}” to the calendar? Registration will follow its saved dates."
     }
   },
   "program": {

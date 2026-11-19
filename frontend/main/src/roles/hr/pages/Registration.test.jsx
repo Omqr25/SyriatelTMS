@@ -48,7 +48,7 @@ it("creates from the existing form once and updates the list on persistence", as
   }
   let resolve;
   api.createProgramsApi.mockImplementation(() => new Promise((done) => { resolve = done; }));
-  const form = dialog.getByRole("button", { name: "common:action.create" }).form;
+  const form = dialog.getByRole("button", { name: "registration.publishNow" }).form;
   fireEvent.submit(form);
   fireEvent.submit(form);
   expect(api.createProgramsApi).toHaveBeenCalledTimes(1);
@@ -58,6 +58,26 @@ it("creates from the existing form once and updates the list on persistence", as
   });
   resolve([{ ...program, id: 8, name: "Spring" }, program]);
   expect(await screen.findByRole("heading", { name: "Spring" })).toBeTruthy();
+});
+
+it("saves a new program as a draft and shows it in the draft list", async () => {
+  await openList(true);
+  fireEvent.click(button("registration.add"));
+  const dialog = within(screen.getByRole("dialog"));
+  const values = {
+    name: "Spring draft", startDate: "1/2/31", endDate: "31/3/31", startDateRegistration: "1/1/31", endDateRegistration: "31/1/31",
+  };
+  for (const [label, value] of Object.entries(values)) {
+    fireEvent.change(dialog.getByLabelText(`registration.${label}`), { target: { value } });
+  }
+  api.createProgramsApi.mockResolvedValue([
+    program, { ...program, id: 8, name: "Spring draft", phase: "archived", archived_at: "2030-01-02", delete_block: "archived" },
+  ]);
+  fireEvent.click(dialog.getByRole("button", { name: "registration.saveDraft" }));
+  expect(await screen.findByRole("heading", { name: "Spring draft" })).toBeTruthy();
+  expect(api.createProgramsApi).toHaveBeenCalledWith(expect.objectContaining({ draft: true }));
+  expect(screen.getByRole("combobox").value).toBe("archived");
+  expect(button("registration.restore")).toBeTruthy();
 });
 
 it("prefills the edit form, warns for changed dates, and updates the card after confirmation", async () => {

@@ -5,7 +5,6 @@ namespace App\Providers;
 use App\Models\Interview;
 use App\Models\Milestone;
 use App\Models\ReevaluationRequest;
-use App\Models\User;
 use App\Policies\EvaluationPolicy;
 use App\Policies\InterviewPolicy;
 use App\Policies\TaskPolicy;
@@ -37,7 +36,6 @@ class AppServiceProvider extends ServiceProvider
                 . '?token=' . urlencode($token)
                 . '&email=' . urlencode($user->email);
         });
-        Gate::define('administer-training-programs', fn (User $user) => $user->training_program_admin);
         Gate::policy(ReevaluationRequest::class, EvaluationPolicy::class);
         Gate::policy(Milestone::class, TaskPolicy::class);
     }
