@@ -46,7 +46,7 @@ class TrainingProgramManagementTest extends TestCase
         Mail::fake();
     }
 
-    private function login(string $role = 'HR', bool $admin = true): User
+    private function login(string $role = 'HR', bool $admin = false): User
     {
         $user = User::factory()->create(['training_program_admin' => $admin]);
         $user->roles()->attach(Role::firstOrCreate(['role' => $role]));
@@ -62,33 +62,37 @@ class TrainingProgramManagementTest extends TestCase
         return TrainingProgram::findOrFail($id);
     }
 
-    public function test_existing_hr_permission_allows_creation_but_administration_requires_an_explicit_grant(): void
+    public function test_hr_can_edit_and_conditionally_delete_without_a_separate_grant(): void
     {
         $this->postJson(self::API, self::FIELDS)->assertUnauthorized();
-        $user = $this->login('HR', false);
-        $program = $this->createProgram();
+        $this->putJson(self::API.'/1', ['name' => 'Different'])->assertUnauthorized();
+        $this->deleteJson(self::API.'/1')->assertUnauthorized();
+
+        $this->login();
+        $this->postJson(self::API, self::FIELDS)->assertCreated()
+            ->assertJsonPath('data.0.has_applicants', false)
+            ->assertJsonPath('data.0.delete_block', null);
+        $program = TrainingProgram::sole();
         $url = self::API.'/'.$program->id;
-        $this->getJson(self::API.'/management/list')->assertOk()->assertJsonPath('data.can_manage', false)
-            ->assertJsonMissingPath('data.programs.0.has_applicants');
-        $this->putJson($url, ['name' => 'Different'])->assertForbidden();
-        $this->deleteJson($url)->assertForbidden();
+        $this->getJson(self::API.'/management/list')->assertOk()
+            ->assertJsonPath('data.can_manage', true)
+            ->assertJsonPath('data.can_archive', false)
+            ->assertJsonPath('data.programs.0.delete_block', null);
+        $this->getJson(self::API)->assertOk()->assertJsonMissingPath('data.0.delete_block');
         $this->postJson($url.'/archive')->assertForbidden();
         $this->postJson($url.'/restore')->assertForbidden();
-        $this->artisan('training-programs:admin', ['email' => $user->email])->assertSuccessful();
-        $this->actingAs($user->fresh(), 'api');
-        $this->getJson(self::API.'/management/list')->assertJsonPath('data.can_manage', true);
-        $this->getJson(self::API)->assertOk()->assertJsonMissingPath('data.0.delete_block');
-        $this->artisan('training-programs:admin', ['email' => $user->email, '--revoke' => true])->assertSuccessful();
-        $this->actingAs($user->fresh(), 'api');
-        $this->deleteJson($url)->assertForbidden();
+        $this->putJson($url, ['name' => 'Different'])->assertOk()->assertJsonPath('data.name', 'Different');
+
         foreach (['SUPERVISOR', 'TRAINEE'] as $role) {
-            $other = $this->login($role);
-            $this->artisan('training-programs:admin', ['email' => $other->email])->assertFailed();
+            $this->login($role, admin: true);
             $this->getJson(self::API.'/management/list')->assertForbidden();
             $this->postJson(self::API, self::FIELDS)->assertForbidden();
             $this->putJson($url, ['name' => 'Other'])->assertForbidden();
             $this->deleteJson($url)->assertForbidden();
         }
+
+        $this->login();
+        $this->deleteJson($url)->assertOk();
     }
 
     public function test_create_and_partial_update_enforce_dates_normalized_duplicates_and_both_overlap_rules(): void
@@ -139,7 +143,7 @@ class TrainingProgramManagementTest extends TestCase
     }
 
     #[DataProvider('phases')]
-    public function test_admin_can_edit_dates_in_every_phase_and_postponing_registration_never_unlocks_deletion(string $at, string $phase): void
+    public function test_hr_can_edit_dates_in_every_phase_and_postponing_registration_never_unlocks_deletion(string $at, string $phase): void
     {
         $this->login();
         $program = $this->createProgram();
@@ -196,7 +200,7 @@ class TrainingProgramManagementTest extends TestCase
 
     public function test_archiving_preserves_records_stops_intake_and_restores_the_current_schedule(): void
     {
-        $this->login();
+        $this->login(admin: true);
         $program = $this->createProgram();
         $url = self::API.'/'.$program->id;
         $this->travelTo(Carbon::parse('2030-01-11'));
@@ -221,7 +225,7 @@ class TrainingProgramManagementTest extends TestCase
 
     public function test_archived_program_rejects_direct_application_and_restore_checks_for_overlaps(): void
     {
-        $this->login();
+        $this->login(admin: true);
         $program = $this->createProgram();
         $url = self::API.'/'.$program->id;
         $this->postJson($url.'/archive')->assertOk();
@@ -258,7 +262,7 @@ class TrainingProgramManagementTest extends TestCase
 
     public function test_registration_does_not_open_while_archived_through_the_saved_window(): void
     {
-        $this->login();
+        $this->login(admin: true);
         $program = $this->createProgram();
         $url = self::API.'/'.$program->id;
         $this->postJson($url.'/archive')->assertOk();

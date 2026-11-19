@@ -22,18 +22,19 @@ class TrainingProgramController extends Controller
     {
         $actor = $request->user();
         $this->trainingProgramService->create($request->validated(), $actor);
-        $programs = $this->trainingProgramService->findAll($actor->can('administer-training-programs'), includeArchived: true);
+        $programs = $this->trainingProgramService->findAll(withManagement: true, includeArchived: true);
 
         return $this->success(TrainingProgramResource::collection($programs), __('training_program.create'), ApiCode::CREATED);
     }
 
     public function management(Request $request)
     {
-        $canManage = $request->user()->can('administer-training-programs');
-
         return $this->success([
-            'can_manage' => $canManage,
-            'programs' => TrainingProgramResource::collection($this->trainingProgramService->findAll($canManage, includeArchived: true)),
+            'can_manage' => true,
+            'can_archive' => $request->user()->can('administer-training-programs'),
+            'programs' => TrainingProgramResource::collection(
+                $this->trainingProgramService->findAll(withManagement: true, includeArchived: true)
+            ),
         ]);
     }
 

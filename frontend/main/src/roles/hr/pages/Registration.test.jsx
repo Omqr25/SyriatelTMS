@@ -14,8 +14,8 @@ const program = {
   phase: "upcoming", has_applicants: false, delete_block: null, revision: 1,
 };
 
-function openList(canManage = true, fields = {}) {
-  api.getProgramsApi.mockResolvedValue({ can_manage: canManage, programs: [{ ...program, ...fields }] });
+function openList(canArchive = false, fields = {}) {
+  api.getProgramsApi.mockResolvedValue({ can_manage: true, can_archive: canArchive, programs: [{ ...program, ...fields }] });
   render(<Registration />);
   return screen.findByRole("heading", { name: program.name });
 }
@@ -25,15 +25,16 @@ const button = (name) => screen.getByRole("button", { name });
 beforeEach(() => vi.resetAllMocks());
 afterEach(cleanup);
 
-it("keeps ordinary HR creation and dates visible and hides admin-only controls", async () => {
+it("shows creation, editing, and deletion to HR without archive permission", async () => {
   await openList(false);
   expect(button("registration.add")).toBeTruthy();
   expect(within(screen.getByRole("heading", { name: program.name }).closest("section")).getByText("registration.phases.upcoming")).toBeTruthy();
   for (const key of ["start_date", "end_date", "application_start_date", "application_end_date"]) {
     expect(screen.getByText(program[key])).toBeTruthy();
   }
-  expect(screen.queryByRole("button", { name: "registration.edit" })).toBeNull();
-  expect(screen.queryByRole("button", { name: "registration.delete" })).toBeNull();
+  expect(button("registration.edit").disabled).toBe(false);
+  expect(button("registration.delete").disabled).toBe(false);
+  expect(screen.queryByRole("button", { name: "registration.archive" })).toBeNull();
 });
 
 it("creates from the existing form once and updates the list on persistence", async () => {
@@ -55,7 +56,7 @@ it("creates from the existing form once and updates the list on persistence", as
 });
 
 it("prefills the edit form, warns for changed dates, and updates the card after confirmation", async () => {
-  await openList(true, { has_applicants: true });
+  await openList(false, { has_applicants: true });
   api.updateProgramApi.mockResolvedValue({ ...program, start_date: "2030-02-03", revision: 2 });
   fireEvent.click(button("registration.edit"));
   const start = screen.getByLabelText("registration.startDate");
@@ -99,7 +100,8 @@ it("shows chronology errors and field-level server errors without discarding edi
 });
 
 it.each(["opened", "linked", "unknown_history"])("disables deletion with the reason %s", async (reason) => {
-  await openList(true, { delete_block: reason });
+  await openList(false, { delete_block: reason });
+  expect(button("registration.edit").disabled).toBe(false);
   expect(button("registration.delete").disabled).toBe(true);
   expect(screen.getByText(`registration.blocks.${reason}`)).toBeTruthy();
 });
@@ -137,7 +139,7 @@ it("searches names and filters the lifecycle or archived programs without refetc
 });
 
 it("archives and restores the card through separate confirmations", async () => {
-  await openList();
+  await openList(true);
   const archived = { ...program, archived_at: "2030-01-02", delete_block: "archived", phase: "archived", revision: 2 };
   api.setProgramArchivedApi.mockResolvedValueOnce(archived).mockResolvedValueOnce({ ...program, revision: 3 });
   fireEvent.click(button("registration.archive"));
