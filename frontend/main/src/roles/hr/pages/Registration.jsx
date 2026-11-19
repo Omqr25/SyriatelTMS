@@ -135,6 +135,7 @@ function ProgramEditor({ program, onClose, onSave, reload }) {
     event.preventDefault();
     if (submitting.current || (needsConfirmation && !confirmed)) return;
     setSaveError(null);
+    const draft = !program && event.nativeEvent.submitter?.value === "draft";
     const validation = validateDates(dates, t);
     if (!fields.name.trim()) validation.name = t("registration.nameRequired");
     setErrors(validation);
@@ -144,12 +145,13 @@ function ProgramEditor({ program, onClose, onSave, reload }) {
     setSaving(true);
     try {
       const payload = { ...dates, name: fields.name.trim() };
+      if (draft) payload.draft = true;
       if (program) {
         payload.expected_revision = program.revision;
         payload.confirm_date_change = !!(needsConfirmation && confirmed);
       }
       await onSave(program, payload);
-      toast.success(t(program ? "registration.updated" : "registration.created"));
+      toast.success(t(program ? "registration.updated" : draft ? "registration.draftSaved" : "registration.created"));
       onClose();
     } catch (err) {
       const body = err.response?.data;
@@ -200,8 +202,9 @@ function ProgramEditor({ program, onClose, onSave, reload }) {
         )}
         {saveError && <ErrorMessage>{saveError}</ErrorMessage>}
         <Button type="submit" loading={saving} disabled={needsConfirmation && !confirmed}>
-          {t(program ? "common:action.save" : "common:action.create")}
+          {t(program ? "common:action.save" : "registration.publishNow")}
         </Button>
+        {!program && <Button variant="secondary" type="submit" value="draft" disabled={saving}>{t("registration.saveDraft")}</Button>}
       </form>
     </Modal>
   );
@@ -229,7 +232,10 @@ export default function Registration() {
     const { type, program } = action;
     try {
       if (type === "delete") await remove(program);
-      else await setArchived(program, type === "archive");
+      else {
+        await setArchived(program, type === "archive");
+        setFilter(type === "archive" ? "archived" : "current");
+      }
       const success = { delete: "deleted", archive: "archived", restore: "restored" };
       toast.success(t(`registration.${success[type]}`));
       setAction(null);
@@ -308,7 +314,7 @@ export default function Registration() {
         await save(program, fields);
         if (!program) {
           setQuery("");
-          setFilter("current");
+          setFilter(fields.draft ? "archived" : "current");
         }
       }} reload={reload} />}
       {action && (

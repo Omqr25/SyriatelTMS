@@ -76,11 +76,9 @@ class TrainingProgramManagementTest extends TestCase
         $url = self::API.'/'.$program->id;
         $this->getJson(self::API.'/management/list')->assertOk()
             ->assertJsonPath('data.can_manage', true)
-            ->assertJsonPath('data.can_archive', false)
+            ->assertJsonPath('data.can_archive', true)
             ->assertJsonPath('data.programs.0.delete_block', null);
         $this->getJson(self::API)->assertOk()->assertJsonMissingPath('data.0.delete_block');
-        $this->postJson($url.'/archive')->assertForbidden();
-        $this->postJson($url.'/restore')->assertForbidden();
         $this->putJson($url, ['name' => 'Different'])->assertOk()->assertJsonPath('data.name', 'Different');
 
         foreach (['SUPERVISOR', 'TRAINEE'] as $role) {
@@ -89,6 +87,8 @@ class TrainingProgramManagementTest extends TestCase
             $this->postJson(self::API, self::FIELDS)->assertForbidden();
             $this->putJson($url, ['name' => 'Other'])->assertForbidden();
             $this->deleteJson($url)->assertForbidden();
+            $this->postJson($url.'/archive')->assertForbidden();
+            $this->postJson($url.'/restore')->assertForbidden();
         }
 
         $this->login();
@@ -198,9 +198,51 @@ class TrainingProgramManagementTest extends TestCase
         $this->deleteJson($url)->assertConflict()->assertJsonPath('data.reason', 'unknown_history');
     }
 
+    public function test_hr_can_save_a_draft_and_publish_it_when_ready(): void
+    {
+        $this->login();
+        $this->travelTo(Carbon::parse('2030-01-10'));
+        $draft = $this->createProgram(['draft' => true]);
+        $this->assertSame('archived', $draft->phase());
+        $this->assertFalse($draft->registration_has_opened);
+        $this->getJson(self::API.'/openProgram')->assertNotFound();
+        $this->getJson(self::API.'/management/list')->assertJsonPath('data.programs.0.phase', 'archived');
+        $this->postJson(self::API.'/'.$draft->id.'/restore')->assertOk()->assertJsonPath('data.phase', 'registration_open');
+        $this->getJson(self::API.'/openProgram')->assertJsonPath('data.id', $draft->id);
+        $this->deleteJson(self::API.'/'.$draft->id)->assertConflict()->assertJsonPath('data.reason', 'opened');
+    }
+
+    public function test_registration_reminders_reach_only_active_hr_once_per_program_date(): void
+    {
+        $hr = $this->login();
+        $draft = $this->createProgram(['draft' => true]);
+        $this->login('SUPERVISOR');
+        $inactiveHr = $this->login();
+        $inactiveHr->update(['status' => 'inactive']);
+
+        $this->travelTo(Carbon::parse('2030-01-02'));
+        $this->artisan('training-programs:remind-hr')->assertSuccessful();
+        $this->assertDatabaseCount('notifications', 0);
+
+        $this->travelTo(Carbon::parse('2030-01-03'));
+        $this->artisan('training-programs:remind-hr')->assertSuccessful();
+        $this->artisan('training-programs:remind-hr')->assertSuccessful();
+        $notice = Notification::where('type', 'training_program_registration_reminder')->sole();
+        $this->assertNull($notice->notifier_id);
+        $this->assertSame($draft->id, $notice->metadata['training_program_id']);
+        $this->assertStringContainsString('publish', $notice->description);
+        $this->assertSame([$hr->id], $notice->notified()->pluck('notified_id')->all());
+
+        $this->actingAs($hr, 'api');
+        $this->putJson(self::API.'/'.$draft->id, ['application_start_date' => '2030-01-11'])->assertOk();
+        $this->travelTo(Carbon::parse('2030-01-04'));
+        $this->artisan('training-programs:remind-hr')->assertSuccessful();
+        $this->assertDatabaseCount('notifications', 2);
+    }
+
     public function test_archiving_preserves_records_stops_intake_and_restores_the_current_schedule(): void
     {
-        $this->login(admin: true);
+        $this->login();
         $program = $this->createProgram();
         $url = self::API.'/'.$program->id;
         $this->travelTo(Carbon::parse('2030-01-11'));
@@ -225,7 +267,7 @@ class TrainingProgramManagementTest extends TestCase
 
     public function test_archived_program_rejects_direct_application_and_restore_checks_for_overlaps(): void
     {
-        $this->login(admin: true);
+        $this->login();
         $program = $this->createProgram();
         $url = self::API.'/'.$program->id;
         $this->postJson($url.'/archive')->assertOk();
@@ -262,7 +304,7 @@ class TrainingProgramManagementTest extends TestCase
 
     public function test_registration_does_not_open_while_archived_through_the_saved_window(): void
     {
-        $this->login(admin: true);
+        $this->login();
         $program = $this->createProgram();
         $url = self::API.'/'.$program->id;
         $this->postJson($url.'/archive')->assertOk();
