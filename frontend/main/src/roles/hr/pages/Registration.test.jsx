@@ -29,7 +29,7 @@ it("shows creation, editing, and deletion to HR without archive permission", asy
   await openList(false);
   expect(button("registration.add")).toBeTruthy();
   expect(within(screen.getByRole("heading", { name: program.name }).closest("section")).getByText("registration.phases.upcoming")).toBeTruthy();
-  for (const date of ["2/1/30", "3/31/30", "1/1/30", "1/31/30"]) {
+  for (const date of ["1/2/30", "31/3/30", "1/1/30", "31/1/30"]) {
     expect(screen.getByText(date)).toBeTruthy();
   }
   expect(button("registration.edit").disabled).toBe(false);
@@ -41,7 +41,8 @@ it("creates from the existing form once and updates the list on persistence", as
   await openList(false);
   fireEvent.click(button("registration.add"));
   const dialog = within(screen.getByRole("dialog"));
-  const values = { name: "Spring", startDate: "2/1/31", endDate: "3/31/31", startDateRegistration: "1/1/31", endDateRegistration: "1/31/31" };
+  expect(dialog.getAllByPlaceholderText("D/M/YY")).toHaveLength(4);
+  const values = { name: "Spring", startDate: "1/2/31", endDate: "31/3/31", startDateRegistration: "1/1/31", endDateRegistration: "31/1/31" };
   for (const [label, value] of Object.entries(values)) {
     fireEvent.change(dialog.getByLabelText(`registration.${label}`), { target: { value } });
   }
@@ -64,7 +65,7 @@ it("prefills the edit form, warns for changed dates, and updates the card after 
   api.updateProgramApi.mockResolvedValue({ ...program, start_date: "2030-02-03", revision: 2 });
   fireEvent.click(button("registration.edit"));
   const start = screen.getByLabelText("registration.startDate");
-  expect(start.value).toBe("2/1/30");
+  expect(start.value).toBe("1/2/30");
   fireEvent.change(start, { target: { value: "2030-02-02" } });
   expect(button("common:action.save").disabled).toBe(true);
   fireEvent.click(screen.getByRole("checkbox"));
@@ -72,7 +73,7 @@ it("prefills the edit form, warns for changed dates, and updates the card after 
   expect(button("common:action.save").disabled).toBe(true);
   fireEvent.click(screen.getByRole("checkbox"));
   fireEvent.click(button("common:action.save"));
-  expect(await screen.findByText("2/3/30")).toBeTruthy();
+  expect(await screen.findByText("3/2/30")).toBeTruthy();
   expect(api.updateProgramApi).toHaveBeenCalledWith(7, expect.objectContaining({ expected_revision: 1, confirm_date_change: true }));
   expect(screen.queryByRole("dialog")).toBeNull();
 });
@@ -84,7 +85,7 @@ it("keeps the form open when a new applicant registers during an edit", async ()
   fireEvent.change(screen.getByLabelText("registration.endDate"), { target: { value: "2030-04-30" } });
   fireEvent.click(button("common:action.save"));
   expect(await screen.findByRole("checkbox")).toBeTruthy();
-  expect(screen.getByLabelText("registration.endDate").value).toBe("4/30/30");
+  expect(screen.getByLabelText("registration.endDate").value).toBe("30/4/30");
   expect(button("common:action.save").disabled).toBe(true);
 });
 
@@ -104,21 +105,21 @@ it("shows chronology errors and field-level server errors without discarding edi
   api.updateProgramApi.mockRejectedValueOnce({ response: { status: 422, data: { errors: { name: ["Duplicate program"] } } } });
   fireEvent.click(button("common:action.save"));
   expect(await screen.findByText("Duplicate program")).toBeTruthy();
-  expect(screen.getByLabelText("registration.startDate").value).toBe("2/4/30");
+  expect(screen.getByLabelText("registration.startDate").value).toBe("4/2/30");
 });
 
 it("flags an impossible date before saving and shows shorter dates after blur", async () => {
   await openList();
   fireEvent.click(button("registration.edit"));
   const end = screen.getByLabelText("registration.endDate");
-  fireEvent.change(end, { target: { value: "2/29/30" } });
+  fireEvent.change(end, { target: { value: "29/2/30" } });
   fireEvent.click(button("common:action.save"));
   expect(screen.getByRole("alert").textContent).toBe("registration.invalidDate");
   expect(api.updateProgramApi).not.toHaveBeenCalled();
 
-  fireEvent.change(end, { target: { value: "03/05/2030" } });
+  fireEvent.change(end, { target: { value: "05/03/2030" } });
   fireEvent.blur(end);
-  expect(end.value).toBe("3/5/30");
+  expect(end.value).toBe("5/3/30");
   expect(screen.queryByRole("alert")).toBeNull();
 });
 
