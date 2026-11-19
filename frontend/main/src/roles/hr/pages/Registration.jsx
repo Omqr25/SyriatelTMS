@@ -126,7 +126,7 @@ function ProgramEditor({ program, onClose, onSave, reload }) {
 
 export default function Registration() {
   const { t } = useTranslation("hr");
-  const { programs, canManage, loading, error, reload, save, remove, setArchived } = useRegistration();
+  const { programs, canManage, canArchive, loading, error, reload, save, remove, setArchived } = useRegistration();
   const [editor, setEditor] = useState(null);
   const [action, setAction] = useState(null);
   const [query, setQuery] = useState("");
@@ -205,10 +205,12 @@ export default function Registration() {
               <>
                 <div className={styles.flex}>
                   <Button size="sm" variant="secondary" icon={Pencil} onClick={() => setEditor({ program })}>{t("registration.edit")}</Button>
-                  <Button size="sm" variant="secondary" icon={program.archived_at ? ArchiveRestore : Archive}
-                    onClick={() => setAction({ type: program.archived_at ? "restore" : "archive", program })}>
-                    {t(program.archived_at ? "registration.restore" : "registration.archive")}
-                  </Button>
+                  {canArchive && (
+                    <Button size="sm" variant="secondary" icon={program.archived_at ? ArchiveRestore : Archive}
+                      onClick={() => setAction({ type: program.archived_at ? "restore" : "archive", program })}>
+                      {t(program.archived_at ? "registration.restore" : "registration.archive")}
+                    </Button>
+                  )}
                   <Button size="sm" variant="soft" icon={Trash2} disabled={!!program.delete_block}
                     aria-describedby={program.delete_block ? `blocked-${program.id}` : undefined}
                     onClick={() => setAction({ type: "delete", program })}>{t("registration.delete")}</Button>

@@ -4,6 +4,7 @@ import { createProgramsApi, deleteProgramApi, getProgramsApi, setProgramArchived
 export default function useRegistration() {
   const [programs, setPrograms] = useState([]);
   const [canManage, setCanManage] = useState(false);
+  const [canArchive, setCanArchive] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const pending = useRef(null);
@@ -19,6 +20,7 @@ export default function useRegistration() {
       if (!controller.signal.aborted) {
         setPrograms(result.programs);
         setCanManage(result.can_manage);
+        setCanArchive(result.can_archive ?? result.can_manage);
       }
     } catch (err) {
       if (!controller.signal.aborted) setError(err);
@@ -51,5 +53,5 @@ export default function useRegistration() {
     setPrograms((rows) => rows.map((row) => row.id === saved.id ? saved : row));
   }
 
-  return { programs, canManage, loading, error, reload, save, remove, setArchived };
+  return { programs, canManage, canArchive, loading, error, reload, save, remove, setArchived };
 }
