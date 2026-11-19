@@ -3,95 +3,34 @@
 namespace App\Console\Commands;
 
 use App\Enums\ApplicationStatus;
-use App\Enums\TraineeStatus;
 use App\Enums\TrainingProgramStatus;
-use App\Models\Trainee;
+use App\Jobs\CompleteTraineesJob;
 use App\Models\TrainingProgram;
-use Illuminate\Console\Attributes\Description;
-use Illuminate\Console\Attributes\Signature;
+use App\Services\Training\TrainingProgramService;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-
 
 class UpdateTrainingProgramStatuses extends Command
 {
     protected $signature = 'training-programs:update-status';
 
-    protected $description = 'Update training program status based on application dates';
-    /**
-     * Execute the console command.
-     */
-    public function handle(): int
+    protected $description = 'Apply registration window transitions and complete finished trainees';
+
+    public function handle(TrainingProgramService $programs): int
     {
-
         $today = today()->toDateString();
+        TrainingProgram::query()->where(function ($q) use ($today) {
+            $q->where(fn ($q) => $q->whereNull('archived_at')->whereDate('application_start_date', '<=', $today)
+                ->where(fn ($q) => $q->whereNull('registration_has_opened')->orWhere('registration_has_opened', false)))
+                ->orWhere(fn ($q) => $q->whereNull('archived_at')->where('status', TrainingProgramStatus::CLOSED)
+                    ->whereDate('application_start_date', '<=', $today)->whereDate('application_end_date', '>=', $today))
+                ->orWhere(fn ($q) => $q->where('status', TrainingProgramStatus::OPEN)
+                    ->where(fn ($q) => $q->whereDate('application_start_date', '>', $today)
+                        ->orWhereDate('application_end_date', '<', $today)));
+        })->select('id')->eachById(fn ($p) => $programs->refreshRegistration($p->id));
 
-        $this->info("Starting status update. Today: {$today}");
-        $this->info('Timezone: ' . config('app.timezone'));
-        $this->info('Database: ' . config('database.default'));
-
-        Log::info('Training program status command started', [
-            'today' => $today,
-            'now' => now()->toDateTimeString(),
-            'timezone' => config('app.timezone'),
-            'database' => config('database.default'),
-        ]);
-
-
-        $now = now();
-
-        TrainingProgram::where('application_end_date', '>=', $now)
-            ->update([
-                'status' => TrainingProgramStatus::OPEN->value,
-            ]);
-
-        TrainingProgram::where('application_start_date', '>', $now)
-            ->orWhere('application_end_date', '<', $now)
-            ->update([
-                'status' => TrainingProgramStatus::CLOSED->value,
-            ]);
-
-
-        $finishedPrograms = TrainingProgram::whereDate('end_date', '<=', today())
-            ->get();
-
-        $this->info("Finished programs found: {$finishedPrograms->count()}");
-
-        foreach ($finishedPrograms as $program) {
-            $this->info("Processing program #{$program->id}");
-
-            DB::transaction(function () use ($program) {
-                $applications = $program->applications()
-                    ->whereHas('trainee')
-                    ->where('status', ApplicationStatus::ACTIVE->value)
-                    ->with('trainee')
-                    ->get();
-
-                $this->info(
-                    "Program #{$program->id}: " .
-                    "{$applications->count()} active applications with trainees"
-                );
-
-                foreach ($applications as $application) {
-                    $this->info("Completing application #{$application->id}");
-
-                    $application->update([
-                        'status' => ApplicationStatus::COMPLETED->value,
-                    ]);
-
-                    $application->trainee?->update([
-                        'status' => TraineeStatus::COMPLETED->value,
-                    ]);
-
-                    $this->info(
-                        "Completed application #{$application->id} " .
-                        "and trainee #" . ($application->trainee?->id ?? 'unknown')
-                    );
-                }
-            });
-        }
-        $this->info('Training program statuses updated.');
+        TrainingProgram::whereDate('end_date', '<', $today)
+            ->whereHas('applications', fn ($q) => $q->where('status', ApplicationStatus::ACTIVE)->whereHas('trainee'))
+            ->eachById(fn ($p) => (new CompleteTraineesJob($p))->handle());
 
         return self::SUCCESS;
     }

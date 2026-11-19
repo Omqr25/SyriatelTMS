@@ -246,7 +246,7 @@
     }
   },
   "registration": {
-    "title": "Create a new course",
+    "title": "Training programs",
     "add": "Add new course",
     "startDate": "Start date",
     "endDate": "End date",
@@ -254,7 +254,48 @@
     "endDateRegistration": "Registration end date",
     "openRegistration": "Open",
     "closeRegistration": "Closed",
-    "name": "Course name"
+    "name": "Course name",
+    "edit": "Edit program",
+    "delete": "Delete program",
+    "confirmDates": "Applicants are registered. I confirm these dates and understand that affected participants will be notified.",
+    "created": "Training program created.",
+    "updated": "Training program updated.",
+    "deleted": "Training program deleted.",
+    "saveFailed": "Could not save the program. Try again.",
+    "loadFailed": "Could not load training programs.",
+    "retry": "Try again",
+    "stale": "This program changed. Reopen it to review the latest dates.",
+    "nameRequired": "Enter a program name.",
+    "registrationOrder": "Registration must end on or after it starts.",
+    "trainingAfterRegistration": "Training must start after registration ends.",
+    "trainingOrder": "Training must end on or after it starts.",
+    "phases": {
+      "upcoming": "Upcoming",
+      "registration_open": "Registration open",
+      "registration_closed": "Registration closed",
+      "in_progress": "Training in progress",
+      "completed": "Completed",
+      "archived": "Archived"
+    },
+    "blocks": {
+      "opened": "Registration has already started. This program cannot be deleted.",
+      "linked": "Linked records prevent deletion.",
+      "unknown_history": "Deletion is blocked because earlier registration history cannot be verified.",
+      "archived": "Archived programs are protected from deletion."
+    },
+    "archive": "Archive",
+    "restore": "Restore",
+    "archived": "Program archived.",
+    "restored": "Program restored.",
+    "search": "Search by program name",
+    "current": "All unarchived programs",
+    "all": "All programs, including archived",
+    "noMatches": "No programs match your search and filter.",
+    "confirmAction": {
+      "delete": "Delete “{{name}}”? This permanently removes the program.",
+      "archive": "Archive “{{name}}”? New applications will close. Existing records will be kept.",
+      "restore": "Restore “{{name}}” to the calendar? Registration will follow its saved dates."
+    }
   },
   "program": {
     "listTitle": "Programs List",

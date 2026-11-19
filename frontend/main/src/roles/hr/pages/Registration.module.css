@@ -6,6 +6,7 @@
 .flex {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 6px;
 }
 .bold{
@@ -19,3 +20,18 @@
     min-width: 320px;
     /* width: fit-content; */
 }
+.warning {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  color: var(--ink-700);
+}
+
+.filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.card h3 { overflow-wrap: anywhere; }

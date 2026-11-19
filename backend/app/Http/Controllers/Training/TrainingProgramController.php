@@ -9,7 +9,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Training\StoreTrainingProgramRequest;
 use App\Http\Requests\Training\UpdateTrainingProgramRequest;
 use App\Http\Resources\Training\TrainingProgramResource;
-use App\Models\TrainingProgram;
 use App\Services\Training\TrainingProgramService;
 use Illuminate\Http\Request;
 
@@ -21,62 +20,82 @@ class TrainingProgramController extends Controller
 
     public function store(StoreTrainingProgramRequest $request)
     {
-        $trainingPrograms = $this->trainingProgramService->create($request->validated());
-        return $this->success(TrainingProgramResource::collection($trainingPrograms),
-          __('training_program.create'),
-            ApiCode::CREATED
-        );
+        $actor = $request->user();
+        $this->trainingProgramService->create($request->validated(), $actor);
+        $programs = $this->trainingProgramService->findAll($actor->can('administer-training-programs'), includeArchived: true);
+
+        return $this->success(TrainingProgramResource::collection($programs), __('training_program.create'), ApiCode::CREATED);
     }
 
-    public function update(UpdateTrainingProgramRequest $request, int $training_program_id) {
-
-//        dd($request->validated());
-        $trainingProgram = $this->trainingProgramService->update($training_program_id, $request->validated());
-        return $this->success(TrainingProgramResource::make($trainingProgram),
-           __('training_program.update'),
-            ApiCode::OK
-        );
-    }
-
-    public function delete(int $training_program_id)
+    public function management(Request $request)
     {
-        $this->trainingProgramService->delete($training_program_id);
-        return $this->success(
-            null,
-            __('training_program.delete'),
-            ApiCode::OK
-        );
+        $canManage = $request->user()->can('administer-training-programs');
+
+        return $this->success([
+            'can_manage' => $canManage,
+            'programs' => TrainingProgramResource::collection($this->trainingProgramService->findAll($canManage, includeArchived: true)),
+        ]);
     }
 
-    public function findAll(Request $request)
+    public function update(UpdateTrainingProgramRequest $request, int $training_program_id)
     {
-        $page = $request['page'] ??  1;
-        $limit = $request['limit'] ??  10;
-        $trainingPrograms = $this->trainingProgramService->findAll($page, $limit);
-//        dd(now() , $trainingPrograms);
-        return $this->success(TrainingProgramResource::collection($trainingPrograms));
+        $program = $this->trainingProgramService->update($training_program_id, $request->validated(), $request->user());
 
+        return $this->success(TrainingProgramResource::make($program), __('training_program.update'));
+    }
+
+    public function archive(Request $request, int $training_program_id)
+    {
+        return $this->setArchived($request, $training_program_id, true);
+    }
+
+    public function restore(Request $request, int $training_program_id)
+    {
+        return $this->setArchived($request, $training_program_id, false);
+    }
+
+    private function setArchived(Request $request, int $id, bool $archive)
+    {
+        $data = $request->validate(['expected_revision' => ['sometimes', 'integer', 'min:1']]);
+        $program = $this->trainingProgramService->setArchived($id, $archive, $request->user(), $data['expected_revision'] ?? null);
+
+        return $this->success(TrainingProgramResource::make($program));
+    }
+
+    public function delete(Request $request, int $training_program_id)
+    {
+        $data = $request->validate(['expected_revision' => ['sometimes', 'integer', 'min:1']]);
+        $this->trainingProgramService->delete($training_program_id, $request->user(), $data['expected_revision'] ?? null);
+
+        return $this->success(null, __('training_program.delete'));
+    }
+
+    public function findAll()
+    {
+        return $this->success(TrainingProgramResource::collection($this->trainingProgramService->findAll()));
     }
 
     public function find(int $training_program_id)
     {
         $trainingProgram = $this->trainingProgramService->find($training_program_id);
+
         return $this->success(TrainingProgramResource::make($trainingProgram));
     }
 
     public function checkProgramStatus(int $training_program_id)
     {
-        $status=$this->trainingProgramService->checkProgramStatus($training_program_id);
+        $status = $this->trainingProgramService->checkProgramStatus($training_program_id);
+
         return $this->success($status);
     }
 
     public function openProgram()
     {
-        $openProgram=$this->trainingProgramService->openProgram();
-        if (!$openProgram) {
-            throw new ErrorException(__('training_program.no_open_program'),ApiCode::NOT_FOUND);
+        $openProgram = $this->trainingProgramService->openForRegistration();
+        if (! $openProgram) {
+            throw new ErrorException(__('training_program.no_open_program'), ApiCode::NOT_FOUND);
         }
+
         return $this->success(TrainingProgramResource::make($openProgram));
     }
-
 }
