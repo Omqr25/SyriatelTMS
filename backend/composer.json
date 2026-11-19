@@ -51,7 +51,7 @@
         ],
         "serve": [
             "Composer\\Config::disableProcessTimeout",
-            "@php -d upload_max_filesize=50M -d post_max_size=50M -d max_file_uploads=20 -S 127.0.0.1:8000 -t public server.php"
+            "@php artisan serve"
         ],
         "dev": [
             "Composer\\Config::disableProcessTimeout",
