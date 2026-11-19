@@ -41,8 +41,7 @@ class TrainingProgramService
         }
         if (! $training_program) {
             $training_program = TrainingProgram::whereNull('archived_at')
-//                ->where('start_date', '>', $today)
-                ->where('end_date', '>=', $now)
+                ->whereDate('end_date', '>=', $today)
                 ->orderBy('start_date', 'asc')
                 ->first();
         }

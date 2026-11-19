@@ -198,6 +198,39 @@ class TrainingProgramManagementTest extends TestCase
         $this->deleteJson($url)->assertConflict()->assertJsonPath('data.reason', 'unknown_history');
     }
 
+    public function test_program_selection_falls_back_to_ongoing_training_and_handles_no_eligible_cycle(): void
+    {
+        $hr = $this->login();
+        $program = $this->createProgram();
+        $this->createProgram([
+            'draft' => true,
+            'name' => 'Future draft',
+            'application_start_date' => '2030-03-02',
+            'application_end_date' => '2030-03-05',
+            'start_date' => '2030-03-06',
+            'end_date' => '2030-03-31',
+        ]);
+        $supervisor = $this->login('SUPERVISOR');
+        Trainer::factory()->create([
+            'user_id' => $supervisor->id,
+            'department_id' => Department::factory()->create()->id,
+        ]);
+        $service = app(TrainingProgramService::class);
+
+        foreach (['2030-02-28 15:00:00' => $program->id, '2030-03-01' => null] as $time => $expectedProgramId) {
+            $this->travelTo(Carbon::parse($time));
+            $this->assertSame($expectedProgramId, $service->upcomingTrainingProgram()?->id);
+
+            $this->actingAs($hr, 'api');
+            $this->getJson('/api/v1/application/assignedAndQualifiedApplications')->assertOk()->assertJsonPath('data', []);
+            $this->getJson('/api/v1/application/interviewApplications')->assertOk()->assertJsonPath('data', []);
+
+            $this->actingAs($supervisor, 'api');
+            $this->getJson('/api/v1/application/trainer/assigned')->assertOk()->assertJsonPath('data', []);
+            $this->getJson('/api/v1/application/trainer/interview')->assertOk()->assertJsonPath('data', []);
+        }
+    }
+
     public function test_hr_can_save_a_draft_and_publish_it_when_ready(): void
     {
         $this->login();
