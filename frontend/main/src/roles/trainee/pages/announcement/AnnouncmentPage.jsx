@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { Clock } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import Badge from "../../../../components/ui/Badge";
@@ -7,11 +8,18 @@ import useAnnouncements from "../../../../hooks/useAnnouncements.js";
 import Loading from "../../../../components/ui/Loading.jsx";
 import PageHeader from "../../../../components/ui/PageHeader";
 
+import { useNotifications } from "../../../../context/NotificationContext";
 import { getAnnouncementsTraineeApi } from "../../../../Api/Trainee/announcementApi";
 
 export default function AnnouncementsPage() {
   const { t } = useTranslation("hr");
-  const { announcements, loading } = useAnnouncements(getAnnouncementsTraineeApi);
+  const { refresh } = useNotifications();
+  const loadAnnouncements = useCallback(async () => {
+    const result = await getAnnouncementsTraineeApi();
+    refresh();
+    return result;
+  }, [refresh]);
+  const { announcements, loading } = useAnnouncements(loadAnnouncements);
 
   return loading ? (
     <Loading />

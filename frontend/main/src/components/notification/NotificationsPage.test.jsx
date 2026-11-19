@@ -1,8 +1,9 @@
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import { MemoryRouter } from "react-router-dom";
-import { getInbox, getUnreadCount, markNotificationRead, registerNotificationTokenApi } from "../../Api/notificationApi";
+import { getInbox, getUnreadCount, markNotificationRead, revokeNotificationTokenApi, registerNotificationTokenApi } from "../../Api/notificationApi";
 import { NotificationProvider, useNotifications } from "../../context/NotificationContext";
+import { ACCESS_TOKEN_KEY } from "../../Api/axios";
 import { hasBrowserPush, requestForToken, subscribeToForegroundPush } from "../../firebase/firebase";
 import NotificationsPage from "./NotificationsPage";
 
@@ -12,6 +13,7 @@ vi.mock("../../Api/notificationApi", () => ({
   markNotificationRead: vi.fn(),
   markAllNotificationsRead: vi.fn(),
   registerNotificationTokenApi: vi.fn(),
+  revokeNotificationTokenApi: vi.fn(),
 }));
 
 vi.mock("../../firebase/firebase", () => ({
@@ -28,6 +30,7 @@ vi.mock("react-i18next", () => {
 
 afterEach(() => {
   cleanup();
+  localStorage.clear();
   vi.unstubAllGlobals();
   hasBrowserPush.mockReturnValue(false);
 });
@@ -38,7 +41,7 @@ const notification = {
   description: "Training task",
   read: false,
   type: "task_feedback_added",
-  metadata: { task_id: 9 },
+  metadata: { task_id: "9" },
 };
 
 function inbox(item) {
@@ -50,10 +53,17 @@ function BadgeCount() {
   return <output data-testid="unread-count">{unreadCount}</output>;
 }
 
+const accessToken = `header.${btoa(JSON.stringify({ sub: 42 }))}.signature`;
+
 function showInbox() {
+  localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
+  vi.stubGlobal("caches", {
+    open: vi.fn(async () => ({ put: vi.fn(async () => {}) })),
+    delete: vi.fn(async () => true),
+  });
   render(
     <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-      <NotificationProvider userId={42}>
+      <NotificationProvider accessToken={accessToken} userId={42}>
         <BadgeCount />
         <NotificationsPage />
       </NotificationProvider>
@@ -110,7 +120,7 @@ it("registers browsers that already granted permission when a session opens", as
   showInbox();
 
   await waitFor(() => expect(registerNotificationTokenApi).toHaveBeenCalledWith(
-    "existing-browser-token", expect.any(AbortSignal),
+    "existing-browser-token", accessToken,
   ));
   expect(requestPermission).not.toHaveBeenCalled();
 });
@@ -139,4 +149,35 @@ it("asks for browser permission on a click and retries a failed registration", a
   await waitFor(() => expect(screen.queryByRole("button", { name: label })).toBeNull());
   expect(browser.requestPermission).toHaveBeenCalledTimes(1);
   expect(registerNotificationTokenApi).toHaveBeenCalledTimes(2);
+});
+
+
+it("retains the rendered list if refreshing fails and resolves a program date destination", async () => {
+  getInbox.mockResolvedValue(inbox({ ...notification, type: "training_program.dates_changed" }));
+  getUnreadCount.mockResolvedValue(1);
+  showInbox();
+  await screen.findByText("Task approved");
+  expect(screen.getByRole("link").getAttribute("href")).toBe("/trainee/training-programs");
+
+  getInbox.mockRejectedValue(new Error("Network error"));
+  getUnreadCount.mockRejectedValue(new Error("Network error"));
+  act(() => subscribeToForegroundPush.mock.calls[0][0]({ recipient_id: "42", notification_id: "47" }));
+  await screen.findByRole("button", { name: "notificationsPage.retry" });
+  expect(screen.getByText("Task approved")).toBeTruthy();
+  expect(screen.getByTestId("unread-count").textContent).toBe("1");
+});
+
+it("revokes the token when browser notifications are disabled", async () => {
+  hasBrowserPush.mockReturnValue(true);
+  vi.stubGlobal("Notification", { permission: "granted" });
+  requestForToken.mockResolvedValue("device-to-revoke");
+  registerNotificationTokenApi.mockResolvedValue({});
+  revokeNotificationTokenApi.mockResolvedValue({});
+  getInbox.mockResolvedValue(inbox(notification));
+  getUnreadCount.mockResolvedValue(1);
+  showInbox();
+
+  fireEvent.click(await screen.findByRole("button", { name: "notificationsPage.disableBrowserPush" }));
+  await screen.findByRole("button", { name: "notificationsPage.enableBrowserPush" });
+  expect(revokeNotificationTokenApi).toHaveBeenCalledWith("device-to-revoke", accessToken);
 });

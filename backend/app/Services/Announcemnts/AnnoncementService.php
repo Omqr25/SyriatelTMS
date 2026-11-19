@@ -8,12 +8,16 @@ use App\Models\Announcement;
 use App\Models\AnnouncementAudience;
 use App\Models\User;
 use App\Services\Notification\InboxPublisher;
+use App\Services\Notification\NotificationService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 
 class AnnoncementService
 {
-    public function __construct(protected InboxPublisher $inbox) {}
+    public function __construct(
+        protected InboxPublisher $inbox,
+        protected NotificationService $notifications,
+    ) {}
 
     public function trainerSendAnnouncement(User $sender, array $data)
     {
@@ -63,19 +67,23 @@ class AnnoncementService
 
     public function getForTrainee(User $trainee)
     {
-        $announcements = Announcement::withWhereHas(
-            'traineeAudience',
-            fn ($query) => $query->where('audience_id', $trainee->id),
-        )->with('publisher')->latest()->orderByDesc('id')->get();
+        return DB::transaction(function () use ($trainee) {
+            $announcements = Announcement::withWhereHas(
+                'traineeAudience',
+                fn ($query) => $query->where('audience_id', $trainee->id),
+            )->with('publisher')->latest()->orderByDesc('id')->get();
 
-        $unread = $announcements->pluck('traineeAudience')->where('read', false);
-        if ($unread->isNotEmpty()) {
-            AnnouncementAudience::where('audience_id', $trainee->id)
-                ->whereKey($unread->pluck('id')->all())->update(['read' => true]);
-            $unread->each(fn (AnnouncementAudience $audience) => $audience->read = true);
-        }
+            $unread = $announcements->pluck('traineeAudience')->where('read', false);
+            if ($unread->isNotEmpty()) {
+                AnnouncementAudience::where('audience_id', $trainee->id)
+                    ->whereKey($unread->pluck('id')->all())->update(['read' => true]);
+                $unread->each(fn (AnnouncementAudience $audience) => $audience->read = true);
+            }
 
-        return $announcements;
+            $this->notifications->markViewedAnnouncements($trainee, $announcements->modelKeys());
+
+            return $announcements;
+        });
     }
 
     public function getSentByMe(User $user)

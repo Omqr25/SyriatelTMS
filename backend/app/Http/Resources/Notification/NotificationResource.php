@@ -20,14 +20,14 @@ class NotificationResource extends JsonResource
             'description' => $this->description,
             'type' => $this->type,
             'metadata' => $this->metadata,
-            'read' => $this->whenHas('recipient_read', fn () => (bool) $this->recipient_read || $this->recipient_read_at !== null),
-            'read_at' => $this->whenHas('recipient_read_at'),
+            'read' => $this->whenHas('recipient_read_at', fn () => $this->recipient_read_at !== null),
+            'read_at' => $this->whenHas('recipient_read_at', fn ($date) => $date?->toIso8601String()),
             'notifier_id' => $this->notifier_id,
             'notifier_name' => $this->whenLoaded(
                 'notifier',
                 fn () => $this->notifier?->name
             ),
-            'created_at' => $this->created_at?->format('Y-m-d H:i:s'),
+            'created_at' => $this->created_at?->toIso8601String(),
         ];
     }
 }

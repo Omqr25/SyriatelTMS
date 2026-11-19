@@ -17,7 +17,7 @@ import { useNavigate } from "react-router-dom";
 export default function AppShell({ module }) {
   const { token, user } = useAuth();
   return (
-    <NotificationProvider key={token} userId={user?.sub}>
+    <NotificationProvider key={token} accessToken={token} userId={user?.sub}>
       <ShellContent module={module} />
     </NotificationProvider>
   );
@@ -26,7 +26,7 @@ export default function AppShell({ module }) {
 function ShellContent({ module }) {
   const { t } = useTranslation();
   const { logout } = useAuth();
-  const { unreadCount } = useNotifications();
+  const { unreadCount, countUnavailable } = useNotifications();
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -99,12 +99,15 @@ function ShellContent({ module }) {
               type="button"
               onClick={() => navigate(`${module.basePath}/notification`)}
               className={styles.BellRing}
-              aria-label={t('hr:notificationsPage.bellLabel', { count: unreadCount })}
+              aria-label={countUnavailable
+                ? t('hr:notificationsPage.bellUnavailable')
+                : unreadCount === null ? t('hr:notificationsPage.title')
+                  : t('hr:notificationsPage.bellLabel', { count: unreadCount })}
             >
               <BellRing />
-              {unreadCount > 0 && (
+              {(unreadCount > 0 || countUnavailable) && (
                 <span className={styles.unreadBadge} aria-hidden="true">
-                  {unreadCount > 99 ? '99+' : unreadCount}
+                  {unreadCount > 99 ? '99+' : unreadCount || '!'}
                 </span>
               )}
             </button>

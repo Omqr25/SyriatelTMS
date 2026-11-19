@@ -1,21 +1,29 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
-import { getUnreadCount, registerNotificationTokenApi } from "../Api/notificationApi";
-import { hasBrowserPush, requestForToken, subscribeToForegroundPush } from "../firebase/firebase";
+import { getUnreadCount } from "../Api/notificationApi";
+import { hasBrowserPush, subscribeToForegroundPush } from "../firebase/firebase";
+import { pushOptOutKey, registerBrowser, revokeBrowserRegistration } from "../firebase/registration";
 
 const NotificationContext = createContext(null);
 const REFRESH_INTERVAL = 30_000;
 
-export function NotificationProvider({ userId, children }) {
-  const [unreadCount, setUnreadCount] = useState(0);
+export function NotificationProvider({ accessToken, userId, children }) {
+  const [unreadCount, setUnreadCount] = useState(null);
+  const [countUnavailable, setCountUnavailable] = useState(false);
   const [revision, setRevision] = useState(0);
   const refresh = useCallback(() => setRevision((value) => value + 1), []);
 
   const [pushStatus, setPushStatus] = useState("unavailable");
   const pushSession = useRef(null);
+  const optOutKey = pushOptOutKey(userId);
 
   const enableBrowserPush = useCallback(async (prompt = true) => {
     const signal = pushSession.current?.signal;
     if (!signal || signal.aborted) return;
+
+    if (!prompt && localStorage.getItem(optOutKey)) {
+      setPushStatus("available");
+      return;
+    }
 
     setPushStatus("registering");
     try {
@@ -28,19 +36,23 @@ export function NotificationProvider({ userId, children }) {
         return;
       }
 
-      const token = await requestForToken();
-      if (signal.aborted) return;
-      if (!token) {
-        setPushStatus("unavailable");
-        return;
-      }
-
-      await registerNotificationTokenApi(token, signal);
-      if (!signal.aborted) setPushStatus("enabled");
+      if (prompt) localStorage.removeItem(optOutKey);
+      const registered = await registerBrowser(accessToken, userId, signal);
+      if (!signal.aborted) setPushStatus(registered ? "enabled" : "unavailable");
     } catch {
       if (!signal.aborted) setPushStatus("failed");
     }
-  }, []);
+  }, [accessToken, optOutKey, userId]);
+
+  const disableBrowserPush = async () => {
+    const signal = pushSession.current?.signal;
+    if (!signal || signal.aborted) return;
+
+    localStorage.setItem(optOutKey, "1");
+    setPushStatus("disabling");
+    const revoked = await revokeBrowserRegistration(accessToken);
+    if (!signal.aborted) setPushStatus(revoked ? "available" : "disable-failed");
+  };
 
   useEffect(() => {
     if (!hasBrowserPush()) return;
@@ -54,9 +66,11 @@ export function NotificationProvider({ userId, children }) {
   useEffect(() => {
     const request = new AbortController();
     getUnreadCount(request.signal).then((count) => {
-      if (!request.signal.aborted) setUnreadCount(count);
+      if (request.signal.aborted) return;
+      setUnreadCount(count);
+      setCountUnavailable(false);
     }).catch(() => {
-      // Keep the last known count. The next refresh can recover it.
+      if (!request.signal.aborted) setCountUnavailable(true);
     });
     return () => request.abort();
   }, [revision]);
@@ -64,14 +78,14 @@ export function NotificationProvider({ userId, children }) {
   useEffect(() => {
     const seen = new Set();
     const receivePush = (data) => {
-      if (data?.recipient_id && String(data.recipient_id) !== String(userId)) return false;
+      if (!data?.recipient_id || String(data.recipient_id) !== String(userId)) return false;
       if (data?.notification_id) {
         if (seen.has(data.notification_id)) return false;
         seen.add(data.notification_id);
         if (seen.size > 100) seen.delete(seen.values().next().value);
       }
       refresh();
-      return true;
+      return !localStorage.getItem(optOutKey);
     };
     const receiveWorkerMessage = ({ data }) => {
       if (data?.type === "inbox-push") receivePush(data.payload);
@@ -93,10 +107,10 @@ export function NotificationProvider({ userId, children }) {
       document.removeEventListener("visibilitychange", refreshIfVisible);
       window.clearInterval(timer);
     };
-  }, [refresh, userId]);
+  }, [optOutKey, refresh, userId]);
 
   return (
-    <NotificationContext.Provider value={{ unreadCount, revision, refresh, pushStatus, enableBrowserPush }}>
+    <NotificationContext.Provider value={{ unreadCount, countUnavailable, revision, refresh, pushStatus, enableBrowserPush, disableBrowserPush }}>
       {children}
     </NotificationContext.Provider>
   );

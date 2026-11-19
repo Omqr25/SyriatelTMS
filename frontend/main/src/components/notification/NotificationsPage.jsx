@@ -12,6 +12,7 @@ import styles from "./NotificationsPage.module.css";
 const DESTINATIONS = {
   HR: { evaluation_completed: "/hr/evaluations", training_program_registration_reminder: "/hr/registration" },
   SUPERVISOR: {
+    "training_program.dates_changed": "/supervisor/programs",
     interview: "/supervisor/interviews",
     reevaluation_request_created: "/supervisor/re-evaluations",
     vacation_request_created: "/supervisor/vacation-request",
@@ -20,12 +21,14 @@ const DESTINATIONS = {
     evaluation_completed: "/trainee/evaluation",
     reevaluation_completed: "/trainee/evaluation",
     vacation_request_decided: "/trainee/vacations",
+    "training_program.dates_changed": "/trainee/training-programs",
     announcement: "/trainee/announcements",
   },
 };
 
 function destination(notification, role) {
-  const taskId = notification.metadata?.task_id;
+  const id = notification.metadata?.task_id;
+  const taskId = typeof id === "string" && /^\d+$/.test(id) ? Number(id) : id;
   if (Number.isSafeInteger(taskId) && taskId > 0) {
     if (role === "SUPERVISOR" && notification.type === "task_evidence_submitted") {
       return `/supervisor/tasks/details/${taskId}`;
@@ -41,7 +44,7 @@ export default function NotificationsPage() {
   const { t, i18n } = useTranslation("hr");
 
   const [notifications, setNotifications] = useState([]);
-  const { unreadCount, revision, refresh, pushStatus, enableBrowserPush } = useNotifications();
+  const { unreadCount, revision, refresh, pushStatus, enableBrowserPush, disableBrowserPush } = useNotifications();
   const { user } = useAuth();
   const [marking, setMarking] = useState(false);
   const [actionError, setActionError] = useState(false);
@@ -67,7 +70,8 @@ export default function NotificationsPage() {
       setMeta(result.meta);
       setError("");
     }).catch((err) => {
-      if (!request.signal.aborted) setError(err.response?.data?.message || t("notificationsPage.loadError"));
+      if (!request.signal.aborted) setError(typeof err.response?.data?.message === "string"
+        ? err.response.data.message : t("notificationsPage.loadError"));
     }).finally(() => {
       if (!request.signal.aborted) setLoading(false);
     });
@@ -90,7 +94,7 @@ export default function NotificationsPage() {
   const formatDate = (date) => {
     if (!date) return "";
 
-    const parsedDate = new Date(date.replace(" ", "T"));
+    const parsedDate = new Date(date);
 
     if (Number.isNaN(parsedDate.getTime())) {
       return date;
@@ -112,13 +116,14 @@ export default function NotificationsPage() {
     if (
       newPage < 1 ||
       newPage > meta.last_page ||
-      newPage === page
+      newPage === meta.current_page
     ) {
       return;
     }
 
     setLoading(true);
-    setPage(newPage);
+    if (newPage === page) refresh();
+    else setPage(newPage);
   };
 
   return (
@@ -150,6 +155,15 @@ export default function NotificationsPage() {
           {pushStatus === "failed" && <p role="alert">{t("notificationsPage.browserPushError")}</p>}
         </div>
       )}
+      {["enabled", "disabling", "disable-failed"].includes(pushStatus) && (
+        <div>
+          <Button variant="secondary" loading={pushStatus === "disabling"} onClick={disableBrowserPush}>
+            {t("notificationsPage.disableBrowserPush")}
+          </Button>
+          {pushStatus === "disable-failed" && <p role="alert">{t("notificationsPage.disableBrowserPushError")}</p>}
+        </div>
+      )}
+      {pushStatus === "unavailable" && <p>{t("notificationsPage.browserPushUnavailable")}</p>}
       {pushStatus === "blocked" && <p>{t("notificationsPage.browserPushBlocked")}</p>}
 
       {error && (
@@ -188,13 +202,7 @@ export default function NotificationsPage() {
             <span className={styles.spinner} />
             <p>{t("notificationsPage.loading")}</p>
           </div>
-        ) : error ? null : notifications.length === 0 ? (
-          <div className={styles.statusMessage}>
-            <Bell size={35} />
-            <h3>{t("notificationsPage.emptyTitle")}</h3>
-            <p>{t("notificationsPage.emptyDescription")}</p>
-          </div>
-        ) : (
+        ) : notifications.length > 0 ? (
           <>
             <div className={styles.notificationList}>
               {notifications.map((notification) => {
@@ -240,8 +248,8 @@ export default function NotificationsPage() {
             <footer className={styles.pagination}>
               <button
                 type="button"
-                onClick={() => changePage(page - 1)}
-                disabled={page <= 1}
+                onClick={() => changePage(meta.current_page - 1)}
+                disabled={meta.current_page <= 1}
                 aria-label={t("notificationsPage.previous")}
               >
                 {isArabic ? (
@@ -261,8 +269,8 @@ export default function NotificationsPage() {
 
               <button
                 type="button"
-                onClick={() => changePage(page + 1)}
-                disabled={page >= meta.last_page}
+                onClick={() => changePage(meta.current_page + 1)}
+                disabled={meta.current_page >= meta.last_page}
                 aria-label={t("notificationsPage.next")}
               >
                 <span>{t("notificationsPage.next")}</span>
@@ -274,6 +282,12 @@ export default function NotificationsPage() {
               </button>
             </footer>
           </>
+        ) : !error && (
+          <div className={styles.statusMessage}>
+            <Bell size={35} />
+            <h3>{t("notificationsPage.emptyTitle")}</h3>
+            <p>{t("notificationsPage.emptyDescription")}</p>
+          </div>
         )}
       </section>
     </main>

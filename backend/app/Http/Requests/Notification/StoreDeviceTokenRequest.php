@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Notification;
 
 use Illuminate\Contracts\Validation\ValidationRule;
+use App\Models\DeviceToken;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreDeviceTokenRequest extends FormRequest
@@ -23,7 +24,7 @@ class StoreDeviceTokenRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'token' => ['required', 'string', 'max:4096'],
+            'token' => ['required', 'string', 'max:'.DeviceToken::MAX_TOKEN_LENGTH],
             'platform' => ['sometimes', 'in:web'],
         ];
     }
