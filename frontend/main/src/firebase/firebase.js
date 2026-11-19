@@ -1,29 +1,29 @@
 import { initializeApp } from "firebase/app";
 import { getMessaging, getToken, isSupported, onMessage } from "firebase/messaging";
 
-const firebaseConfig = {
-  apiKey: import.meta.env.VITE_API_KEY,
-  authDomain: import.meta.env.VITE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_APP_ID,
-};
+import { firebaseConfig } from "./config";
 
+const config = firebaseConfig(import.meta.env);
 const vapidKey = import.meta.env.VITE_VAPID_KEY;
+const messagingWorkerScope = "/firebase-cloud-messaging-push-scope";
 let messaging;
 
+export function hasBrowserPush() {
+  return Boolean(config.apiKey && config.projectId && config.appId && config.messagingSenderId
+    && vapidKey && window.isSecureContext && window.Notification && navigator.serviceWorker);
+}
+
 async function browserMessaging() {
-  if (!firebaseConfig.apiKey || !firebaseConfig.projectId || !firebaseConfig.appId || !await isSupported()) {
+  if (!hasBrowserPush() || !await isSupported()) {
     return null;
   }
-  messaging ??= getMessaging(initializeApp(firebaseConfig));
+  messaging ??= getMessaging(initializeApp(config));
   return messaging;
 }
 
 export async function requestForToken() {
   const client = await browserMessaging();
-  return client && vapidKey ? getToken(client, { vapidKey }) : null;
+  return client ? getToken(client, { vapidKey }) : null;
 }
 
 export function subscribeToForegroundPush(onPush) {
@@ -31,15 +31,22 @@ export function subscribeToForegroundPush(onPush) {
   let unsubscribe;
   browserMessaging().then((client) => {
     if (active && client) {
-      unsubscribe = onMessage(client, ({ data, notification }) => {
+      unsubscribe = onMessage(client, async ({ data, notification }) => {
         if (!onPush(data) || !notification || window.Notification?.permission !== "granted") return;
         try {
-          new Notification(notification.title, {
+          const options = {
             body: notification.body,
             tag: data?.notification_id ? `inbox-${data.notification_id}` : undefined,
-          });
-        } catch {
-          // Some browsers only allow service workers to display system notifications.
+          };
+          const worker = await navigator.serviceWorker.getRegistration(messagingWorkerScope);
+          if (!active) return;
+          if (worker) {
+            await worker.showNotification(notification.title, options);
+          } else {
+            new window.Notification(notification.title, options);
+          }
+        } catch (error) {
+          console.warn("Could not display browser notification:", error.message);
         }
       });
     }

@@ -50,7 +50,8 @@ return [
              *
              */
 
-            'credentials' => env('FIREBASE_CREDENTIALS', env('GOOGLE_APPLICATION_CREDENTIALS')),
+            'credentials' => env('FIREBASE_CREDENTIALS') ?: env('GOOGLE_APPLICATION_CREDENTIALS')
+                ?: (trim((string) env('FIREBASE_SERVICE_ACCOUNT_JSON')) ?: null),
 
             /*
              * ------------------------------------------------------------------------

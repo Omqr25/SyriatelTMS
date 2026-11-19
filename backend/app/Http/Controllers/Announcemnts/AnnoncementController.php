@@ -31,14 +31,14 @@ class AnnoncementController extends Controller
 
     public function traineeAnnouncements(Request $request)
     {
-        $announcements = $this->annoncementService->getForTrainee($request ,$request->user('api'));
+        $announcements = $this->annoncementService->getForTrainee($request->user());
         return $this->success(AnnouncemntResource::collection($announcements));
     }
 
 
     public function getSentByMe(Request $request)
     {
-        $announcements = $this->annoncementService->getSentByMe($request,request()->user('api'));
+        $announcements = $this->annoncementService->getSentByMe($request->user());
         return $this->success(AnnouncemntResource::collection($announcements));
 
     }

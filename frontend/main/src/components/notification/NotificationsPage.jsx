@@ -41,7 +41,7 @@ export default function NotificationsPage() {
   const { t, i18n } = useTranslation("hr");
 
   const [notifications, setNotifications] = useState([]);
-  const { unreadCount, revision, refresh } = useNotifications();
+  const { unreadCount, revision, refresh, pushStatus, enableBrowserPush } = useNotifications();
   const { user } = useAuth();
   const [marking, setMarking] = useState(false);
   const [actionError, setActionError] = useState(false);
@@ -141,6 +141,16 @@ export default function NotificationsPage() {
           {meta.total}
         </span>
       </header>
+
+      {["available", "registering", "failed"].includes(pushStatus) && (
+        <div>
+          <Button variant="secondary" loading={pushStatus === "registering"} onClick={() => enableBrowserPush()}>
+            {t("notificationsPage.enableBrowserPush")}
+          </Button>
+          {pushStatus === "failed" && <p role="alert">{t("notificationsPage.browserPushError")}</p>}
+        </div>
+      )}
+      {pushStatus === "blocked" && <p>{t("notificationsPage.browserPushBlocked")}</p>}
 
       {error && (
         <div className={styles.errorMessage} role="alert">
