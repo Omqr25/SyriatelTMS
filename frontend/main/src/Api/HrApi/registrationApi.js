@@ -1,25 +1,16 @@
 import api from "../axios";
 
-export const getProgramsApi = async () => {
-  const response = await api.get("/training_program", {
-   
-  });
+export const getProgramsApi = async (signal) =>
+  (await api.get("/training_program/management/list", { signal })).data.data;
 
-  return response.data;
-};
+export const createProgramsApi = async (fields) =>
+  (await api.post("/training_program", fields)).data.data;
 
+export const updateProgramApi = async (id, fields) =>
+  (await api.put(`/training_program/${id}`, fields)).data.data;
 
-export const createProgramsApi = async (programData) => {
-  const response = await api.post("/training_program", {
-    name: programData.name,
-    description:"no description",
-    start_date: programData.startDate,
-    end_date: programData.endDate,
-    application_start_date: programData.startDateRegistration,
-    application_end_date: programData.endDateRegistration,
-  });
+export const deleteProgramApi = (id, revision) =>
+  api.delete(`/training_program/${id}`, { data: { expected_revision: revision } });
 
-  console.log("Program created successfully:", response.data);
-
-  return response.data;
-};
+export const setProgramArchivedApi = async (id, archive, revision) =>
+  (await api.post(`/training_program/${id}/${archive ? "archive" : "restore"}`, { expected_revision: revision })).data.data;

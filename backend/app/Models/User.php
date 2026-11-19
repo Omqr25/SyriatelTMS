@@ -38,6 +38,7 @@ class User extends Authenticatable implements JWTSubject
     protected $hidden = [
         'password',
         'remember_token',
+        'training_program_admin',
     ];
 
     /**
@@ -49,6 +50,7 @@ class User extends Authenticatable implements JWTSubject
     {
         return [
             'email_verified_at' => 'datetime',
+            'training_program_admin' => 'boolean',
             'password' => 'hashed',
             'status'=>UserStatus::class,
         ];

@@ -22,7 +22,14 @@ class TrainingProgramResource extends JsonResource
             'application_end_date' => $this->application_end_date?->format('Y-m-d'),
             'start_date' => $this->start_date?->format('Y-m-d'),
             'end_date' => $this->end_date?->format('Y-m-d'),
-            'status'=>$this->status,
+            'status' => $this->resource->registrationStatus(),
+            'phase' => $this->resource->phase(),
+            'archived_at' => $this->archived_at?->toIso8601String(),
+            $this->mergeWhen(isset($this->applications_exists), fn () => [
+                'revision' => $this->revision,
+                'has_applicants' => (bool) $this->applications_exists,
+                'delete_block' => $this->resource->deletionBlock(),
+            ]),
         ];
     }
 }

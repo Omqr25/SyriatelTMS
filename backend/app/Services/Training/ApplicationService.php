@@ -17,6 +17,7 @@ use App\Models\Interview;
 use App\Models\Role;
 use App\Models\Trainee;
 use App\Models\Trainer;
+use App\Models\TrainingProgram;
 use App\Models\User;
 use App\Services\Notification\InboxPublisher;
 use App\Services\File\FileStorageService;
@@ -61,7 +62,16 @@ class ApplicationService
     public function create(array $data): Application
     {
         $data['status'] = ApplicationStatus::PENDING;
-        $application = Application::create($data);
+        $application = DB::transaction(function () use ($data) {
+            $program = TrainingProgram::lockForUpdate()->findOrFail($data['training_program_id']);
+            if ($program->phase() !== 'registration_open') {
+                throw new ErrorException(__('training_program.registration_closed'), 409);
+            }
+            $program->registration_has_opened = true;
+            $program->save();
+
+            return Application::create($data);
+        });
         $paths['cv'] = $this->storeFile(
             $data,
             'cv',

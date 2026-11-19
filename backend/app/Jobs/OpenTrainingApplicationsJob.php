@@ -2,42 +2,21 @@
 
 namespace App\Jobs;
 
+use App\Models\TrainingProgram;
+use App\Services\Training\TrainingProgramService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
-use App\Enums\ApplicationStatus;
-use App\Enums\TraineeStatus;
-use App\Enums\TrainingProgramStatus;
-use App\Models\TrainingProgram;
 
 class OpenTrainingApplicationsJob implements ShouldQueue
 {
     use Queueable;
 
-    /**
-     * Create a new job instance.
-     */
-    public function __construct(
-        public TrainingProgram $program
-    ) {}
+    public bool $deleteWhenMissingModels = true;
 
-    /**
-     * Execute the job.
-     */
+    public function __construct(public TrainingProgram $program) {}
 
-
-    public function handle(): void
+    public function handle(TrainingProgramService $programs): void
     {
-        $this->program->refresh();
-
-        if (
-            now()->lt($this->program->application_start_date) ||
-            now()->toDateString() > $this->program->application_end_date->toDateString()
-        ) {
-            return;
-        }
-
-        $this->program->update([
-            'status' => TrainingProgramStatus::OPEN->value,
-        ]);
+        $programs->refreshRegistration($this->program->id);
     }
 }

@@ -2,41 +2,30 @@
 
 namespace App\Jobs;
 
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Foundation\Queue\Queueable;
-
 use App\Enums\ApplicationStatus;
 use App\Enums\TraineeStatus;
-use App\Enums\TrainingProgramStatus;
 use App\Models\TrainingProgram;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\DB;
 
 class CompleteTraineesJob implements ShouldQueue
 {
     use Queueable;
 
-    /**
-     * Create a new job instance.
-     */
-    public function __construct(
-        public TrainingProgram $program
-    ) {}
+    public bool $deleteWhenMissingModels = true;
 
-    /**
-     * Execute the job.
-     */
-
+    public function __construct(public TrainingProgram $program) {}
 
     public function handle(): void
     {
-        $this->program->refresh();
-
-        if (now()->toDateString() < $this->program->end_date->toDateString()) {
-            return;
-        }
-
         DB::transaction(function () {
-            $applications = $this->program->applications()
+            $program = TrainingProgram::lockForUpdate()->find($this->program->id);
+            if (! $program || today()->lte($program->end_date)) {
+                return;
+            }
+
+            $applications = $program->applications()
                 ->where('status', ApplicationStatus::ACTIVE->value)
                 ->whereHas('trainee')
                 ->with('trainee')
