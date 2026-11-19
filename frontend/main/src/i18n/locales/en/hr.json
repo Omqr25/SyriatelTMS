@@ -266,6 +266,8 @@
     "retry": "Try again",
     "stale": "This program changed. Reopen it to review the latest dates.",
     "nameRequired": "Enter a program name.",
+    "invalidDate": "Enter a valid date in month/day/year order, for example 10/15/26.",
+    "openCalendar": "Open calendar for {{field}}",
     "registrationOrder": "Registration must end on or after it starts.",
     "trainingAfterRegistration": "Training must start after registration ends.",
     "trainingOrder": "Training must end on or after it starts.",
