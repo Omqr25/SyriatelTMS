@@ -18,6 +18,7 @@ class Application extends Model
     protected $guarded=['id'];
 
     protected $casts=[
+        'english_test_score' => 'decimal:2',
         'city'=>City::class,
         'year_of_study'=>YearOfStudy::class,
         'how_heard'=>HowHeard::class,
