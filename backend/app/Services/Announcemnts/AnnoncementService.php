@@ -35,7 +35,7 @@ class AnnoncementService
                     $query->where('status', TraineeStatus::ACTIVE)
                         ->when($trainerId !== null, fn (Builder $query) => $query->where('trainer_id', $trainerId))
                         ->whereHas('application.trainingProgram', fn (Builder $query) => $query
-                            ->whereNull('archived_at')->whereDate('end_date', '>=', today()));
+                            ->whereDate('end_date', '>=', today()));
                 })
                 ->pluck('id');
 

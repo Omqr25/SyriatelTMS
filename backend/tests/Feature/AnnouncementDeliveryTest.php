@@ -79,10 +79,32 @@ class AnnouncementDeliveryTest extends TestCase
         Bus::assertDispatchedTimes(DeliverInboxPush::class, 3);
     }
 
+    public function test_active_enrollments_can_receive_announcements_after_archiving(): void
+    {
+        $program = TrainingProgram::factory()->create(['end_date' => today()]);
+        $program->archived_at = now();
+        $program->save();
+        $supervisor = $this->userWithRole('SUPERVISOR');
+        $trainer = Trainer::factory()->forUser($supervisor)
+            ->forDepartment(Department::factory()->create())->create();
+        $trainee = $this->enroll($program, $trainer);
+
+        $this->actingAs($this->userWithRole('HR'), 'api')
+            ->getJson(self::API.'hrSendAnnouncement')->assertMethodNotAllowed();
+        $this->postJson(self::API.'hrSendAnnouncement', self::CONTENT)
+            ->assertOk()->assertJsonPath('data.audiences_count', 1);
+        $this->actingAs($supervisor, 'api')->postJson(self::API.'trainerSendAnnouncement', self::CONTENT)
+            ->assertOk()->assertJsonPath('data.audiences_count', 1);
+
+        $this->actingAs($trainee, 'api')->getJson('/api/v1/notification/myNotifications')
+            ->assertOk()->assertJsonCount(2, 'data');
+    }
+
     public function test_empty_audience_returns_an_error_without_creating_an_announcement_or_notification(): void
     {
         $this->actingAs($this->userWithRole('HR'), 'api')
-            ->postJson(self::API.'hrSendAnnouncement', self::CONTENT)->assertUnprocessable();
+            ->postJson(self::API.'hrSendAnnouncement', self::CONTENT)->assertUnprocessable()
+            ->assertJsonPath('message', __('announcements.no_recipients'));
         $this->actingAs($this->userWithRole('SUPERVISOR'), 'api')
             ->postJson(self::API.'trainerSendAnnouncement', self::CONTENT)->assertUnprocessable();
 
