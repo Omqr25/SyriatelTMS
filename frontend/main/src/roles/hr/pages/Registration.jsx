@@ -25,9 +25,9 @@ const phases = ["upcoming", "registration_open", "registration_closed", "in_prog
 
 const phaseTones = { registration_open: "green", in_progress: "blue", upcoming: "amber" };
 
-const dateFormatter = new Intl.DateTimeFormat("en-US", {
-  month: "numeric",
+const dateFormatter = new Intl.DateTimeFormat("en-AU", {
   day: "numeric",
+  month: "numeric",
   year: "2-digit",
   timeZone: "UTC",
 });
@@ -41,7 +41,7 @@ function parseDate(value) {
   const short = /^(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})$/.exec(text);
   let isoDate = text;
   if (short) {
-    const [, month, day, year] = short;
+    const [, day, month, year] = short;
     isoDate = `${year.length === 2 ? `20${year}` : year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
   }
   if (!/^[1-9]\d{3}-\d{2}-\d{2}$/.test(isoDate)) return "";
@@ -70,7 +70,7 @@ function ProgramDateField({ name, label, value, onChange, disabled, error }) {
       <label className={fieldStyles.label} htmlFor={id}>{label}</label>
       <div className={styles.dateControl} dir="ltr">
         <Input id={id} name={name} value={isoDate === value ? formatDate(isoDate) : value}
-          placeholder="M/D/YY" required disabled={disabled} aria-invalid={!!error}
+          placeholder="D/M/YY" required disabled={disabled} aria-invalid={!!error}
           aria-describedby={error ? `${id}-error` : undefined}
           onChange={(event) => onChange(event.target.value)}
           onBlur={() => { if (isoDate && isoDate !== value) onChange(isoDate); }} />
