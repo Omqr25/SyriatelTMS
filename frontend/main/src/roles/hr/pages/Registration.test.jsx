@@ -29,8 +29,8 @@ it("shows creation, editing, and deletion to HR without archive permission", asy
   await openList(false);
   expect(button("registration.add")).toBeTruthy();
   expect(within(screen.getByRole("heading", { name: program.name }).closest("section")).getByText("registration.phases.upcoming")).toBeTruthy();
-  for (const key of ["start_date", "end_date", "application_start_date", "application_end_date"]) {
-    expect(screen.getByText(program[key])).toBeTruthy();
+  for (const date of ["2/1/30", "3/31/30", "1/1/30", "1/31/30"]) {
+    expect(screen.getByText(date)).toBeTruthy();
   }
   expect(button("registration.edit").disabled).toBe(false);
   expect(button("registration.delete").disabled).toBe(false);
@@ -41,7 +41,7 @@ it("creates from the existing form once and updates the list on persistence", as
   await openList(false);
   fireEvent.click(button("registration.add"));
   const dialog = within(screen.getByRole("dialog"));
-  const values = { name: "Spring", startDate: "2031-02-01", endDate: "2031-03-31", startDateRegistration: "2031-01-01", endDateRegistration: "2031-01-31" };
+  const values = { name: "Spring", startDate: "2/1/31", endDate: "3/31/31", startDateRegistration: "1/1/31", endDateRegistration: "1/31/31" };
   for (const [label, value] of Object.entries(values)) {
     fireEvent.change(dialog.getByLabelText(`registration.${label}`), { target: { value } });
   }
@@ -51,6 +51,10 @@ it("creates from the existing form once and updates the list on persistence", as
   fireEvent.submit(form);
   fireEvent.submit(form);
   expect(api.createProgramsApi).toHaveBeenCalledTimes(1);
+  expect(api.createProgramsApi).toHaveBeenCalledWith({
+    name: "Spring", start_date: "2031-02-01", end_date: "2031-03-31",
+    application_start_date: "2031-01-01", application_end_date: "2031-01-31",
+  });
   resolve([{ ...program, id: 8, name: "Spring" }, program]);
   expect(await screen.findByRole("heading", { name: "Spring" })).toBeTruthy();
 });
@@ -60,7 +64,7 @@ it("prefills the edit form, warns for changed dates, and updates the card after 
   api.updateProgramApi.mockResolvedValue({ ...program, start_date: "2030-02-03", revision: 2 });
   fireEvent.click(button("registration.edit"));
   const start = screen.getByLabelText("registration.startDate");
-  expect(start.value).toBe(program.start_date);
+  expect(start.value).toBe("2/1/30");
   fireEvent.change(start, { target: { value: "2030-02-02" } });
   expect(button("common:action.save").disabled).toBe(true);
   fireEvent.click(screen.getByRole("checkbox"));
@@ -68,7 +72,7 @@ it("prefills the edit form, warns for changed dates, and updates the card after 
   expect(button("common:action.save").disabled).toBe(true);
   fireEvent.click(screen.getByRole("checkbox"));
   fireEvent.click(button("common:action.save"));
-  expect(await screen.findByText("2030-02-03")).toBeTruthy();
+  expect(await screen.findByText("2/3/30")).toBeTruthy();
   expect(api.updateProgramApi).toHaveBeenCalledWith(7, expect.objectContaining({ expected_revision: 1, confirm_date_change: true }));
   expect(screen.queryByRole("dialog")).toBeNull();
 });
@@ -80,7 +84,7 @@ it("keeps the form open when a new applicant registers during an edit", async ()
   fireEvent.change(screen.getByLabelText("registration.endDate"), { target: { value: "2030-04-30" } });
   fireEvent.click(button("common:action.save"));
   expect(await screen.findByRole("checkbox")).toBeTruthy();
-  expect(screen.getByLabelText("registration.endDate").value).toBe("2030-04-30");
+  expect(screen.getByLabelText("registration.endDate").value).toBe("4/30/30");
   expect(button("common:action.save").disabled).toBe(true);
 });
 
@@ -90,13 +94,32 @@ it("shows chronology errors and field-level server errors without discarding edi
   const start = screen.getByLabelText("registration.startDate");
   fireEvent.change(start, { target: { value: "2030-01-31" } });
   fireEvent.click(button("common:action.save"));
-  expect(screen.getByRole("alert").textContent).toContain("registration.trainingAfterRegistration");
+  const alert = screen.getByRole("alert");
+  expect(alert.textContent).toContain("registration.trainingAfterRegistration");
+  expect(alert.className).toContain("error");
+  expect(start.getAttribute("aria-invalid")).toBe("true");
+  expect(start.getAttribute("aria-describedby")).toBe(alert.id);
   expect(api.updateProgramApi).not.toHaveBeenCalled();
   fireEvent.change(start, { target: { value: "2030-02-04" } });
   api.updateProgramApi.mockRejectedValueOnce({ response: { status: 422, data: { errors: { name: ["Duplicate program"] } } } });
   fireEvent.click(button("common:action.save"));
   expect(await screen.findByText("Duplicate program")).toBeTruthy();
-  expect(screen.getByLabelText("registration.startDate").value).toBe("2030-02-04");
+  expect(screen.getByLabelText("registration.startDate").value).toBe("2/4/30");
+});
+
+it("flags an impossible date before saving and shows shorter dates after blur", async () => {
+  await openList();
+  fireEvent.click(button("registration.edit"));
+  const end = screen.getByLabelText("registration.endDate");
+  fireEvent.change(end, { target: { value: "2/29/30" } });
+  fireEvent.click(button("common:action.save"));
+  expect(screen.getByRole("alert").textContent).toBe("registration.invalidDate");
+  expect(api.updateProgramApi).not.toHaveBeenCalled();
+
+  fireEvent.change(end, { target: { value: "03/05/2030" } });
+  fireEvent.blur(end);
+  expect(end.value).toBe("3/5/30");
+  expect(screen.queryByRole("alert")).toBeNull();
 });
 
 it.each(["opened", "linked", "unknown_history"])("disables deletion with the reason %s", async (reason) => {

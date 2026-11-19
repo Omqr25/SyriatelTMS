@@ -35,3 +35,63 @@
 }
 
 .card h3 { overflow-wrap: anywhere; }
+
+.error {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  padding: 8px 10px;
+  border-inline-start: 3px solid var(--red-600);
+  border-radius: var(--radius-sm);
+  background: var(--red-50);
+  color: var(--red-800);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.error svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.editor [aria-invalid="true"] {
+  border-color: var(--red-600);
+}
+
+.dateControl {
+  position: relative;
+}
+
+.dateControl:has(.calendarButton) input:first-child {
+  padding-inline-end: 40px;
+}
+
+.nativeDate {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.calendarButton {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--ink-700);
+  transform: translateY(-50%);
+}
+
+.calendarButton:hover:enabled {
+  background: var(--ink-100);
+}
