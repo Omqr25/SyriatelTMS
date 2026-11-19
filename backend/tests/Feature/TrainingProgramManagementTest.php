@@ -198,6 +198,22 @@ class TrainingProgramManagementTest extends TestCase
         $this->deleteJson($url)->assertConflict()->assertJsonPath('data.reason', 'unknown_history');
     }
 
+    public function test_program_selection_falls_back_to_ongoing_training_and_handles_no_eligible_cycle(): void
+    {
+        $this->login();
+        $program = $this->createProgram();
+        $this->createProgram(['draft' => true, 'name' => 'Future draft', 'end_date' => '2030-03-01']);
+        $service = app(TrainingProgramService::class);
+
+        $this->travelTo(Carbon::parse('2030-02-28 15:00:00'));
+        $this->assertSame($program->id, $service->upcomingTrainingProgram()?->id);
+        $this->getJson('/api/v1/application/assignedAndQualifiedApplications')->assertOk();
+
+        $this->travelTo(Carbon::parse('2030-03-01'));
+        $this->assertNull($service->upcomingTrainingProgram());
+        $this->getJson('/api/v1/application/assignedAndQualifiedApplications')->assertOk()->assertJsonPath('data', []);
+    }
+
     public function test_hr_can_save_a_draft_and_publish_it_when_ready(): void
     {
         $this->login();
