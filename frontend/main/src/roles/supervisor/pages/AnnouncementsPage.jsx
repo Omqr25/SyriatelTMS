@@ -1,5 +1,5 @@
 import { Clock, Megaphone } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import Badge from "../../../components/ui/Badge";
 import Button from "../../../components/ui/Button";
@@ -12,34 +12,24 @@ import PageHeader from "../../../components/ui/PageHeader";
 import styles from "./AnnouncementsPage.module.css";
 import useAnnouncements from "../../../hooks/useAnnouncements.js";
 import Loading from "../../../components/ui/Loading.jsx";
+import { getAllAnnouncementsSupervisorApi, sendAnnouncementsSupervisorApi } from "../../../Api/SupervisorApi/supervisorApi";
+
 export default function AnnouncementsPage() {
   const { t } = useTranslation("hr");
-  const {
-    announcements,
-    loading,
-    loadingCreate,
-    getAnnouncementsSupervisor,
-    refreshing,
-    sendAnnouncementsSupervisor,
-  } = useAnnouncements();
-
+  const { announcements, loading, loadingCreate, sendAnnouncement } = useAnnouncements(
+    getAllAnnouncementsSupervisorApi, sendAnnouncementsSupervisorApi,
+  );
   const [showAdd, setShowAdd] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const data = new FormData(e.currentTarget);
-
-    await sendAnnouncementsSupervisor({
+    const sent = await sendAnnouncement({
       title: data.get("title"),
       description: data.get("details"),
     });
-
-    setShowAdd(false);
+    if (sent) setShowAdd(false);
   };
-
-  useEffect(() => {
-    getAnnouncementsSupervisor();
-  }, []);
 
   return loading ? (
     <Loading />
@@ -52,7 +42,6 @@ export default function AnnouncementsPage() {
             {t("announcements.send")}
           </Button>
         }
-        update={refreshing}
       />
 
       <div className={styles.list}>
@@ -60,7 +49,7 @@ export default function AnnouncementsPage() {
           <Card key={a.id}>
             <div className={styles.top}>
               <h4>{a.title}</h4>
-              <Badge>{t(`audience.allTrainees`, { ns: "common" })}</Badge>
+              <Badge>{t("announcements.assignedTrainees")}</Badge>
             </div>
             <p className={styles.details}>{a.description}</p>
             <span className={styles.date}>
@@ -77,10 +66,10 @@ export default function AnnouncementsPage() {
         >
           <form className={form.form} onSubmit={handleSubmit}>
             <Field label={t("announcements.title")}>
-              <Input name="title" required />
+              <Input name="title" required maxLength={100} />
             </Field>
             <Field label={t("announcements.details")}>
-              <Textarea name="details" required />
+              <Textarea name="details" required maxLength={2000} />
             </Field>
             <Button type="submit" loading={loadingCreate}>
               {t("action.save", { ns: "common" })}

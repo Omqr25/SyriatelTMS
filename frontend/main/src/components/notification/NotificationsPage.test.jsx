@@ -1,9 +1,9 @@
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import { MemoryRouter } from "react-router-dom";
-import { getInbox, getUnreadCount, markNotificationRead } from "../../Api/notificationApi";
+import { getInbox, getUnreadCount, markNotificationRead, registerNotificationTokenApi } from "../../Api/notificationApi";
 import { NotificationProvider, useNotifications } from "../../context/NotificationContext";
-import { subscribeToForegroundPush } from "../../firebase/firebase";
+import { hasBrowserPush, requestForToken, subscribeToForegroundPush } from "../../firebase/firebase";
 import NotificationsPage from "./NotificationsPage";
 
 vi.mock("../../Api/notificationApi", () => ({
@@ -11,9 +11,14 @@ vi.mock("../../Api/notificationApi", () => ({
   getUnreadCount: vi.fn(),
   markNotificationRead: vi.fn(),
   markAllNotificationsRead: vi.fn(),
+  registerNotificationTokenApi: vi.fn(),
 }));
 
-vi.mock("../../firebase/firebase", () => ({ subscribeToForegroundPush: vi.fn(() => () => {}) }));
+vi.mock("../../firebase/firebase", () => ({
+  hasBrowserPush: vi.fn(() => false),
+  requestForToken: vi.fn(),
+  subscribeToForegroundPush: vi.fn(() => () => {}),
+}));
 vi.mock("../../context/AuthContext", () => ({ useAuth: () => ({ user: { roles: ["TRAINEE"] } }) }));
 
 vi.mock("react-i18next", () => {
@@ -21,7 +26,11 @@ vi.mock("react-i18next", () => {
   return { useTranslation: () => ({ t, i18n: { language: "en" } }) };
 });
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  vi.unstubAllGlobals();
+  hasBrowserPush.mockReturnValue(false);
+});
 
 const notification = {
   id: 1,
@@ -88,4 +97,46 @@ it("ignores other recipients and duplicate push signals, and discards stale inbo
 
   await act(async () => resolveOldResponse(inbox({ ...notification, title: "Stale notification" })));
   expect(screen.queryByText("Stale notification")).toBeNull();
+});
+
+it("registers browsers that already granted permission when a session opens", async () => {
+  hasBrowserPush.mockReturnValue(true);
+  const requestPermission = vi.fn();
+  vi.stubGlobal("Notification", { permission: "granted", requestPermission });
+  requestForToken.mockResolvedValue("existing-browser-token");
+  registerNotificationTokenApi.mockResolvedValue({});
+  getInbox.mockResolvedValue(inbox(notification));
+  getUnreadCount.mockResolvedValue(1);
+  showInbox();
+
+  await waitFor(() => expect(registerNotificationTokenApi).toHaveBeenCalledWith(
+    "existing-browser-token", expect.any(AbortSignal),
+  ));
+  expect(requestPermission).not.toHaveBeenCalled();
+});
+
+it("asks for browser permission on a click and retries a failed registration", async () => {
+  hasBrowserPush.mockReturnValue(true);
+  const browser = {
+    permission: "default",
+    requestPermission: vi.fn(async () => {
+      browser.permission = "granted";
+      return "granted";
+    }),
+  };
+  vi.stubGlobal("Notification", browser);
+  requestForToken.mockResolvedValue("new-browser-token");
+  registerNotificationTokenApi.mockRejectedValueOnce(new Error("Offline")).mockResolvedValueOnce({});
+  getInbox.mockResolvedValue(inbox(notification));
+  getUnreadCount.mockResolvedValue(1);
+  showInbox();
+
+  const label = "notificationsPage.enableBrowserPush";
+  expect(browser.requestPermission).not.toHaveBeenCalled();
+  fireEvent.click(await screen.findByRole("button", { name: label }));
+  await screen.findByText("notificationsPage.browserPushError");
+  fireEvent.click(screen.getByRole("button", { name: label }));
+  await waitFor(() => expect(screen.queryByRole("button", { name: label })).toBeNull());
+  expect(browser.requestPermission).toHaveBeenCalledTimes(1);
+  expect(registerNotificationTokenApi).toHaveBeenCalledTimes(2);
 });

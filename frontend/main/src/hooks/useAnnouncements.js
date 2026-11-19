@@ -1,146 +1,37 @@
-import { useCallback, useEffect, useState } from "react";
-
-
-import { getAllAnnouncementsApi, sendAnnouncementsApi } from "../Api/HrApi/hrApi";
+import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import { getAllAnnouncementsSupervisorApi, sendAnnouncementsSupervisorApi } from "../Api/SupervisorApi/supervisorApi";
-import { getAnnouncementsTraineeApi } from "../Api/Trainee/announcementApi";
 
-export default function useAnnouncements() {
+export default function useAnnouncements(loadAnnouncements, publishAnnouncement) {
   const [announcements, setAnnouncements] = useState([]);
-  const [loadingCreate, setLoadingCreate] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
+  const [loadingCreate, setLoadingCreate] = useState(false);
 
-  // HR =====================================
-  const getAnnouncements = useCallback(async (silent = false) => {
-    if (silent) {
-      setRefreshing(true);
-    } else {
-      setLoading(true);
-    }
-    try {
-      const data = await getAllAnnouncementsApi();
-      setAnnouncements(data.data);
-    } catch (error) {
-      const message =
-        error.response?.data?.message || error.message || "Network Error";
-      toast.error(message);
-      console.error("Error fetching programs:", message);
-      throw error;
-    } finally {
-      if (silent) {
-        setRefreshing(false);
-      } else {
-        setLoading(false);
-      }
-    }
-  }, []);
+  useEffect(() => {
+    let active = true;
+    loadAnnouncements().then(({ data }) => {
+      if (active) setAnnouncements(data);
+    }).catch((error) => {
+      if (active) toast.error(error.response?.data?.message || error.message);
+    }).finally(() => {
+      if (active) setLoading(false);
+    });
+    return () => { active = false; };
+  }, [loadAnnouncements]);
 
-  const sendAnnouncements = useCallback(async (body) => {
+  async function sendAnnouncement(body) {
     setLoadingCreate(true);
     try {
-      const data = await sendAnnouncementsApi(body);
-      toast.success(data.message || " Success");
-      await getAnnouncements(true);
+      const { data, message } = await publishAnnouncement(body);
+      setAnnouncements((items) => [data, ...items.filter((item) => item.id !== data.id)]);
+      toast.success(message);
+      return true;
     } catch (error) {
-      const message =
-        error.response?.data?.message || error.message || "Network Error";
-      toast.error(message);
-      console.error("Send message:", message);
-      throw error;
+      toast.error(error.response?.data?.message || error.message);
+      return false;
     } finally {
       setLoadingCreate(false);
     }
-  }, []);
+  }
 
-
-
-  // supervisor============================
-
-    const getAnnouncementsSupervisor = useCallback(async (silent = false) => {
-    if (silent) {
-      setRefreshing(true);
-    } else {
-      setLoading(true);
-    }
-    try {
-      const data = await getAllAnnouncementsSupervisorApi();
-      setAnnouncements(data.data);
-    } catch (error) {
-      const message =
-        error.response?.data?.message || error.message || "Network Error";
-      toast.error(message);
-      console.error("Error fetching programs:", message);
-      throw error;
-    } finally {
-      if (silent) {
-        setRefreshing(false);
-      } else {
-        setLoading(false);
-      }
-    }
-  }, []);
-
-   const sendAnnouncementsSupervisor = useCallback(async (body) => {
-    setLoadingCreate(true);
-    try {
-      const data = await sendAnnouncementsSupervisorApi(body);
-      toast.success(data.message || " Success");
-      await getAnnouncementsSupervisor(true);
-    } catch (error) {
-      const message =
-        error.response?.data?.message || error.message || "Network Error";
-      toast.error(message);
-      console.error("Send message:", message);
-      throw error;
-    } finally {
-      setLoadingCreate(false);
-    }
-  }, []);
-
-
-  // trainee=================
-
-    const getAnnouncementsTrainee = useCallback(async (silent = false) => {
-    if (silent) {
-      setRefreshing(true);
-    } else {
-      setLoading(true);
-    }
-    try {
-      const data = await getAnnouncementsTraineeApi();
-      setAnnouncements(data.data);
-    } catch (error) {
-      const message =
-        error.response?.data?.message || error.message || "Network Error";
-      toast.error(message);
-      console.error("Error fetching programs:", message);
-      throw error;
-    } finally {
-      if (silent) {
-        setRefreshing(false);
-      } else {
-        setLoading(false);
-      }
-    }
-  }, []);
-
-
-  return {
-    getAnnouncements,
-    sendAnnouncements,
-    sendAnnouncementsSupervisor,
-    getAnnouncementsSupervisor,
-    getAnnouncementsTrainee,
-    // loading
-    loading,
-    refreshing,
-    loadingCreate,
-
-
-    // data
-    announcements
-    
-  };
+  return { announcements, loading, loadingCreate, sendAnnouncement };
 }

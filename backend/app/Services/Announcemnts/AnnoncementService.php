@@ -2,84 +2,57 @@
 
 namespace App\Services\Announcemnts;
 
+use App\Enums\TraineeStatus;
 use App\Enums\UserStatus;
 use App\Models\Announcement;
-use App\Models\Application;
-use App\Models\Trainee;
+use App\Models\AnnouncementAudience;
 use App\Models\User;
 use App\Services\Notification\InboxPublisher;
-use App\Services\Training\TrainingProgramService;
-use Illuminate\Http\Request;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 
 class AnnoncementService
 {
-    /**
-     * Create a new class instance.
-     */
-    public function __construct(protected TrainingProgramService $trainingProgramService, protected InboxPublisher $inbox)
-    {
-        //
-    }
+    public function __construct(protected InboxPublisher $inbox) {}
 
     public function trainerSendAnnouncement(User $sender, array $data)
     {
-        $openProgram=$this->trainingProgramService->openProgram();
-        $trainees=User::query()->whereRaw('1 = 0')->get();
-        if ( $openProgram) {
-            $trainees = User::query()
-                ->whereHas('trainee', function ($query) use ($sender, $openProgram) {
-                    $query->where('trainer_id', $sender->trainer?->id)
-                        ->whereHas('application', function ($applicationQuery) use ($openProgram) {
-                            $applicationQuery->where(
-                                'training_program_id',
-                                $openProgram->id
-                            );
-                        });
-                })
-                ->where('status', UserStatus::ACTIVE->value)
-                ->get();
-        }
+        abort_unless($sender->trainer, 422, __('announcements.no_recipients'));
 
-
-        return $this->createAndNotify($sender, $data, $trainees);
+        return $this->createAndNotify($sender, $data, $sender->trainer->id);
     }
 
     public function hrSendAnnouncement(User $sender, array $data)
     {
-        $openProgram=$this->trainingProgramService->openProgram();
-        $trainees=User::query()->whereRaw('1 = 0')->get();
-        if ( $openProgram) {
-            $trainees = User::query()
-                ->whereHas('trainee', function ($query) use ($sender, $openProgram) {
-                    $query->whereHas('application', function ($applicationQuery) use ($openProgram) {
-                            $applicationQuery->where('training_program_id', $openProgram->id);
-                        });
-                })
-                ->where('status', UserStatus::ACTIVE->value)
-                ->get();
-        }
-
-        return $this->createAndNotify($sender, $data, $trainees);
+        return $this->createAndNotify($sender, $data);
     }
 
-    private function createAndNotify(User $sender, array $data, $trainees)
+    private function createAndNotify(User $sender, array $data, ?int $trainerId = null)
     {
-        return DB::transaction(function () use ($sender, $data, $trainees) {
+        return DB::transaction(function () use ($sender, $data, $trainerId) {
+            $recipientIds = User::where('status', UserStatus::ACTIVE)
+                ->whereHas('trainee', function (Builder $query) use ($trainerId) {
+                    $query->where('status', TraineeStatus::ACTIVE)
+                        ->when($trainerId !== null, fn (Builder $query) => $query->where('trainer_id', $trainerId))
+                        ->whereHas('application.trainingProgram', fn (Builder $query) => $query
+                            ->whereNull('archived_at')->whereDate('end_date', '>=', today()));
+                })
+                ->pluck('id');
+
+            abort_if($recipientIds->isEmpty(), 422, __('announcements.no_recipients'));
+
             $announcement = Announcement::create([
                 'title' => $data['title'],
                 'description' => $data['description'],
                 'publisher_id' => $sender->id,
             ]);
 
-            foreach ($trainees as $trainee) {
-                $announcement->audiences()->create([
-                    'audience_id' => $trainee->id,
-                ]);
-            }
+            $announcement->audiences()->createMany(
+                $recipientIds->map(fn (int $id) => ['audience_id' => $id])->all()
+            );
 
             $this->inbox->publish(
-                $sender, $trainees->modelKeys(), 'announcement', (string) $announcement->id,
+                $sender, $recipientIds, 'announcement', (string) $announcement->id,
                 'New Announcement', 'A new announcement was published: ' . $announcement->title,
                 ['announcement_id' => $announcement->id],
             );
@@ -88,31 +61,27 @@ class AnnoncementService
         });
     }
 
-    public function getForTrainee(Request $request ,User $trainee)
+    public function getForTrainee(User $trainee)
     {
-        $announcements= Announcement::whereHas('audiences', function ($query) use ($trainee) {
-                $query->where('audience_id', $trainee->id);
-            })
-            ->with(['publisher','traineeAudience'])
-            ->latest()
-            ->get();
+        $announcements = Announcement::withWhereHas(
+            'traineeAudience',
+            fn ($query) => $query->where('audience_id', $trainee->id),
+        )->with('publisher')->latest()->orderByDesc('id')->get();
 
-        foreach ($announcements as $announcement) {
-            if ($announcement->traineeAudience) {
-                $announcement->traineeAudience->update(['read' => true]);
-                $announcement->traineeAudience->read = true;
-            }
+        $unread = $announcements->pluck('traineeAudience')->where('read', false);
+        if ($unread->isNotEmpty()) {
+            AnnouncementAudience::where('audience_id', $trainee->id)
+                ->whereKey($unread->pluck('id')->all())->update(['read' => true]);
+            $unread->each(fn (AnnouncementAudience $audience) => $audience->read = true);
         }
+
         return $announcements;
     }
 
-
-    public function getSentByMe(Request $request ,User $user)
+    public function getSentByMe(User $user)
     {
-        return Announcement::where('publisher_id',$user->id)
-            ->with(['publisher','audiences.audience'])
-            ->latest()
-            ->get();
-
+        return Announcement::where('publisher_id', $user->id)
+            ->with('publisher')->withCount('audiences')
+            ->latest()->orderByDesc('id')->get();
     }
 }

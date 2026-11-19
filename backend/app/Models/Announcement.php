@@ -27,7 +27,6 @@ class Announcement extends Model
 
     public function traineeAudience()
     {
-        return $this->hasOne(AnnouncementAudience::class, 'announcement_id')
-            ->where('audience_id', auth('api')->user()?->id);
+        return $this->hasOne(AnnouncementAudience::class);
     }
 }

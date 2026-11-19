@@ -1,7 +1,7 @@
 import api from "./axios";
 
-export function registerNotificationTokenApi(token) {
-  return api.post("notification/device-tokens", { token, platform: "web" });
+export function registerNotificationTokenApi(token, signal) {
+  return api.post("notification/device-tokens", { token, platform: "web" }, { signal });
 }
 
 export async function getInbox(page, signal) {

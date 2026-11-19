@@ -10,8 +10,6 @@ import { useAuth } from "../../context/AuthContext";
 import {  roleRegistry, ROLES } from "../../roles";
 import styles from "./LoginPage.module.css";
 import { toast } from "react-toastify";
-import { requestForToken } from "../../firebase/firebase";
-import {registerNotificationTokenApi} from '../../Api/notificationApi';
 
 export default function LoginPage() {
   const { t } = useTranslation("auth");
@@ -45,16 +43,6 @@ export default function LoginPage() {
       if (!module) {
         throw new Error("هذا الدور غير مدعوم حاليًا");
       }
-
-      const session = localStorage.getItem("syriatel-tms:access-token");
-      const registerPush = async () => {
-        if (!("Notification" in window) || await Notification.requestPermission() !== "granted") return;
-        const token = await requestForToken();
-        if (token && session === localStorage.getItem("syriatel-tms:access-token")) {
-          await registerNotificationTokenApi(token);
-        }
-      };
-      registerPush().catch((error) => console.warn("Could not register browser notifications:", error.message));
 
       navigate(module.basePath, {
         replace: true,

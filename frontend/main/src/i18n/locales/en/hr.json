@@ -195,6 +195,7 @@
     "add": "Add absence"
   },
   "announcements": {
+    "assignedTrainees": "Assigned trainees",
     "listTitle": "General announcements",
     "send": "Send announcement",
     "target": "Audience",
@@ -342,6 +343,9 @@
   },
 
   "notificationsPage": {
+    "enableBrowserPush": "Enable browser notifications",
+    "browserPushError": "Could not enable browser notifications. Try again.",
+    "browserPushBlocked": "Browser notifications are blocked. Allow notifications for this site in your browser settings, then reload.",
     "bellLabel": "Notifications, {{count}} unread",
     "unread": "Unread",
     "markRead": "Mark as read",
