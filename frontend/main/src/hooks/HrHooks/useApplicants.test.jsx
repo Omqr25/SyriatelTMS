@@ -30,6 +30,38 @@ describe('HR applicants requests', () => {
     expect(searchApplicants).toHaveBeenCalledTimes(2);
     expect(searchApplicants.mock.calls[1][0].filters.search).toBe('');
   });
+  it('combines eligibility, pending live search, sorting and pagination, then resets the query', async () => {
+    searchApplicants.mockResolvedValue({
+      ...response('candidate'), meta: { total: 20, total_pages: 2 },
+    });
+    const { result } = renderHook(() => useApplicants());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    act(() => result.current.updateFilter('gpa_eligibility', 'eligible'));
+    act(() => result.current.updateFilter('english_eligibility', 'pending'));
+    act(() => result.current.updateFilter('search', 'Alice'));
+    act(() => result.current.toggleSort('english_test_score'));
+    await waitFor(() => expect(searchApplicants).toHaveBeenLastCalledWith(expect.objectContaining({
+      page: 1,
+      sort: { key: 'english_test_score', direction: 'asc' },
+      filters: expect.objectContaining({ gpa_eligibility: 'eligible', english_eligibility: 'pending', search: 'Alice' }),
+    })));
+    act(() => result.current.setPage(2));
+    await waitFor(() => expect(searchApplicants).toHaveBeenLastCalledWith(expect.objectContaining({
+      page: 2,
+      sort: { key: 'english_test_score', direction: 'asc' },
+    })));
+    act(() => result.current.toggleSort('english_test_score'));
+    await waitFor(() => expect(searchApplicants).toHaveBeenLastCalledWith(expect.objectContaining({
+      page: 1,
+      sort: { key: 'english_test_score', direction: 'desc' },
+    })));
+    act(() => result.current.resetFilters());
+    await waitFor(() => expect(searchApplicants).toHaveBeenLastCalledWith(expect.objectContaining({
+      page: 1,
+      sort: null,
+      filters: expect.objectContaining({ gpa_eligibility: '', english_eligibility: '', search: '' }),
+    })));
+  });
   it('refreshes the same filtered page after mutation and blocks double submits', async () => {
     const pending = deferred();
     assignApplicant.mockReturnValue(pending.promise);

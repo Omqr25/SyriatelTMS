@@ -15,6 +15,10 @@ class Application extends Model
 {
     use HasFactory;
 
+    public const MIN_ADMISSION_GPA = 70;
+
+    public const MIN_ADMISSION_ENGLISH_SCORE = 45;
+
     protected $guarded=['id'];
 
     protected $casts=[
@@ -90,6 +94,17 @@ class Application extends Model
         $query->when(isset($filters['gpa_max']) && $filters['gpa_max'] !== '', function ($query) use ($filters) {
             $query->where('gpa', '<=', $filters['gpa_max']);
         });
+        foreach ([
+            'gpa_eligibility' => ['gpa', self::MIN_ADMISSION_GPA],
+            'english_eligibility' => ['english_test_score', self::MIN_ADMISSION_ENGLISH_SCORE],
+        ] as $filter => [$column, $minimum]) {
+            match ($filters[$filter] ?? null) {
+                'eligible' => $query->where($column, '>=', $minimum),
+                'not_eligible' => $query->where($column, '<', $minimum),
+                'pending' => $column === 'english_test_score' ? $query->whereNull($column) : null,
+                default => null,
+            };
+        }
         $query->when($filters['field_of_study'] ?? false , function ($query) use ($filters){
             $query->where('field_of_study',$filters['field_of_study']);
         });

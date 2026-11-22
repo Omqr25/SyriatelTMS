@@ -12,10 +12,11 @@ const EMPTY_FILTERS = {
   year: "",
   major: "",
   city: "",
-  gpa_min: 0,
-  gpa_max: 100,
+  gpa_eligibility: "",
+  english_eligibility: "",
   status: "",
 };
+const DEFAULT_QUERY = { filters: EMPTY_FILTERS, sort: null, page: 1 };
 const notifyError = (error) => {
   const message = error.response?.data?.message || error.message;
   toast.error(Array.isArray(message) ? message.join("، ") : message);
@@ -25,7 +26,7 @@ export default function useApplicants() {
   const [applicants, setApplicants] = useState([]);
   const [applicant, setApplicant] = useState(null);
   const [filters, setFilters] = useState(EMPTY_FILTERS);
-  const [query, setQuery] = useState({ filters: EMPTY_FILTERS, page: 1 });
+  const [query, setQuery] = useState(DEFAULT_QUERY);
   const [pagination, setPagination] = useState({ total: 0, totalPages: 0 });
   const [loading, setLoading] = useState(true);
   const [applicantLoading, setApplicantLoading] = useState(null);
@@ -110,7 +111,7 @@ export default function useApplicants() {
 
   const applySnapshot = useCallback((next) => {
     listController.current?.abort();
-    setQuery({ filters: next, page: 1 });
+    setQuery((current) => ({ ...current, filters: next, page: 1 }));
   }, []);
   const updateFilter = (key, value) => {
     const next = { ...filters, [key]: value };
@@ -121,18 +122,24 @@ export default function useApplicants() {
       timer.current = setTimeout(() => applySnapshot(next), 300);
     else applySnapshot(next);
   };
-  const applyFilters = () => {
+  const toggleSort = (key) => {
     clearTimeout(timer.current);
-    applySnapshot(filters);
+    listController.current?.abort();
+    setQuery((current) => ({
+      filters,
+      page: 1,
+      sort: { key, direction: current.sort?.key === key && current.sort.direction === "asc" ? "desc" : "asc" },
+    }));
   };
   const resetFilters = () => {
     clearTimeout(timer.current);
+    listController.current?.abort();
     setFilters(EMPTY_FILTERS);
-    applySnapshot(EMPTY_FILTERS);
+    setQuery({ ...DEFAULT_QUERY });
   };
   const changePage = (page) => {
     clearTimeout(timer.current);
-    setQuery({ filters, page: filters === query.filters ? page : 1 });
+    setQuery((current) => ({ ...current, filters, page: filters === current.filters ? page : 1 }));
   };
   const mutate = async (operation) => {
     if (mutationBusy.current) return null;
@@ -174,11 +181,11 @@ export default function useApplicants() {
       mutate(() => assignApplicant(id, supervisor)),
     filters,
     updateFilter,
-    applyFilters,
+    sort: query.sort,
+    toggleSort,
     resetFilters,
     page: query.page,
     pagination,
     setPage: changePage,
-    isSearchMode: false,
   };
 }

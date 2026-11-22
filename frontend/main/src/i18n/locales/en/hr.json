@@ -31,6 +31,16 @@
     "noUpcoming": "No interviews scheduled"
   },
   "applicants": {
+    "admission": {
+      "label": "Admission Requirements",
+      "eligible": "Eligible (≥{{minimum}})",
+      "notEligible": "Not Eligible (<{{minimum}})",
+      "pending": "Pending (no recorded score)",
+      "lowGpa": "GPA is below the required minimum ({{minimum}}%).",
+      "lowEnglish": "English score is below the required minimum ({{minimum}}).",
+      "missingEnglish": "The English score has not been recorded yet.",
+      "scoreDetails": "{{score}} status details"
+    },
     "confirmReject": "Reject the application from {{name}}? This ends the recruitment process.",
     "activeTraineeHelp": "This applicant is an active trainee. Manage dismissal, with a recorded reason, on the trainees page.",
     "acceptedHelp": "This applicant has been accepted. Activate their trainee account on the interviews page.",
