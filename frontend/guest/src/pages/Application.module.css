@@ -26,19 +26,22 @@
   max-width: 700px;
 }
 .heading > span {
-  font-size: 11px;
+  font-size: 13px;
   text-transform: uppercase;
-  letter-spacing: 2px;
+  letter-spacing: 0.08em;
   color: light-dark(#e50914, var(--red-700));
   font-weight: 900;
 }
 .heading h1 {
-  font-size: clamp(28px, 4vw, 38px);
-  letter-spacing: -1px;
+  font-size: clamp(30px, 4.8vw, 48px);
+  line-height: 1.2;
+  font-weight: 800;
+  text-wrap: balance;
   margin: 10px 0;
   color: light-dark(#1a1d24, var(--ink-900));
 }
 .heading h1 strong {
+  display: block;
   color: light-dark(#e50914, var(--red-700));
 }
 .heading p {

@@ -62,7 +62,7 @@ export default function Header() {
             title={t("header.language")}
           >
             <Globe className="headerGlobe" size={17} aria-hidden="true" />
-            <span>{lang === "ar" ? "EN" : "ع"}</span>
+            <span>{lang === "ar" ? "EN" : "عربي"}</span>
           </button>
           <Link to="/apply" className={styles.apply}>
             {t("nav.apply")} <ArrowUpRight size={17} />
