@@ -307,3 +307,53 @@
   align-items: center;
   height: 100vh;
 }
+
+.extraQuestions {
+  display: grid;
+  gap: 16px;
+  margin-block-start: 24px;
+  padding-block-start: 20px;
+  border-block-start: 1px solid light-dark(#e6e7eb, var(--ink-200));
+}
+
+.extraQuestions h2 {
+  margin: 0;
+  font-size: 1rem;
+  color: light-dark(#242731, var(--ink-900));
+}
+
+.extraOptions {
+  display: grid;
+  gap: 8px;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  font-size: 13px;
+}
+
+.extraOptions legend {
+  padding: 0;
+  margin-block-end: 8px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.extraOptions label {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.extraOptions input {
+  width: auto;
+  height: auto;
+  accent-color: #e50914;
+}
+
+.visuallyHidden {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}

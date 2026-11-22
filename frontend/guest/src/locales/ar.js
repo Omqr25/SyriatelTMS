@@ -1,4 +1,13 @@
 const ar = {
+  applicationQuestions: {
+    title: "أسئلة إضافية",
+    changed: "تغيّر التسجيل أو أسئلة الطلب. راجع النموذج الحالي قبل إعادة الإرسال.",
+    required: "أجب عن هذا السؤال الإلزامي.",
+    select: "اختر أحد الخيارات",
+    textLength: "استخدم ١٠٠ حرف أو أقل.",
+    min: "الحد الأدنى {{value}}",
+    max: "الحد الأعلى {{value}}",
+  },
   theme: { darkMode: "الوضع الداكن", switchLight: "التبديل إلى الوضع الفاتح", switchDark: "التبديل إلى الوضع الداكن" },
   header: { language: "تغيير اللغة", menu: "قائمة التنقل" },
   nav: {

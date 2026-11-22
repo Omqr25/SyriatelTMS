@@ -8,7 +8,9 @@ use App\Enums\HowHeard;
 use App\Enums\YearOfStudy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use PHPUnit\Logging\OpenTestReporting\Status;
 
 class Application extends Model
@@ -64,6 +66,16 @@ class Application extends Model
     public function trainingProgram()
     {
         return $this->belongsTo(TrainingProgram::class);
+    }
+
+    public function applicationForm(): BelongsTo
+    {
+        return $this->belongsTo(ApplicationForm::class);
+    }
+
+    public function answers(): HasMany
+    {
+        return $this->hasMany(ApplicationAnswer::class);
     }
 
     public function scopeFilter($query,array $filters)

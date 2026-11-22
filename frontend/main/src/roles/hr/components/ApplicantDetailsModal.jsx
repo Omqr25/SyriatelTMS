@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 import StatusBadge from "./StatusBadge";
 export default function ApplicantDetailsModal({
   applicant,
+  extraDetails,
   onClose,
   onAssign,
   onSchedule,
@@ -100,6 +101,8 @@ export default function ApplicantDetailsModal({
           <dd>{applicant.additional_info ||"empty "}</dd>
         </div>
       </dl>
+
+      {extraDetails}
 
       <h5 className={styles.sub}>{t("applicants.attachments")}</h5>
       <div className={styles.files}>

@@ -6,6 +6,7 @@ use App\Enums\TrainingProgramStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class TrainingProgram extends Model
 {
@@ -41,6 +42,16 @@ class TrainingProgram extends Model
         return $this->hasMany(Application::class);
     }
 
+    public function applicationForm(): HasOne
+    {
+        return $this->hasOne(ApplicationForm::class);
+    }
+
+    public function publishedApplicationForm(): HasOne
+    {
+        return $this->applicationForm()->whereNotNull('published_at');
+    }
+
     public function programs(): HasMany
     {
         return $this->hasMany(Program::class);
@@ -65,7 +76,7 @@ class TrainingProgram extends Model
         return $this->phase() === 'registration_open' ? TrainingProgramStatus::OPEN : TrainingProgramStatus::CLOSED;
     }
 
-    // Call on a model loaded with the three relationship existence flags.
+    // Call on a model loaded with the relationship existence flags.
     public function deletionBlock(): ?string
     {
         if ($this->archived_at) {
@@ -76,6 +87,10 @@ class TrainingProgram extends Model
         }
         if ($this->applications_exists || $this->programs_exists || $this->certificates_exists) {
             return 'linked';
+        }
+
+        if ($this->published_application_form_exists) {
+            return 'published_form';
         }
 
         return $this->registration_has_opened === null ? 'unknown_history' : null;

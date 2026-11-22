@@ -90,11 +90,15 @@ class TrainingProgramController extends Controller
         return $this->success($status);
     }
 
-    public function openProgram()
+    public function openProgram(Request $request)
     {
         $openProgram = $this->trainingProgramService->openForRegistration();
         if (! $openProgram) {
             throw new ErrorException(__('training_program.no_open_program'), ApiCode::NOT_FOUND);
+        }
+
+        if ($request->query('include') === 'application_form') {
+            $openProgram->load('publishedApplicationForm.questions.options');
         }
 
         return $this->success(TrainingProgramResource::make($openProgram));

@@ -14,6 +14,7 @@ import {
   APPLICANT_STATUS_Arr,
 } from "../../../constants";
 import AdmissionFilters from "../components/AdmissionFilters";
+import ApplicantAnswers from "../components/ApplicantAnswers";
 import ApplicantDetailsModal from "../components/ApplicantDetailsModal";
 import ApplicantScore from "../components/ApplicantScore";
 import AssignDepartmentModal from "../components/AssignDepartmentModal";
@@ -308,8 +309,8 @@ export default function ApplicantsPage() {
       )}
       {modal?.type === "details" && applicant && (
         <ApplicantDetailsModal
-          // applicant={modal.applicant}
           applicant={applicant}
+          extraDetails={<ApplicantAnswers key={applicant.id} applicationId={applicant.id} />}
           onClose={closeModal}
           // onAssign={() => open("assign", modal.applicant)}
           // onSchedule={() => open("schedule", modal.applicant)}

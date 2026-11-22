@@ -24,6 +24,10 @@ class TrainingProgramResource extends JsonResource
             'end_date' => $this->end_date?->format('Y-m-d'),
             'status' => $this->resource->registrationStatus(),
             'phase' => $this->resource->phase(),
+            'application_form' => $this->whenLoaded(
+                'publishedApplicationForm',
+                fn () => ApplicationFormResource::make($this->publishedApplicationForm),
+            ),
             'archived_at' => $this->archived_at?->toIso8601String(),
             $this->mergeWhen(isset($this->applications_exists), fn () => [
                 'revision' => $this->revision,
