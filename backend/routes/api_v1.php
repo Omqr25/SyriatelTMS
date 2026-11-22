@@ -165,6 +165,8 @@ Route::prefix('v1')->group(function () {
 
             Route::prefix('announcement')->group(function () {
                 Route::post('hrSendAnnouncement', [AnnoncementController::class, 'hrSendAnnouncement']);
+                Route::put('{announcement}', [AnnoncementController::class, 'update'])->whereNumber('announcement');
+                Route::delete('{announcement}', [AnnoncementController::class, 'destroy'])->whereNumber('announcement');
             });
 
         });

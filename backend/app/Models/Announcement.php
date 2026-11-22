@@ -13,11 +13,19 @@ class Announcement extends Model
         'title',
         'description',
         'publisher_id',
+        'department_id',
     ];
+
+    protected $casts = ['department_id' => 'integer'];
 
     public function publisher()
     {
         return $this->belongsTo(User::class, 'publisher_id');
+    }
+
+    public function department()
+    {
+        return $this->belongsTo(Department::class);
     }
 
     public function audiences()

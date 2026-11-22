@@ -201,6 +201,15 @@
     "target": "Audience",
     "title": "Title",
     "details": "Details",
+    "edit": "Edit announcement",
+    "delete": "Delete announcement",
+    "saveChanges": "Save changes",
+    "confirmDelete": "Confirm delete",
+    "deleteWarning": "Delete “{{title}}”? Trainees will lose access to this announcement.",
+    "published": "Published",
+    "updated": "Last updated",
+    "required": "Enter an announcement title and details.",
+    "departmentsError": "The department list could not be loaded.",
     "toast": {
       "sent": "Announcement sent"
     }

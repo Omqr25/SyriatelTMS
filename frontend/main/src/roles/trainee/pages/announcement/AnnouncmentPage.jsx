@@ -13,13 +13,13 @@ import { getAnnouncementsTraineeApi } from "../../../../Api/Trainee/announcement
 
 export default function AnnouncementsPage() {
   const { t } = useTranslation("hr");
-  const { refresh } = useNotifications();
+  const { refresh, announcementRevision } = useNotifications();
   const loadAnnouncements = useCallback(async () => {
     const result = await getAnnouncementsTraineeApi();
     refresh();
     return result;
   }, [refresh]);
-  const { announcements, loading } = useAnnouncements(loadAnnouncements);
+  const { announcements, loading } = useAnnouncements(loadAnnouncements, undefined, announcementRevision);
 
   return loading ? (
     <Loading />
@@ -31,7 +31,7 @@ export default function AnnouncementsPage() {
           <Card key={a.id}>
             <div className={styles.top}>
               <h4>{a.title}</h4>
-              <Badge>{a.publisher.name}</Badge>
+              <Badge>{a.publisher?.name}</Badge>
             </div>
             <p className={styles.details}>{a.description}</p>
             <span className={styles.date}>

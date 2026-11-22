@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Notification extends Model
 {
     use HasFactory;
+
+    public const ANNOUNCEMENT_SYNC = 'announcement_sync';
 
     protected $fillable = [
         'title',
@@ -19,6 +22,12 @@ class Notification extends Model
     ];
 
     protected $casts = ['metadata' => 'array'];
+
+    public function scopeVisibleInInbox(Builder $query): Builder
+    {
+        return $query->where(fn (Builder $query) => $query->whereNull('notifications.type')
+            ->orWhere('notifications.type', '<>', self::ANNOUNCEMENT_SYNC));
+    }
 
     public function notifier()
     {
