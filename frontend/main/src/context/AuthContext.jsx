@@ -9,12 +9,12 @@ import {
   useState,
 } from "react";
 
-import api from "../Api/axios";
+import api, { ACCESS_TOKEN_KEY as STORAGE_KEY } from "../Api/axios";
+import { revokeBrowserRegistration } from "../firebase/registration";
 import { decodeJwt, isTokenExpired } from "../features/auth/auth.utils";
 
 const AuthContext = createContext(null);
 
-const STORAGE_KEY = "syriatel-tms:access-token";
 
 /*
  * قراءة JWT من localStorage عند تشغيل التطبيق
@@ -28,6 +28,7 @@ function getStoredToken() {
 
   // إذا انتهت صلاحية JWT نحذفه
   if (isTokenExpired(token)) {
+    void revokeBrowserRegistration(token);
     localStorage.removeItem(STORAGE_KEY);
     return null;
   }
@@ -54,15 +55,11 @@ export function AuthProvider({ children }) {
    * تسجيل الدخول
    */
   const login = useCallback(async ({ email, password }) => {
-    console.log(password)
     const response = await api.post("auth/login", {
       email,
       password,
     });
-    // console.log(response)
     const accessToken = response.data.data.token;
-    // console.log("Access token:", accessToken);
-    console.log("Decoded user:", decodeJwt(accessToken));
     if (!accessToken) {
       throw new Error("Access token is missing");
     }
@@ -90,6 +87,11 @@ export function AuthProvider({ children }) {
     /*
      * تخزين JWT
      */
+    const previous = localStorage.getItem(STORAGE_KEY);
+    if (previous && String(decodeJwt(previous)?.sub) !== String(decodedUser.sub)) {
+      // Queue cleanup before the new session can register this browser.
+      void revokeBrowserRegistration(previous);
+    }
     localStorage.setItem(STORAGE_KEY, accessToken);
 
     /*
@@ -104,36 +106,31 @@ export function AuthProvider({ children }) {
    * تسجيل الخروج
    */
   const logout = useCallback(() => {
+    const previous = localStorage.getItem(STORAGE_KEY);
+    if (previous) void revokeBrowserRegistration(previous);
     localStorage.removeItem(STORAGE_KEY);
     setToken(null);
   }, []);
 
 
   useEffect(() => {
-  const handleForbidden = () => {
-    const currentToken = localStorage.getItem(STORAGE_KEY);
+    const handleForbidden = () => {
+      const current = localStorage.getItem(STORAGE_KEY);
+      if (!current || isTokenExpired(current) || !decodeJwt(current)?.roles?.[0]) logout();
+    };
+    const syncSession = (event) => {
+      if (event.key === STORAGE_KEY || event.key === null) setToken(getStoredToken());
+    };
 
-    if (!currentToken || isTokenExpired(currentToken)) {
-      logout();
-      return;
-    }
-
-    const decodedUser = decodeJwt(currentToken);
-
-    if (!decodedUser?.roles?.[0]) {
-      logout();
-      return;
-    }
-
-    setToken(currentToken);
-  };
-
-  window.addEventListener("auth:forbidden", handleForbidden);
-
-  return () => {
-    window.removeEventListener("auth:forbidden", handleForbidden);
-  };
-}, [logout]);
+    window.addEventListener("auth:unauthorized", logout);
+    window.addEventListener("auth:forbidden", handleForbidden);
+    window.addEventListener("storage", syncSession);
+    return () => {
+      window.removeEventListener("auth:unauthorized", logout);
+      window.removeEventListener("auth:forbidden", handleForbidden);
+      window.removeEventListener("storage", syncSession);
+    };
+  }, [logout]);
 
 
   const value = useMemo(

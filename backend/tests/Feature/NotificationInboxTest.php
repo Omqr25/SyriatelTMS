@@ -3,8 +3,11 @@
 namespace Tests\Feature;
 
 use App\Jobs\DeliverInboxPush;
+use App\Models\Announcement;
 use App\Models\Notification;
+use App\Models\Role;
 use App\Models\User;
+use App\Services\Announcemnts\AnnoncementService;
 use App\Services\Notification\InboxPublisher;
 use App\Services\Notification\InboxPushDelivery;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -36,7 +39,8 @@ class NotificationInboxTest extends TestCase
         $first = User::factory()->create();
         $second = User::factory()->create();
         $legacy = $sender->sentNotifications()->create(['title' => 'Legacy', 'description' => 'Saved earlier']);
-        $legacy->notified()->create(['notified_id' => $first->id, 'read' => true]);
+        $legacyRecipient = $legacy->notified()->create(['notified_id' => $first->id, 'read' => true]);
+        DB::table('notifieds')->where('id', $legacyRecipient->id)->update(['read_at' => now()]);
         $notification = $this->publish($sender, [$first->id, $second->id]);
 
         $this->getJson('/api/v1/notification/myNotifications')->assertUnauthorized();
@@ -48,6 +52,10 @@ class NotificationInboxTest extends TestCase
             ->assertJsonPath('data.0.read', false)->assertJsonPath('data.1.read', true)
             ->assertJsonPath('meta.total', 2);
         $this->getJson('/api/v1/notification/unread-count')->assertJsonPath('data.unread_count', 1);
+        $this->assertMatchesRegularExpression('/[+-]\d{2}:\d{2}$/',
+            $this->getJson('/api/v1/notification/myNotifications')->json('data.0.created_at'));
+        $this->assertNull($this->getJson('/api/v1/notification/myNotifications')->json('data.0.read_at'));
+
 
         $this->patchJson("/api/v1/notification/{$notification->id}/read")->assertOk();
         $recipient = $notification->notified()->where('notified_id', $first->id)->firstOrFail();
@@ -92,6 +100,7 @@ class NotificationInboxTest extends TestCase
         foreach (['success-device', 'retry-device', 'expired-device'] as $token) {
             $recipient->deviceTokens()->create(['token' => $token, 'platform' => 'web', 'last_used_at' => now()]);
         }
+        $recipient->roles()->attach(Role::firstOrCreate(['role' => 'TRAINEE']));
         $notification = $this->publish($sender, [$recipient->id]);
         $deliveryId = DB::table('notification_deliveries')->value('id');
 
@@ -99,6 +108,8 @@ class NotificationInboxTest extends TestCase
             $mock->shouldReceive('sendMulticast')->once()->withArgs(fn (array $message, array $tokens) =>
                 $message['data']['notification_id'] === (string) $notification->id
                 && $message['data']['recipient_id'] === (string) $recipient->id
+                && $message['data']['inbox_path'] === '/trainee/notification'
+                && ! isset($message['notification'])
                 && count($tokens) === 3
             )->andReturn(MulticastSendReport::withItems([
                 SendReport::success(MessageTarget::with('token', 'success-device'), []),
@@ -116,14 +127,75 @@ class NotificationInboxTest extends TestCase
         DB::table('notification_deliveries')->where('id', $deliveryId)->update(['leased_until' => now()->subMinute()]);
         $this->artisan('notifications:deliver')->assertExitCode(0);
         $this->assertDatabaseMissing('device_tokens', ['token' => 'expired-device']);
-        $this->assertDatabaseHas('notification_deliveries', ['id' => $deliveryId, 'attempts' => 1, 'delivered_at' => null]);
+        $this->assertDatabaseHas('notification_deliveries', [
+            'id' => $deliveryId, 'attempts' => 1, 'delivered_at' => null,
+            'outcome' => 'retryable_failure', 'accepted_count' => 1, 'rejected_count' => 1,
+        ]);
         $this->actingAs($recipient, 'api')->getJson('/api/v1/notification/myNotifications')->assertJsonCount(1, 'data');
         $delivery->deliver($deliveryId);
         $this->travel(2)->minutes();
         $this->artisan('notifications:deliver')->assertExitCode(0);
         $this->assertNotNull(DB::table('notification_deliveries')->where('id', $deliveryId)->value('delivered_at'));
         $delivery->deliver($deliveryId);
+        $this->assertDatabaseHas('notification_deliveries', [
+            'id' => $deliveryId, 'outcome' => 'accepted', 'accepted_count' => 2, 'rejected_count' => 1,
+        ]);
         $this->assertDatabaseCount('notifications', 1);
+    }
+
+    public function test_opening_announcements_marks_only_the_viewers_matching_inbox_entries_read(): void
+    {
+        [$sender, $viewer, $other] = User::factory()->count(3)->create()->all();
+        $announcement = Announcement::create(['title' => 'Test', 'description' => 'Test', 'publisher_id' => $sender->id]);
+        $announcement->audiences()->createMany([['audience_id' => $viewer->id], ['audience_id' => $other->id]]);
+
+        DB::transaction(fn () => app(InboxPublisher::class)->publish(
+            $sender, [$viewer->id, $other->id], 'announcement', (string) $announcement->id, 'Test', 'Test',
+        ));
+        $this->publish($sender, [$viewer->id]);
+
+        app(AnnoncementService::class)->getForTrainee($viewer);
+        $this->assertDatabaseHas('announcement_audiences', ['audience_id' => $viewer->id, 'read' => true]);
+        $this->assertDatabaseHas('announcement_audiences', ['audience_id' => $other->id, 'read' => false]);
+        $this->actingAs($viewer, 'api')->getJson('/api/v1/notification/unread-count')->assertJsonPath('data.unread_count', 1);
+        $this->actingAs($other, 'api')->getJson('/api/v1/notification/unread-count')->assertJsonPath('data.unread_count', 1);
+    }
+
+    public function test_device_registration_validates_length_and_revocation_is_scoped_to_the_owner(): void
+    {
+        [$owner, $other] = User::factory()->count(2)->create()->all();
+        $route = '/api/v1/notification/device-tokens';
+        $token = str_repeat('a', 700);
+        $this->actingAs($owner, 'api')->postJson($route, ['token' => $token.'b'])->assertUnprocessable();
+        $this->postJson($route, ['token' => $token])->assertOk();
+        $this->actingAs($other, 'api')->deleteJson($route, ['token' => $token])->assertOk();
+        $this->assertDatabaseHas('device_tokens', ['user_id' => $owner->id, 'token' => $token]);
+        $this->postJson($route, ['token' => $token])->assertOk();
+        $this->assertDatabaseHas('device_tokens', ['user_id' => $other->id, 'token' => $token]);
+        $this->deleteJson($route, ['token' => $token])->assertOk();
+        $this->assertDatabaseCount('device_tokens', 0);
+    }
+
+    public function test_empty_and_permanently_rejected_deliveries_are_terminal_without_a_delivery_timestamp(): void
+    {
+        [$sender, $noDevice, $rejected] = User::factory()->count(3)->create()->all();
+        $rejected->deviceTokens()->create(['token' => 'expired-device']);
+        $this->publish($sender, [$noDevice->id, $rejected->id]);
+
+        $this->mock(Messaging::class)->shouldReceive('sendMulticast')->once()
+            ->andReturn(MulticastSendReport::withItems([
+                SendReport::failure(MessageTarget::with('token', 'expired-device'), NotFound::becauseTokenNotFound('expired-device')),
+            ]));
+
+        $service = app(InboxPushDelivery::class);
+        $this->assertSame(0, $service->recover(25));
+        $this->assertDatabaseHas('notification_deliveries', [
+            'outcome' => 'no_devices', 'delivered_at' => null, 'failed_at' => null, 'attempts' => 1,
+        ]);
+        $this->assertDatabaseHas('notification_deliveries', [
+            'outcome' => 'permanent_rejection', 'delivered_at' => null, 'rejected_count' => 1, 'attempts' => 1,
+        ]);
+        $this->assertSame(0, $service->recover(25));
     }
 
     private function publish(User $sender, array $recipients): Notification

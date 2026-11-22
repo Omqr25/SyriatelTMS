@@ -17,7 +17,7 @@ import styles from './AppShell.module.css';
 export default function AppShell({ module }) {
   const { token, user } = useAuth();
   return (
-    <NotificationProvider key={token} userId={user?.sub}>
+    <NotificationProvider key={token} accessToken={token} userId={user?.sub}>
       <ShellContent module={module} />
     </NotificationProvider>
   );
@@ -26,7 +26,7 @@ export default function AppShell({ module }) {
 function ShellContent({ module }) {
   const { t } = useTranslation();
   const { logout } = useAuth();
-  const { unreadCount } = useNotifications();
+  const { unreadCount, countUnavailable } = useNotifications();
   const { pathname } = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
   // console.log("module:",module)
@@ -99,12 +99,15 @@ function ShellContent({ module }) {
             <NavLink
               to={`${module.basePath}/notification`}
               className="headerControl"
-              aria-label={t('hr:notificationsPage.bellLabel', { count: unreadCount })}
+              aria-label={countUnavailable
+                ? t('hr:notificationsPage.bellUnavailable')
+                : unreadCount === null ? t('hr:notificationsPage.title')
+                  : t('hr:notificationsPage.bellLabel', { count: unreadCount })}
             >
               <BellRing className="headerBell" size={19} aria-hidden="true" />
-              {unreadCount > 0 && (
+              {(unreadCount > 0 || countUnavailable) && (
                 <span className={styles.unreadBadge} aria-hidden="true">
-                  {unreadCount > 99 ? '99+' : unreadCount}
+                  {unreadCount > 99 ? '99+' : unreadCount || '!'}
                 </span>
               )}
             </NavLink>

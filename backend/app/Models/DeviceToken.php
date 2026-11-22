@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class DeviceToken extends Model
 {
+    public const MAX_TOKEN_LENGTH = 700;
+
     protected $fillable = [
         'user_id',
         'token',

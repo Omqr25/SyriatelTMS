@@ -18,26 +18,39 @@ class NotificationService
         return Notification::query()
             ->join('notifieds', 'notifications.id', '=', 'notifieds.notification_id')
             ->where('notifieds.notified_id', $user->id)
-            ->select('notifications.*', 'notifieds.read as recipient_read', 'notifieds.read_at as recipient_read_at')
+            ->select('notifications.*', 'notifieds.read_at as recipient_read_at')
+            ->withCasts(['recipient_read_at' => 'datetime'])
             ->latest('notifications.created_at')->orderByDesc('notifications.id')
             ->paginate($limit);
     }
 
     public function unreadCount(User $user): int
     {
-        return $user->notified()->whereNull('read_at')->where('read', false)->count();
+        return $user->notified()->whereNull('read_at')->count();
     }
 
     public function markAsRead(User $user, int $notificationId): void
     {
         $recipient = $user->notified()->where('notification_id', $notificationId)->firstOrFail();
-        $user->notified()->whereKey($recipient->id)->whereNull('read_at')->where('read', false)
+        $user->notified()->whereKey($recipient->id)->whereNull('read_at')
             ->update(['read_at' => now(), 'read' => true]);
     }
 
     public function markAllAsRead(User $user): void
     {
-        $user->notified()->whereNull('read_at')->where('read', false)
+        $user->notified()->whereNull('read_at')
+            ->update(['read_at' => now(), 'read' => true]);
+    }
+
+    public function markViewedAnnouncements(User $user, array $announcementIds): void
+    {
+        if ($announcementIds === []) {
+            return;
+        }
+
+        $events = array_map(fn ($id) => "announcement:$id", $announcementIds);
+        $user->notified()->whereNull('read_at')
+            ->whereIn('notification_id', Notification::query()->whereIn('event_key', $events)->select('id'))
             ->update(['read_at' => now(), 'read' => true]);
     }
 }
