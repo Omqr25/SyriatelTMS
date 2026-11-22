@@ -3,7 +3,7 @@
   width: 100%;
   min-width: 0;
   padding: 24px;
-  color: var(--text-primary, #242424);
+  color: var(--text-primary, light-dark(#242424, var(--ink-900)));
 }
 
 .header {
@@ -29,8 +29,8 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  color: #e60000;
-  background: #fff0f0;
+  color: light-dark(#e60000, var(--red-700));
+  background: light-dark(#fff0f0, var(--red-50));
   border-radius: 12px;
 }
 
@@ -48,7 +48,7 @@
 
 .heading p {
   margin: 0;
-  color: var(--text-secondary, #737373);
+  color: var(--text-secondary, light-dark(#737373, var(--ink-700)));
   line-height: 1.7;
 }
 
@@ -67,7 +67,7 @@
 
 .muted {
   display: block;
-  color: var(--text-secondary, #737373);
+  color: var(--text-secondary, light-dark(#737373, var(--ink-700)));
   font-size: 13px;
   line-height: 1.8;
 }
@@ -109,13 +109,13 @@
 }
 
 .statLabel {
-  color: var(--text-secondary, #737373);
+  color: var(--text-secondary, light-dark(#737373, var(--ink-700)));
   font-size: 13px;
   line-height: 1.6;
 }
 
 .statValue {
-  color: var(--text-primary, #242424);
+  color: var(--text-primary, light-dark(#242424, var(--ink-900)));
   font-size: 26px;
   font-weight: 700;
   overflow-wrap: anywhere;
@@ -129,13 +129,13 @@
   flex-direction: column;
   gap: 12px;
   padding: 48px 20px;
-  color: var(--text-secondary, #737373);
+  color: var(--text-secondary, light-dark(#737373, var(--ink-700)));
   text-align: center;
 }
 
 .emptyState h2 {
   margin: 8px 0 0;
-  color: var(--text-primary, #242424);
+  color: var(--text-primary, light-dark(#242424, var(--ink-900)));
   font-size: 19px;
 }
 
@@ -147,7 +147,7 @@
 }
 
 .spinner {
-  color: #e60000;
+  color: light-dark(#e60000, var(--red-700));
   animation: spin 1s linear infinite;
 }
 

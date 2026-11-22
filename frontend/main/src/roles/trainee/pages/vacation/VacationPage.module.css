@@ -20,7 +20,7 @@
     border: 1px solid var(--ink-200);
     border-radius: 999px;
     color: var(--ink-700);
-    background: var(--surface, #fff);
+    background: var(--surface, light-dark(#fff, var(--surface)));
     font-size: 12px;
     font-weight: 600;
     white-space: nowrap;
@@ -43,10 +43,10 @@
     min-width: 0;
     padding: 20px;
     overflow: hidden;
-    border: 1px solid var(--ink-200, #e5e7eb);
-    border-left: 4px solid var(--ink-300, #d1d5db);
+    border: 1px solid var(--ink-200, light-dark(#e5e7eb, var(--ink-200)));
+    border-left: 4px solid var(--ink-300, light-dark(#d1d5db, var(--ink-200)));
     border-radius: 12px;
-    background: var(--surface, #fff);
+    background: var(--surface, light-dark(#fff, var(--surface)));
     box-shadow: 0 2px 8px rgb(15 23 42 / 3%);
     transition:
         box-shadow 180ms ease,

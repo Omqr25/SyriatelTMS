@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import i18n from "../i18n";
+import ThemeToggle from "./ThemeToggle";
 import styles from "./Header.module.css";
 import logo from "../assets/syriatel-logo.webp";
 
@@ -28,9 +29,9 @@ export default function Header() {
         <Link to="/" className={styles.logoLink} aria-label="Syriatel Home">
           <img src={logo} alt="Syriatel" className={styles.logo} />
         </Link>
-        <nav className={`${styles.nav} ${open ? styles.open : ""}`}>
+        <nav id="guest-navigation" className={`${styles.nav} ${open ? styles.open : ""}`}>
           <NavLink
-            to="/"
+            to="/" end
             className={({ isActive }) => (isActive ? styles.active : "")}
           >
             {t("nav.home")}
@@ -52,23 +53,29 @@ export default function Header() {
           </Link>
         </nav>
         <div className={styles.actions}>
+          <ThemeToggle />
           <button
-            className={styles.lang}
+            type="button"
+            className="headerControl"
             onClick={toggleLanguage}
-            aria-label="Change language"
+            aria-label={t("header.language")}
+            title={t("header.language")}
           >
-            <Globe size={17} />
-            <span>{lang === "ar" ? "EN" : "ع"}</span>
+            <Globe className="headerGlobe" size={17} aria-hidden="true" />
+            <span>{lang === "ar" ? "EN" : "عربي"}</span>
           </button>
           <Link to="/apply" className={styles.apply}>
             {t("nav.apply")} <ArrowUpRight size={17} />
           </Link>
           <button
-            className={styles.menu}
+            type="button"
+            className={`headerControl ${styles.menu}`}
             onClick={() => setOpen((v) => !v)}
-            aria-label="Menu"
+            aria-label={t("header.menu")}
+            aria-expanded={open}
+            aria-controls="guest-navigation"
           >
-            {open ? <X /> : <Menu />}
+            {open ? <X size={20} aria-hidden="true" /> : <Menu size={20} aria-hidden="true" />}
           </button>
         </div>
       </div>

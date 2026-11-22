@@ -18,13 +18,13 @@
 .title {
     margin: 0;
     font-size: 25px;
-    color: #222;
+    color: light-dark(#222, var(--ink-900));
     overflow-wrap: anywhere;
 }
 
 .subtitle {
     margin: 8px 0 0;
-    color: #777;
+    color: light-dark(#777, var(--ink-700));
     font-size: 14px;
 }
 
@@ -35,38 +35,38 @@
     padding: 7px 13px;
     font-size: 13px;
     font-weight: 600;
-    background: #f3f4f6;
-    color: #444;
+    background: light-dark(#f3f4f6, var(--ink-100));
+    color: light-dark(#444, var(--ink-900));
 }
 
 .status_PENDING {
-    background: #fff4d6;
-    color: #8a6100;
+    background: light-dark(#fff4d6, var(--amber-50));
+    color: light-dark(#8a6100, var(--amber-700));
 }
 
 .status_IN_PROGRESS {
-    background: #e8f2ff;
-    color: #1758a6;
+    background: light-dark(#e8f2ff, var(--blue-50));
+    color: light-dark(#1758a6, var(--blue-700));
 }
 
 .status_SUBMITTED {
-    background: #e8f5ec;
-    color: #216e39;
+    background: light-dark(#e8f5ec, var(--green-50));
+    color: light-dark(#216e39, var(--green-700));
 }
 
 .status_COMPLETED {
-    background: #dff5e5;
-    color: #176534;
+    background: light-dark(#dff5e5, var(--green-50));
+    color: light-dark(#176534, var(--green-700));
 }
 
 .status_REVISION_REQUIRED {
-    background: #fff0e5;
-    color: #a3470b;
+    background: light-dark(#fff0e5, var(--red-50));
+    color: light-dark(#a3470b, var(--amber-700));
 }
 
 .section {
     padding: 20px 0;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid light-dark(#eee, var(--ink-200));
 }
 
 .section:first-child {
@@ -80,7 +80,7 @@
 .section h2 {
     margin: 0 0 16px;
     font-size: 16px;
-    color: #333;
+    color: light-dark(#333, var(--ink-900));
 }
 
 .detailsGrid {
@@ -98,12 +98,12 @@
 
 .detail>span {
     font-size: 13px;
-    color: #777;
+    color: light-dark(#777, var(--ink-700));
 }
 
 .detail strong {
     font-size: 14px;
-    color: #292929;
+    color: light-dark(#292929, var(--ink-900));
     overflow-wrap: anywhere;
 }
 
@@ -115,14 +115,14 @@
 
 .iconValue svg {
     flex-shrink: 0;
-    color: #b5121b;
+    color: light-dark(#b5121b, var(--red-700));
 }
 
 .paragraph {
     margin: 0;
     line-height: 1.8;
     font-size: 14px;
-    color: #555;
+    color: light-dark(#555, var(--ink-700));
     white-space: pre-wrap;
     overflow-wrap: anywhere;
 }
@@ -138,7 +138,7 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    color: #b5121b;
+    color: light-dark(#b5121b, var(--red-700));
     text-decoration: none;
     overflow-wrap: anywhere;
 }
@@ -155,15 +155,15 @@
 
 .submissionFile {
     padding: 13px;
-    border: 1px solid #eee;
+    border: 1px solid light-dark(#eee, var(--ink-200));
     border-radius: 8px;
-    background: #fafafa;
-    color: #333;
+    background: light-dark(#fafafa, var(--ink-100));
+    color: light-dark(#333, var(--ink-900));
 }
 
 .submissionFile svg {
     flex-shrink: 0;
-    color: #b5121b;
+    color: light-dark(#b5121b, var(--red-700));
 }
 
 .fileName {
@@ -176,7 +176,7 @@
 .muted,
 .empty {
     margin: 0;
-    color: #888;
+    color: light-dark(#888, var(--ink-500));
     font-size: 14px;
 }
 

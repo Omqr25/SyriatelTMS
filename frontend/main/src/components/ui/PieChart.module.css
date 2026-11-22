@@ -3,7 +3,7 @@
     min-width: 0;
     padding: 20px;
     background-color: var(--surface);
-    border: 1px solid #e5e7eb;
+    border: 1px solid light-dark(#e5e7eb, var(--ink-200));
     border-radius: 12px;
     box-sizing: border-box;
     pointer-events: none;
@@ -12,7 +12,7 @@
 
 .pie-chart-title {
     margin: 0 0 16px;
-    color: #111827;
+    color: light-dark(#111827, var(--ink-900));
     font-size: 18px;
     font-weight: 600;
     line-height: 1.5;
@@ -31,12 +31,12 @@
     align-items: center;
     justify-content: center;
     min-height: 200px;
-    color: #6b7280;
+    color: light-dark(#6b7280, var(--ink-500));
     font-size: 14px;
 }
 
 .pie-chart .recharts-legend-item-text {
-    color: #374151;
+    color: light-dark(#374151, var(--ink-700));
     font-size: 13px;
 }
 .pie-chart-notice {

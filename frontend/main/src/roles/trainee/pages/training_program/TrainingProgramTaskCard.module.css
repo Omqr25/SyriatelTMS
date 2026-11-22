@@ -4,8 +4,8 @@
     gap: 16px;
     min-width: 0;
     padding: 18px;
-    background: var(--card-background, #fff);
-    border: 1px solid #e8e8e8;
+    background: var(--card-background, light-dark(#fff, var(--surface)));
+    border: 1px solid light-dark(#e8e8e8, var(--ink-200));
     border-radius: 12px;
     color: inherit;
     text-decoration: none;
@@ -48,7 +48,7 @@
 .description {
     display: -webkit-box;
     margin: 6px 0 0;
-    color: #777;
+    color: light-dark(#777, var(--ink-700));
     font-size: 13px;
     line-height: 1.6;
     overflow: hidden;
@@ -58,7 +58,7 @@
 
 .arrow {
     flex-shrink: 0;
-    color: #c8202f;
+    color: light-dark(#c8202f, var(--red-700));
 }
 
 .info {
@@ -71,14 +71,14 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    color: #555;
+    color: light-dark(#555, var(--ink-700));
     font-size: 13px;
     min-width: 0;
 }
 
 .infoItem svg {
     flex-shrink: 0;
-    color: #888;
+    color: light-dark(#888, var(--ink-500));
 }
 
 .infoItem span {
@@ -92,7 +92,7 @@
     flex-wrap: wrap;
     gap: 10px;
     padding-top: 12px;
-    border-top: 1px solid #eee;
+    border-top: 1px solid light-dark(#eee, var(--ink-200));
     margin-top: auto;
     padding: 4px;
     border-radius: 12px;
@@ -102,15 +102,15 @@
 .deadlineBadge {
     padding: 5px 9px;
     border-radius: 6px;
-    background: #f3f4f6;
-    color: #555;
+    background: light-dark(#f3f4f6, var(--ink-100));
+    color: light-dark(#555, var(--ink-700));
     font-size: 11px;
     font-weight: 600;
 }
 
 .overdue {
-    background: #fee2e2;
-    color: #b91c1c;
+    background: light-dark(#fee2e2, var(--red-50));
+    color: light-dark(#b91c1c, var(--red-700));
 }
 
 .stats {
@@ -118,7 +118,7 @@
     align-items: center;
     flex-wrap: wrap;
     gap: 12px;
-    color: #666;
+    color: light-dark(#666, var(--ink-700));
     font-size: 12px;
 }
 
@@ -129,7 +129,7 @@
 }
 
 .score {
-    color: #216e39;
+    color: light-dark(#216e39, var(--green-700));
     font-weight: 700;
 }
 
@@ -157,48 +157,48 @@
 
 /* Pending */
 .status_PENDING {
-    background: #fff4d6;
-    color: #8a6100;
+    background: light-dark(#fff4d6, var(--amber-50));
+    color: light-dark(#8a6100, var(--amber-700));
 }
 
 /* In progress */
 .status_IN_PROGRESS {
-    background: #e8f2ff;
-    color: #1758a6;
+    background: light-dark(#e8f2ff, var(--blue-50));
+    color: light-dark(#1758a6, var(--blue-700));
 }
 
 /* Completed */
 .status_COMPLETED {
-    background: #dff5e5;
-    color: #176534;
+    background: light-dark(#dff5e5, var(--green-50));
+    color: light-dark(#176534, var(--green-700));
 }
 
 /* Cancelled */
 .status_CANCELLED {
-    background: #f3f4f6;
-    color: #4b5563;
+    background: light-dark(#f3f4f6, var(--ink-100));
+    color: light-dark(#4b5563, var(--ink-700));
 }
 
 /* For review */
 .status_FOR_REVIEW {
-    background: #e8f5ec;
-    color: #216e39;
+    background: light-dark(#e8f5ec, var(--green-50));
+    color: light-dark(#216e39, var(--green-700));
 }
 
 /* Need fix */
 .status_NEED_FIX {
-    background: #fff0e5;
-    color: #a3470b;
+    background: light-dark(#fff0e5, var(--red-50));
+    color: light-dark(#a3470b, var(--amber-700));
 }
 
 /* Overdue */
 .status_OVERDUE {
-    background: #fee2e2;
-    color: #b91c1c;
+    background: light-dark(#fee2e2, var(--red-50));
+    color: light-dark(#b91c1c, var(--red-700));
 }
 
 /* Unknown status */
 .status_UNKNOWN {
-    background: #f3f4f6;
-    color: #4b5563;
+    background: light-dark(#f3f4f6, var(--ink-100));
+    color: light-dark(#4b5563, var(--ink-700));
 }

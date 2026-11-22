@@ -17,7 +17,7 @@
 .lg { padding: 13px 20px; font-size: 15px; }
 
 .primary { background: var(--red-600); color: #fff; box-shadow: var(--shadow-red); }
-.primary:hover:not(:disabled) { background: var(--red-700); }
+.primary:hover:not(:disabled) { background: var(--action-hover); }
 
 .secondary { background: var(--surface); color: var(--ink-700); border-color: var(--ink-200); }
 .secondary:hover:not(:disabled) { background: var(--ink-100); }
@@ -25,10 +25,10 @@
 .soft { background: var(--red-50); color: var(--red-700); }
 .soft:hover:not(:disabled) { background: var(--red-100); }
 
-.dark { background: var(--ink-900); color: #fff; }
-.dark:hover:not(:disabled) { background: #000; }
+.dark { background: var(--ink-900); color: var(--surface); }
+.dark:hover:not(:disabled) { background: var(--ink-700); }
 
-.success { background: var(--green-700); color: #fff; }
+.success { background: var(--success-action); color: #fff; }
 .success:hover:not(:disabled) { filter: brightness(0.92); }
 
 .block { width: 100%; }

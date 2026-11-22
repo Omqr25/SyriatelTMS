@@ -1,4 +1,6 @@
 const en = {
+  theme: { darkMode: "Dark mode", switchLight: "Switch to light mode", switchDark: "Switch to dark mode" },
+  header: { language: "Change language", menu: "Navigation menu" },
   nav: { home: "Home", about: "About", faqs: "FAQs", apply: "Apply Now" },
   brand: { program: "Talent Development Program" },
   hero: {

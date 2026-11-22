@@ -6,10 +6,10 @@ import { useAuth } from '../../context/AuthContext';
 import { NotificationProvider, useNotifications } from '../../context/NotificationContext';
 import Badge from '../ui/Badge';
 import Logo from './Logo';
+import ThemeToggle from '../ThemeToggle';
 import LanguageSwitcher from './LanguageSwitcher';
 import styles from './AppShell.module.css';
 
-import { useNavigate } from "react-router-dom";
 /**
  * الهيكل المشترك لكل الأدوار: شريط جانبي + شريط علوي + محتوى الصفحة.
  * يُغذّى بـ module (انظر src/roles/index.js) فيعرض قائمة الدور المناسب.
@@ -28,7 +28,6 @@ function ShellContent({ module }) {
   const { logout } = useAuth();
   const { unreadCount, countUnavailable } = useNotifications();
   const { pathname } = useLocation();
-  const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   // console.log("module:",module)
   useEffect(() => setMenuOpen(false), [pathname]);
@@ -45,7 +44,7 @@ function ShellContent({ module }) {
     <div className={styles.shell}>
       {menuOpen && <div className={styles.backdrop} onClick={() => setMenuOpen(false)} />}
 
-      <aside className={`${styles.sidebar} ${menuOpen ? styles.sidebarOpen : ''}`}>
+      <aside id="staff-sidebar" className={`${styles.sidebar} ${menuOpen ? styles.sidebarOpen : ''}`}>
         <div className={styles.brand}>
           <Link
             className={styles.logoLink}
@@ -82,11 +81,13 @@ function ShellContent({ module }) {
           <div className={styles.titleGroup}>
             <button
               type="button"
-              className={styles.menuBtn}
-              onClick={() => setMenuOpen(true)}
+              className={`headerControl ${styles.menuBtn}`}
+              onClick={() => setMenuOpen((open) => !open)}
+              aria-expanded={menuOpen}
+              aria-controls="staff-sidebar"
               aria-label={t('action.openMenu')}
             >
-              <Menu size={22} />
+              <Menu size={20} aria-hidden="true" />
             </button>
             {current && <h2>{t(current.labelKey)}</h2>}
             <span className={current ? styles.roleWithHeading : undefined}>
@@ -95,29 +96,26 @@ function ShellContent({ module }) {
           </div>
 
           <div className={styles.tools}>
-            <button
-              type="button"
-              onClick={() => navigate(`${module.basePath}/notification`)}
-              className={styles.BellRing}
+            <NavLink
+              to={`${module.basePath}/notification`}
+              className="headerControl"
               aria-label={countUnavailable
                 ? t('hr:notificationsPage.bellUnavailable')
                 : unreadCount === null ? t('hr:notificationsPage.title')
                   : t('hr:notificationsPage.bellLabel', { count: unreadCount })}
             >
-              <BellRing />
+              <BellRing className="headerBell" size={19} aria-hidden="true" />
               {(unreadCount > 0 || countUnavailable) && (
                 <span className={styles.unreadBadge} aria-hidden="true">
                   {unreadCount > 99 ? '99+' : unreadCount || '!'}
                 </span>
               )}
-            </button>
+            </NavLink>
+            <ThemeToggle />
             <LanguageSwitcher />
             <div className={styles.user}>
               <span className={styles.avatar} title={roleName} aria-label={roleName}>{module.role.slice(0, 2)}</span>
               <span className={styles.userName}>{roleName}</span>
-            </div>
-            <div>
-            
             </div>
           </div>
         </header>

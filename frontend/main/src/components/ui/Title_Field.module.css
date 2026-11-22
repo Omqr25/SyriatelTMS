@@ -10,7 +10,7 @@
 
 .Title-Style {
     margin: 0;
-    color: #0f172a;
+    color: light-dark(#0f172a, var(--ink-900));
     font-size: clamp(22px, 3vw, 30px);
     font-weight: 700;
     line-height: 1.25;
@@ -20,7 +20,7 @@
 
 .Sub-Title-Style {
     margin: 0;
-    color: #64748b;
+    color: light-dark(#64748b, var(--blue-700));
     font-size: 14px;
     font-weight: 500;
     line-height: 1.5;
