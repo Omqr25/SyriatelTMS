@@ -4,7 +4,7 @@
     margin-inline: auto;
     padding: 32px;
     box-sizing: border-box;
-    color: #1e293b;
+    color: light-dark(#1e293b, var(--ink-900));
 }
 
 .image-label {
@@ -12,7 +12,7 @@
     align-items: center;
     gap: 24px;
     padding: 8px 0 28px;
-    border-bottom: 1px solid #e2e8f0;
+    border-bottom: 1px solid light-dark(#e2e8f0, var(--ink-200));
 }
 
 .profile {

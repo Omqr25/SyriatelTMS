@@ -1,4 +1,6 @@
 const ar = {
+  theme: { darkMode: "الوضع الداكن", switchLight: "التبديل إلى الوضع الفاتح", switchDark: "التبديل إلى الوضع الداكن" },
+  header: { language: "تغيير اللغة", menu: "قائمة التنقل" },
   nav: {
     home: "الرئيسية",
     about: "عن سيريَتل",

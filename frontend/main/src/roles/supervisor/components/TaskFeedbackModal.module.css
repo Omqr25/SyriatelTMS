@@ -12,14 +12,14 @@
   flex-wrap: wrap;
   gap: 10px;
   padding-top: 14px;
-  border-top: 1px solid #eee;
+  border-top: 1px solid light-dark(#eee, var(--ink-200));
 }
 
 .error {
   margin: 0;
   padding: 10px 12px;
-  color: #b42318;
-  background: #fef3f2;
+  color: light-dark(#b42318, var(--red-700));
+  background: light-dark(#fef3f2, var(--red-50));
   border-radius: 6px;
   font-size: 13px;
   line-height: 1.6;

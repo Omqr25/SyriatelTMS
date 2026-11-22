@@ -1,5 +1,5 @@
 .page {
-  background: #f8f8fa;
+  background: light-dark(#f8f8fa, var(--ink-100));
   min-height: 100vh;
   padding: 40px 16px 80px;
 }
@@ -11,14 +11,14 @@
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  color: #6d727e;
+  color: light-dark(#6d727e, var(--ink-500));
   text-decoration: none;
   font-size: 13px;
   font-weight: 700;
   transition: color 0.2s;
 }
 .back:hover {
-  color: #e50914;
+  color: light-dark(#e50914, var(--red-700));
 }
 .heading {
   text-align: center;
@@ -29,35 +29,35 @@
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 2px;
-  color: #e50914;
+  color: light-dark(#e50914, var(--red-700));
   font-weight: 900;
 }
 .heading h1 {
   font-size: clamp(28px, 4vw, 38px);
   letter-spacing: -1px;
   margin: 10px 0;
-  color: #1a1d24;
+  color: light-dark(#1a1d24, var(--ink-900));
 }
 .heading h1 strong {
-  color: #e50914;
+  color: light-dark(#e50914, var(--red-700));
 }
 .heading p {
-  color: #707582;
+  color: light-dark(#707582, var(--ink-500));
   margin: 0 0 10px;
   line-height: 1.6;
 }
 .groupBadge {
   display: inline-block;
-  background: #fee2e2;
-  color: #b91c1c;
+  background: light-dark(#fee2e2, var(--red-50));
+  color: light-dark(#b91c1c, var(--red-700));
   font-size: 12px;
   font-weight: 700;
   padding: 4px 12px;
   border-radius: 20px;
 }
 .form {
-  background: #fff;
-  border: 1px solid #e6e7eb;
+  background: light-dark(#fff, var(--surface));
+  border: 1px solid light-dark(#e6e7eb, var(--ink-200));
   border-radius: 20px;
   padding: 35px;
   box-shadow: 0 10px 30px rgba(28, 31, 40, 0.05);
@@ -84,14 +84,14 @@
 .fullField > label {
   font-size: 12px;
   font-weight: 800;
-  color: #242731;
+  color: light-dark(#242731, var(--ink-900));
 }
 .field em,
 .fileField em,
 .radioField em,
 .fullField em {
   font-style: normal;
-  color: #e50914;
+  color: light-dark(#e50914, var(--red-700));
   margin-left: 3px;
 }
 .field input,
@@ -99,14 +99,14 @@
 .fullField textarea {
   width: 100%;
   box-sizing: border-box;
-  border: 1px solid #dfe1e7;
-  background: #fff;
+  border: 1px solid light-dark(#dfe1e7, var(--ink-200));
+  background: light-dark(#fff, var(--surface));
   border-radius: 10px;
   height: 44px;
   padding: 0 14px;
   font: inherit;
   font-size: 13px;
-  color: #292c36;
+  color: light-dark(#292c36, var(--ink-900));
   outline: none;
   transition: all 0.2s ease;
 }
@@ -118,14 +118,14 @@
 }
 .inputError {
   border-color: #e50914 !important;
-  background-color: #fffafb;
+  background-color: light-dark(#fffafb, var(--ink-100));
 }
 .errorText {
   display: flex;
   align-items: center;
   gap: 4px;
   font-size: 11px;
-  color: #e50914;
+  color: light-dark(#e50914, var(--red-700));
   font-weight: 600;
   margin-top: 2px;
 }
@@ -134,7 +134,7 @@
 }
 .fileBox {
   position: relative;
-  border: 1px dashed #d4d7df;
+  border: 1px dashed light-dark(#d4d7df, var(--ink-200));
   border-radius: 11px;
   min-height: 92px;
   padding: 14px;
@@ -143,9 +143,9 @@
   align-items: center;
   justify-content: center;
   gap: 4px;
-  color: #e50914;
+  color: light-dark(#e50914, var(--red-700));
   text-align: center;
-  background: #fffafb;
+  background: light-dark(#fffafb, var(--ink-100));
   overflow: hidden;
   cursor: pointer;
   transition: border-color 0.2s;
@@ -158,7 +158,7 @@
 }
 .fileBox b {
   font-size: 12px;
-  color: #323640;
+  color: light-dark(#323640, var(--ink-900));
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -166,7 +166,7 @@
 }
 .fileBox small {
   font-size: 10px;
-  color: #898e98;
+  color: light-dark(#898e98, var(--ink-500));
 }
 .fileBox input {
   position: absolute;
@@ -194,7 +194,7 @@
   align-items: center;
   gap: 8px;
   font-size: 13px;
-  color: #4d525e;
+  color: light-dark(#4d525e, var(--ink-700));
   cursor: pointer;
   font-weight: 500;
 }
@@ -248,23 +248,23 @@
 }
 .successCard {
   max-width: 500px;
-  background: #fff;
+  background: light-dark(#fff, var(--surface));
   padding: 40px;
   border-radius: 20px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-  border: 1px solid #e6e7eb;
+  border: 1px solid light-dark(#e6e7eb, var(--ink-200));
 }
 .success svg {
-  color: #e50914;
+  color: light-dark(#e50914, var(--red-700));
   margin-bottom: 10px;
 }
 .success h1 {
   font-size: 28px;
   margin: 10px 0;
-  color: #1a1d24;
+  color: light-dark(#1a1d24, var(--ink-900));
 }
 .success p {
-  color: #707582;
+  color: light-dark(#707582, var(--ink-500));
   line-height: 1.6;
 }
 .homeButton {

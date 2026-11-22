@@ -1,13 +1,13 @@
 .page {
   --primary: #e60000;
-  --text: #252830;
-  --muted: #777d88;
-  --border: #eceef2;
+  --text: light-dark(#252830, var(--ink-900));
+  --muted: light-dark(#777d88, var(--ink-500));
+  --border: light-dark(#eceef2, var(--ink-200));
 
   min-height: 100%;
   padding: 28px;
   color: var(--text);
-  background: #f8f9fb;
+  background: light-dark(#f8f9fb, var(--ink-100));
   font-family: inherit;
 }
 
@@ -26,7 +26,7 @@
   width: 54px;
   height: 54px;
   color: var(--primary);
-  background: #fff0f0;
+  background: light-dark(#fff0f0, var(--red-50));
   border-radius: 15px;
 }
 
@@ -56,7 +56,7 @@
   height: 36px;
   padding: 0 12px;
   color: var(--primary);
-  background: #fff0f0;
+  background: light-dark(#fff0f0, var(--red-50));
   border-radius: 10px;
   font-size: 14px;
   font-weight: 700;
@@ -64,7 +64,7 @@
 
 .panel {
   overflow: hidden;
-  background: #fff;
+  background: light-dark(#fff, var(--surface));
   border: 1px solid var(--border);
   border-radius: 16px;
   box-shadow: 0 4px 16px rgb(25 35 50 / 3%);
@@ -97,7 +97,7 @@
   align-items: flex-start;
   gap: 15px;
   padding: 22px 24px;
-  border-bottom: 1px solid #f0f1f4;
+  border-bottom: 1px solid light-dark(#f0f1f4, var(--ink-200));
   transition: background-color 0.2s ease;
 }
 
@@ -106,7 +106,7 @@
 }
 
 .notificationItem:hover {
-  background: #fff8f8;
+  background: light-dark(#fff8f8, var(--ink-100));
 }
 
 .notificationIcon {
@@ -117,7 +117,7 @@
   width: 44px;
   height: 44px;
   color: var(--primary);
-  background: #fff0f0;
+  background: light-dark(#fff0f0, var(--red-50));
   border-radius: 13px;
   transition: transform 0.2s ease;
 }
@@ -140,7 +140,7 @@
 
 .notificationContent p {
   margin: 0 0 11px;
-  color: #686e79;
+  color: light-dark(#686e79, var(--ink-500));
   font-size: 13px;
   line-height: 1.9;
   overflow-wrap: anywhere;
@@ -149,7 +149,7 @@
 .date {
   display: inline-flex;
   align-items: center;
-  color: #969ba5;
+  color: light-dark(#969ba5, var(--ink-500));
   font-size: 11px;
 }
 
@@ -160,7 +160,7 @@
   gap: 12px;
   padding: 17px 24px;
   border-top: 1px solid var(--border);
-  background: #fdfdfd;
+  background: light-dark(#fdfdfd, var(--surface));
 }
 
 .pagination button {
@@ -171,8 +171,8 @@
   min-height: 36px;
   padding: 8px 12px;
   color: var(--primary);
-  background: #fff;
-  border: 1px solid #f0caca;
+  background: light-dark(#fff, var(--surface));
+  border: 1px solid light-dark(#f0caca, var(--red-200));
   border-radius: 9px;
   font: inherit;
   font-size: 12px;
@@ -187,9 +187,9 @@
 }
 
 .pagination button:disabled {
-  color: #a9adb5;
-  background: #f5f5f6;
-  border-color: #e9eaed;
+  color: light-dark(#a9adb5, var(--ink-500));
+  background: light-dark(#f5f5f6, var(--ink-100));
+  border-color: light-dark(#e9eaed, var(--ink-200));
   cursor: not-allowed;
 }
 
@@ -206,7 +206,7 @@
   justify-content: center;
   min-height: 250px;
   padding: 30px 20px;
-  color: #969ba5;
+  color: light-dark(#969ba5, var(--ink-500));
   text-align: center;
 }
 
@@ -225,7 +225,7 @@
 .spinner {
   width: 32px;
   height: 32px;
-  border: 3px solid #ffe0e0;
+  border: 3px solid light-dark(#ffe0e0, var(--red-200));
   border-top-color: var(--primary);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
@@ -238,9 +238,9 @@
   gap: 12px;
   margin-bottom: 18px;
   padding: 14px 16px;
-  color: #a52222;
-  background: #fff0f0;
-  border: 1px solid #ffd7d7;
+  color: light-dark(#a52222, var(--red-700));
+  background: light-dark(#fff0f0, var(--red-50));
+  border: 1px solid light-dark(#ffd7d7, var(--red-200));
   border-radius: 10px;
 }
 
@@ -256,9 +256,9 @@
   gap: 6px;
   flex-shrink: 0;
   padding: 8px 10px;
-  color: #a52222;
-  background: #fff;
-  border: 1px solid #f0caca;
+  color: light-dark(#a52222, var(--red-700));
+  background: light-dark(#fff, var(--surface));
+  border: 1px solid light-dark(#f0caca, var(--red-200));
   border-radius: 8px;
   font: inherit;
   font-size: 12px;
@@ -266,7 +266,7 @@
 }
 
 .errorMessage button:hover {
-  background: #ffe4e4;
+  background: light-dark(#ffe4e4, var(--red-50));
 }
 
 .page button:focus-visible {

@@ -2,7 +2,7 @@
     width: 100%;
     min-width: 0;
     padding: 28px;
-    color: var(--text-primary, #1f2937);
+    color: var(--text-primary, light-dark(#1f2937, var(--ink-900)));
 }
 
 .pageHeader {
@@ -19,8 +19,8 @@
     flex-shrink: 0;
     width: 52px;
     height: 52px;
-    color: var(--red-600, #c62828);
-    background: var(--red-50, #fef2f2);
+    color: var(--red-600, light-dark(#c62828, var(--red-700)));
+    background: var(--red-50, light-dark(#fef2f2, var(--red-50)));
     border-radius: 14px;
 }
 
@@ -33,7 +33,7 @@
 
 .pageDescription {
     margin: 0;
-    color: var(--text-secondary, #6b7280);
+    color: var(--text-secondary, light-dark(#6b7280, var(--ink-500)));
     font-size: 14px;
     line-height: 1.6;
 }
@@ -47,8 +47,8 @@
 .sidebar,
 .content {
     min-width: 0;
-    background: var(--surface, #ffffff);
-    border: 1px solid var(--border-color, #e5e7eb);
+    background: var(--surface, light-dark(#ffffff, var(--surface)));
+    border: 1px solid var(--border-color, light-dark(#e5e7eb, var(--ink-200)));
     border-radius: 14px;
 }
 
@@ -59,7 +59,7 @@
 .sidebarTitle {
     margin: 0 0 14px;
     padding-inline: 10px;
-    color: var(--text-secondary, #6b7280);
+    color: var(--text-secondary, light-dark(#6b7280, var(--ink-500)));
     font-size: 12px;
     font-weight: 700;
     letter-spacing: 0.04em;
@@ -72,7 +72,7 @@
     gap: 12px;
     width: 100%;
     padding: 12px;
-    color: var(--text-primary, #374151);
+    color: var(--text-primary, light-dark(#374151, var(--ink-700)));
     background: transparent;
     border: 1px solid transparent;
     border-radius: 9px;
@@ -88,13 +88,13 @@
 }
 
 .tab:hover {
-    background: var(--background-secondary, #f9fafb);
+    background: var(--background-secondary, light-dark(#f9fafb, var(--ink-100)));
 }
 
 .activeTab {
-    color: var(--red-700, #b91c1c);
-    background: var(--red-50, #fef2f2);
-    border-color: var(--red-100, #fee2e2);
+    color: var(--red-700, light-dark(#b91c1c, var(--red-700)));
+    background: var(--red-50, light-dark(#fef2f2, var(--red-50)));
+    border-color: var(--red-100, light-dark(#fee2e2, var(--red-200)));
     font-weight: 600;
 }
 
@@ -118,7 +118,7 @@
 
 .cardHeader p {
     margin: 0;
-    color: var(--text-secondary, #6b7280);
+    color: var(--text-secondary, light-dark(#6b7280, var(--ink-500)));
     font-size: 14px;
     line-height: 1.7;
 }
@@ -130,15 +130,15 @@
     flex-shrink: 0;
     width: 44px;
     height: 44px;
-    color: var(--red-600, #c62828);
-    background: var(--red-50, #fef2f2);
+    color: var(--red-600, light-dark(#c62828, var(--red-700)));
+    background: var(--red-50, light-dark(#fef2f2, var(--red-50)));
     border-radius: 12px;
 }
 
 .divider {
     height: 1px;
     margin: 24px 0;
-    background: var(--border-color, #e5e7eb);
+    background: var(--border-color, light-dark(#e5e7eb, var(--ink-100)));
 }
 
 .form {
@@ -155,14 +155,14 @@
 }
 
 .field label {
-    color: var(--text-primary, #374151);
+    color: var(--text-primary, light-dark(#374151, var(--ink-700)));
     font-size: 14px;
     font-weight: 600;
 }
 
 .required {
     margin-inline-start: 4px;
-    color: var(--red-600, #dc2626);
+    color: var(--red-600, light-dark(#dc2626, var(--red-700)));
 }
 
 .inputWrapper {
@@ -171,8 +171,8 @@
     gap: 8px;
     min-height: 46px;
     padding-inline: 14px;
-    background: var(--input-background, #ffffff);
-    border: 1px solid var(--border-color, #d1d5db);
+    background: var(--input-background, light-dark(#ffffff, var(--surface)));
+    border: 1px solid var(--border-color, light-dark(#d1d5db, var(--ink-200)));
     border-radius: 9px;
     transition:
         border-color 0.2s ease,
@@ -189,7 +189,7 @@
     min-width: 0;
     width: 100%;
     padding-block: 12px;
-    color: var(--text-primary, #1f2937);
+    color: var(--text-primary, light-dark(#1f2937, var(--ink-900)));
     background: transparent;
     border: 0;
     outline: 0;
@@ -198,7 +198,7 @@
 }
 
 .inputWrapper input::placeholder {
-    color: var(--text-muted, #9ca3af);
+    color: var(--text-muted, light-dark(#9ca3af, var(--ink-500)));
 }
 
 .inputWrapper input:disabled {
@@ -222,7 +222,7 @@
     width: 32px;
     height: 32px;
     padding: 0;
-    color: var(--text-secondary, #6b7280);
+    color: var(--text-secondary, light-dark(#6b7280, var(--ink-500)));
     background: transparent;
     border: 0;
     border-radius: 6px;
@@ -230,8 +230,8 @@
 }
 
 .visibilityButton:hover {
-    color: var(--red-600, #dc2626);
-    background: var(--background-secondary, #f9fafb);
+    color: var(--red-600, light-dark(#dc2626, var(--red-700)));
+    background: var(--background-secondary, light-dark(#f9fafb, var(--ink-100)));
 }
 
 .visibilityButton:focus-visible,
@@ -249,14 +249,14 @@
 
 .errorText {
     margin: 0;
-    color: var(--red-600, #dc2626);
+    color: var(--red-600, light-dark(#dc2626, var(--red-700)));
     font-size: 12px;
     line-height: 1.5;
 }
 
 .passwordHint {
     margin: -4px 0 0;
-    color: var(--text-secondary, #6b7280);
+    color: var(--text-secondary, light-dark(#6b7280, var(--ink-500)));
     font-size: 12px;
     line-height: 1.7;
 }
@@ -271,15 +271,15 @@
 }
 
 .successMessage {
-    color: #166534;
-    background: #f0fdf4;
-    border-color: #bbf7d0;
+    color: light-dark(#166534, var(--green-700));
+    background: light-dark(#f0fdf4, var(--green-50));
+    border-color: light-dark(#bbf7d0, var(--ink-200));
 }
 
 .errorMessage {
-    color: #b91c1c;
-    background: #fef2f2;
-    border-color: #fecaca;
+    color: light-dark(#b91c1c, var(--red-700));
+    background: light-dark(#fef2f2, var(--red-50));
+    border-color: light-dark(#fecaca, var(--red-200));
 }
 
 .formActions {
@@ -289,7 +289,7 @@
     gap: 12px;
     margin-top: 6px;
     padding-top: 22px;
-    border-top: 1px solid var(--border-color, #e5e7eb);
+    border-top: 1px solid var(--border-color, light-dark(#e5e7eb, var(--ink-200)));
 }
 
 .cancelButton,
@@ -312,13 +312,13 @@
 }
 
 .cancelButton {
-    color: var(--text-primary, #374151);
-    background: var(--surface, #ffffff);
-    border-color: var(--border-color, #d1d5db);
+    color: var(--text-primary, light-dark(#374151, var(--ink-700)));
+    background: var(--surface, light-dark(#ffffff, var(--surface)));
+    border-color: var(--border-color, light-dark(#d1d5db, var(--ink-200)));
 }
 
 .cancelButton:hover:not(:disabled) {
-    background: var(--background-secondary, #f9fafb);
+    background: var(--background-secondary, light-dark(#f9fafb, var(--ink-100)));
 }
 
 .saveButton {
