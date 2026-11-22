@@ -23,7 +23,7 @@
 
 .title {
   margin: 0;
-  color: #222;
+  color: light-dark(#222, var(--ink-900));
   font-size: 25px;
   font-weight: 700;
   line-height: 1.4;
@@ -32,7 +32,7 @@
 
 .subtitle {
   margin: 7px 0 0;
-  color: #777;
+  color: light-dark(#777, var(--ink-700));
   font-size: 14px;
 }
 
@@ -44,54 +44,54 @@
   min-height: 34px;
   padding: 6px 14px;
   border-radius: 20px;
-  background: #f3f4f6;
-  color: #444;
+  background: light-dark(#f3f4f6, var(--ink-100));
+  color: light-dark(#444, var(--ink-900));
   font-size: 13px;
   font-weight: 600;
   white-space: nowrap;
 }
 
 .status_PENDING {
-  background: #fff4d6;
-  color: #8a6100;
+  background: light-dark(#fff4d6, var(--amber-50));
+  color: light-dark(#8a6100, var(--amber-700));
 }
 
 .status_IN_PROGRESS {
-  background: #e8f2ff;
-  color: #1758a6;
+  background: light-dark(#e8f2ff, var(--blue-50));
+  color: light-dark(#1758a6, var(--blue-700));
 }
 
 .status_SUBMITTED,
 .status_FOR_REVIEW {
-  background: #f0eafe;
-  color: #6b42a3;
+  background: light-dark(#f0eafe, var(--purple-50));
+  color: light-dark(#6b42a3, var(--purple-700));
 }
 
 .status_COMPLETED {
-  background: #dff5e5;
-  color: #176534;
+  background: light-dark(#dff5e5, var(--green-50));
+  color: light-dark(#176534, var(--green-700));
 }
 
 .status_NEED_FIX,
 .status_REVISION_REQUIRED {
-  background: #fff0e5;
-  color: #a3470b;
+  background: light-dark(#fff0e5, var(--red-50));
+  color: light-dark(#a3470b, var(--amber-700));
 }
 
 .status_OVERDUE {
-  background: #fee2e2;
-  color: #991b1b;
+  background: light-dark(#fee2e2, var(--red-50));
+  color: light-dark(#991b1b, var(--red-700));
 }
 
 .status_CANCELLED,
 .status_UNKNOWN {
-  background: #f3f4f6;
-  color: #666;
+  background: light-dark(#f3f4f6, var(--ink-100));
+  color: light-dark(#666, var(--ink-700));
 }
 
 .section {
   padding: 22px 0;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid light-dark(#eee, var(--ink-200));
 }
 
 .section:first-child {
@@ -104,7 +104,7 @@
 
 .section h2 {
   margin: 0 0 17px;
-  color: #333;
+  color: light-dark(#333, var(--ink-900));
   font-size: 16px;
   font-weight: 700;
 }
@@ -143,12 +143,12 @@
 }
 
 .detail > span {
-  color: #777;
+  color: light-dark(#777, var(--ink-700));
   font-size: 13px;
 }
 
 .detail strong {
-  color: #292929;
+  color: light-dark(#292929, var(--ink-900));
   font-size: 14px;
   font-weight: 600;
   line-height: 1.6;
@@ -163,7 +163,7 @@
 
 .iconValue svg {
   flex-shrink: 0;
-  color: #b5121b;
+  color: light-dark(#b5121b, var(--red-700));
 }
 
 .priorityValue {
@@ -173,13 +173,13 @@
   min-height: 28px;
   padding: 3px 10px;
   border-radius: 6px;
-  background: #fff0f0;
-  color: #a30f19 !important;
+  background: light-dark(#fff0f0, var(--red-50));
+  color: light-dark(#a30f19, var(--red-700)) !important;
 }
 
 .paragraph {
   margin: 0;
-  color: #555;
+  color: light-dark(#555, var(--ink-700));
   font-size: 14px;
   line-height: 1.9;
   white-space: pre-wrap;
@@ -198,7 +198,7 @@
   align-items: center;
   gap: 10px;
   max-width: 100%;
-  color: #a30f19;
+  color: light-dark(#a30f19, var(--red-700));
   font-size: 14px;
   text-decoration: none;
   overflow-wrap: anywhere;
@@ -228,9 +228,9 @@
   flex-direction: column;
   gap: 12px;
   padding: 15px;
-  border: 1px solid #eaeaea;
+  border: 1px solid light-dark(#eaeaea, var(--ink-200));
   border-radius: 10px;
-  background: #fcfcfc;
+  background: light-dark(#fcfcfc, var(--surface));
 }
 
 .submissionHeader {
@@ -242,13 +242,13 @@
 }
 
 .submissionNumber {
-  color: #333;
+  color: light-dark(#333, var(--ink-900));
   font-size: 13px;
   font-weight: 700;
 }
 
 .submissionDate {
-  color: #888;
+  color: light-dark(#888, var(--ink-500));
   font-size: 12px;
 }
 
@@ -258,10 +258,10 @@
   gap: 10px;
   min-width: 0;
   padding: 12px;
-  border: 1px solid #eee;
+  border: 1px solid light-dark(#eee, var(--ink-200));
   border-radius: 8px;
-  background: #fff;
-  color: #333;
+  background: light-dark(#fff, var(--surface));
+  color: light-dark(#333, var(--ink-900));
   text-decoration: none;
   transition:
     border-color 0.2s ease,
@@ -269,19 +269,19 @@
 }
 
 .submissionFile:hover {
-  border-color: #d8a0a3;
-  background: #fffafa;
+  border-color: light-dark(#d8a0a3, var(--red-200));
+  background: light-dark(#fffafa, var(--ink-100));
 }
 
 .submissionFile svg {
   flex-shrink: 0;
-  color: #b5121b;
+  color: light-dark(#b5121b, var(--red-700));
 }
 
 .fileName {
   flex: 1;
   min-width: 0;
-  color: #333;
+  color: light-dark(#333, var(--ink-900));
   font-size: 14px;
   overflow-wrap: anywhere;
 }
@@ -289,19 +289,19 @@
 .feedback {
   padding: 12px 14px;
   border-radius: 8px;
-  background: #f5f5f5;
+  background: light-dark(#f5f5f5, var(--ink-100));
 }
 
 .feedback strong {
   display: block;
   margin-bottom: 6px;
-  color: #555;
+  color: light-dark(#555, var(--ink-700));
   font-size: 13px;
 }
 
 .feedback p {
   margin: 0;
-  color: #555;
+  color: light-dark(#555, var(--ink-700));
   font-size: 13px;
   line-height: 1.7;
   white-space: pre-wrap;
@@ -310,7 +310,7 @@
 
 .muted {
   margin: 0;
-  color: #888;
+  color: light-dark(#888, var(--ink-500));
   font-size: 14px;
   line-height: 1.7;
 }
@@ -325,7 +325,7 @@
 
 .actionHint {
   margin: 12px 0 0;
-  color: #888;
+  color: light-dark(#888, var(--ink-500));
   font-size: 12px;
   text-align: end;
 }
@@ -337,17 +337,17 @@
   justify-content: center;
   gap: 12px;
   padding: 40px 20px;
-  color: #777;
+  color: light-dark(#777, var(--ink-700));
   text-align: center;
 }
 
 .emptyState svg {
-  color: #b5121b;
+  color: light-dark(#b5121b, var(--red-700));
 }
 
 .emptyState h2 {
   margin: 0;
-  color: #333;
+  color: light-dark(#333, var(--ink-900));
   font-size: 18px;
 }
 
@@ -364,7 +364,7 @@
 
 .deleteContent > p {
   margin: 0;
-  color: #555;
+  color: light-dark(#555, var(--ink-700));
   font-size: 14px;
   line-height: 1.7;
 }

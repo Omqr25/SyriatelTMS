@@ -37,8 +37,8 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  border: 1px solid #ddd;
-  background: #fff;
+  border: 1px solid light-dark(#ddd, var(--ink-200));
+  background: light-dark(#fff, var(--surface));
   border-radius: 6px;
   cursor: pointer;
   transition: background 0.2s ease;
@@ -46,24 +46,24 @@
 
 .addButton {
   padding: 7px 10px;
-  color: #b5121b;
-  border-color: #e7b8bb;
+  color: light-dark(#b5121b, var(--red-700));
+  border-color: light-dark(#e7b8bb, var(--red-200));
   white-space: nowrap;
 }
 
 .addButton:hover {
-  background: #fff1f2;
+  background: light-dark(#fff1f2, var(--red-50));
 }
 
 .removeButton {
   width: 36px;
   height: 36px;
   flex-shrink: 0;
-  color: #b5121b;
+  color: light-dark(#b5121b, var(--red-700));
 }
 
 .removeButton:hover {
-  background: #fff1f2;
+  background: light-dark(#fff1f2, var(--red-50));
 }
 
 .actions {
@@ -71,7 +71,7 @@
   justify-content: flex-end;
   gap: 10px;
   padding-top: 12px;
-  border-top: 1px solid #eee;
+  border-top: 1px solid light-dark(#eee, var(--ink-200));
 }
 
 .cancelButton,
@@ -85,8 +85,8 @@
 }
 
 .cancelButton {
-  background: #f2f2f2;
-  color: #333;
+  background: light-dark(#f2f2f2, var(--ink-100));
+  color: light-dark(#333, var(--ink-900));
 }
 
 .submitButton {
@@ -103,14 +103,14 @@
 .error {
   margin: 0;
   padding: 10px 12px;
-  color: #b42318;
-  background: #fef3f2;
+  color: light-dark(#b42318, var(--red-700));
+  background: light-dark(#fef3f2, var(--red-50));
   border-radius: 6px;
   font-size: 13px;
 }
 
 .subtasks {
-  border: 1px solid #ddd;
+  border: 1px solid light-dark(#ddd, var(--ink-200));
   border-radius: 10px;
   padding: 16px;
   display: grid;

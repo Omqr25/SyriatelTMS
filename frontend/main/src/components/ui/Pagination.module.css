@@ -12,8 +12,8 @@
   align-items: center;
   gap: 8px;
   padding: 6px;
-  background: #ffffff;
-  border: 1px solid #eeeeee;
+  background: light-dark(#ffffff, var(--surface));
+  border: 1px solid light-dark(#eeeeee, var(--ink-200));
   border-radius: 14px;
   box-shadow: 0 4px 18px rgba(0, 0, 0, 0.06);
 }
@@ -27,7 +27,7 @@
   min-height: calc(100vh - 120px);
   display: flex;
   flex-direction: column;
-  background-color: #f8f8f8;
+  background-color: light-dark(#f8f8f8, var(--ink-100));
 }
 
 .pageButton,
@@ -37,7 +37,7 @@
   justify-content: center;
   border: none;
   background: transparent;
-  color: #555;
+  color: light-dark(#555, var(--ink-700));
   cursor: pointer;
   transition:
     background-color 0.2s ease,
@@ -54,8 +54,8 @@
 }
 
 .pageButton:hover:not(.active) {
-  background: #f8f1f2;
-  color: #e30613;
+  background: light-dark(#f8f1f2, var(--ink-100));
+  color: light-dark(#e30613, var(--red-700));
 }
 
 .pageButton.active {
@@ -68,17 +68,17 @@
   width: 38px;
   height: 38px;
   border-radius: 10px;
-  color: #444;
+  color: light-dark(#444, var(--ink-900));
 }
 
 .arrowButton:hover:not(:disabled) {
-  background: #f8f1f2;
-  color: #e30613;
+  background: light-dark(#f8f1f2, var(--ink-100));
+  color: light-dark(#e30613, var(--red-700));
   transform: translateY(-1px);
 }
 
 .arrowButton:disabled {
-  color: #cfcfcf;
+  color: light-dark(#cfcfcf, var(--ink-500));
   cursor: not-allowed;
 }
 
@@ -88,7 +88,7 @@
   justify-content: center;
   width: 34px;
   height: 38px;
-  color: #999;
+  color: light-dark(#999, var(--ink-500));
   font-size: 13px;
   letter-spacing: 2px;
   user-select: none;

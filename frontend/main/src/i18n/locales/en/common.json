@@ -1,6 +1,7 @@
 {
   "appName": "Syriatel",
   "appTitle": "Training Management System",
+  "theme": { "darkMode": "Dark mode", "switchLight": "Switch to light mode", "switchDark": "Switch to dark mode" },
   "action": {
     "save": "Save",
     "close": "Close",

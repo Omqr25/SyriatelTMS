@@ -12,7 +12,7 @@
     height: 100%;
     box-sizing: border-box;
     padding: 28px 22px 22px;
-    border: 1px solid #e2e8f0;
+    border: 1px solid light-dark(#e2e8f0, var(--ink-200));
     border-radius: 16px;
     box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
     transition:
@@ -21,7 +21,7 @@
 }
 
 .bloc-area:hover .bloc-children {
-    border-color: #cbd5e1;
+    border-color: light-dark(#cbd5e1, var(--ink-200));
     box-shadow: 0 8px 24px rgba(15, 23, 42, 0.07);
 }
 
@@ -33,8 +33,8 @@
 
     padding: 3px 10px;
 
-    color: #475569;
-    background: #ffffff;
+    color: light-dark(#475569, var(--ink-700));
+    background: light-dark(#ffffff, var(--surface));
 
     font-size: 13px;
     font-weight: 700;

@@ -17,7 +17,7 @@
     align-items: center;
     gap: 14px;
     padding: 4px 2px 20px;
-    border-bottom: 1px solid var(--border, #e5e7eb);
+    border-bottom: 1px solid var(--border, light-dark(#e5e7eb, var(--ink-200)));
 }
 
 .headerIcon {
@@ -28,8 +28,8 @@
     height: 44px;
     flex-shrink: 0;
     border-radius: 12px;
-    background: var(--canvas, #f5f6f8);
-    color: var(--red-600, #dc2626);
+    background: var(--canvas, light-dark(#f5f6f8, var(--ink-100)));
+    color: var(--red-600, light-dark(#dc2626, var(--red-700)));
 }
 
 .headerContent {
@@ -41,13 +41,13 @@
     margin: 0;
     font-size: 17px;
     font-weight: 700;
-    color: var(--ink-900, #1f2937);
+    color: var(--ink-900, light-dark(#1f2937, var(--ink-900)));
 }
 
 .panelSubtitle {
     margin: 5px 0 0;
     font-size: 12px;
-    color: var(--ink-500, #6b7280);
+    color: var(--ink-500, light-dark(#6b7280, var(--ink-500)));
 }
 
 .taskCount {
@@ -58,8 +58,8 @@
     height: 30px;
     padding: 0 8px;
     border-radius: 9px;
-    background: var(--canvas, #f5f6f8);
-    color: var(--ink-900, #1f2937);
+    background: var(--canvas, light-dark(#f5f6f8, var(--ink-100)));
+    color: var(--ink-900, light-dark(#1f2937, var(--ink-900)));
     font-size: 13px;
     font-weight: 700;
 }
@@ -82,9 +82,9 @@
     align-items: center;
     gap: 13px;
     padding: 14px;
-    border: 1px solid var(--border, #e5e7eb);
+    border: 1px solid var(--border, light-dark(#e5e7eb, var(--ink-200)));
     border-radius: 12px;
-    background: var(--canvas, #f9fafb);
+    background: var(--canvas, light-dark(#f9fafb, var(--ink-100)));
     transition:
         border-color 0.2s ease,
         transform 0.2s ease;
@@ -103,8 +103,8 @@
     height: 38px;
     flex-shrink: 0;
     border-radius: 10px;
-    background: #ffffff;
-    color: var(--red-600, #dc2626);
+    background: light-dark(#ffffff, var(--surface));
+    color: var(--red-600, light-dark(#dc2626, var(--red-700)));
 }
 
 .taskInfo {
@@ -118,7 +118,7 @@
     font-size: 13px;
     font-weight: 700;
     line-height: 1.5;
-    color: var(--ink-900, #1f2937);
+    color: var(--ink-900, light-dark(#1f2937, var(--ink-900)));
 }
 
 .taskMeta {
@@ -139,23 +139,23 @@
 }
 
 .priorityHigh {
-    background: #fee2e2;
-    color: #b91c1c;
+    background: light-dark(#fee2e2, var(--red-50));
+    color: light-dark(#b91c1c, var(--red-700));
 }
 
 .priorityMedium {
-    background: #fef3c7;
-    color: #92400e;
+    background: light-dark(#fef3c7, var(--amber-50));
+    color: light-dark(#92400e, var(--amber-700));
 }
 
 .priorityLow {
-    background: #dcfce7;
-    color: #166534;
+    background: light-dark(#dcfce7, var(--green-50));
+    color: light-dark(#166534, var(--green-700));
 }
 
 .priorityDefault {
-    background: #e5e7eb;
-    color: #374151;
+    background: light-dark(#e5e7eb, var(--ink-100));
+    color: light-dark(#374151, var(--ink-700));
 }
 
 .deadline {
@@ -169,13 +169,13 @@
 
 .deadlineLabel {
     font-size: 10px;
-    color: var(--ink-500, #6b7280);
+    color: var(--ink-500, light-dark(#6b7280, var(--ink-500)));
 }
 
 .deadlineDate {
     font-size: 12px;
     font-weight: 600;
-    color: var(--ink-900, #1f2937);
+    color: var(--ink-900, light-dark(#1f2937, var(--ink-900)));
 }
 
 .emptyState {
@@ -187,14 +187,14 @@
     min-height: 190px;
     padding: 24px;
     text-align: center;
-    color: var(--ink-500, #6b7280);
+    color: var(--ink-500, light-dark(#6b7280, var(--ink-500)));
 }
 
 .emptyState p {
     margin: 0;
     font-size: 14px;
     font-weight: 700;
-    color: var(--ink-900, #1f2937);
+    color: var(--ink-900, light-dark(#1f2937, var(--ink-900)));
 }
 
 .emptyState span {

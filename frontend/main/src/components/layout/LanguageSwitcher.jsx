@@ -1,14 +1,13 @@
 import { Globe } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import styles from './LanguageSwitcher.module.css';
 
 export default function LanguageSwitcher() {
   const { t, i18n } = useTranslation();
   const toggle = () => i18n.changeLanguage(i18n.language === 'ar' ? 'en' : 'ar');
 
   return (
-    <button type="button" className={styles.btn} onClick={toggle}>
-      <Globe size={16} />
+    <button type="button" className="headerControl" aria-label={t('language.switchTo')} title={t('language.switchTo')} onClick={toggle}>
+      <Globe className="headerGlobe" size={17} aria-hidden="true" />
       <span>{t('language.switchTo')}</span>
     </button>
   );

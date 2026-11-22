@@ -107,7 +107,7 @@
   font-size: 11px;
   letter-spacing: 2px;
   text-transform: uppercase;
-  color: #e50914;
+  color: light-dark(#e50914, var(--red-700));
   font-weight: 900;
 }
 
@@ -122,11 +122,11 @@
   font-size: clamp(28px, 3.2vw, 38px);
   line-height: 1.22;
   margin: 10px 0 0;
-  color: #14171f;
+  color: light-dark(#14171f, var(--ink-900));
 }
 
 .intro p {
-  color: #5a6170;
+  color: light-dark(#5a6170, var(--ink-700));
   line-height: 1.85;
   font-size: 15.5px;
   margin: 0 0 16px;
@@ -145,9 +145,9 @@
 
 .infoGrid article {
   padding: 34px;
-  border: 1px solid #ececef;
+  border: 1px solid light-dark(#ececef, var(--ink-200));
   border-radius: 24px;
-  background: #fff;
+  background: light-dark(#fff, var(--surface));
   box-shadow: 0 6px 24px rgba(15, 18, 25, 0.03);
   transition:
     transform 0.25s ease,
@@ -157,15 +157,15 @@
 
 .infoGrid article:hover {
   transform: translateY(-4px);
-  border-color: #f8c6c9;
+  border-color: light-dark(#f8c6c9, var(--red-200));
   box-shadow: 0 14px 32px rgba(229, 9, 20, 0.07);
 }
 
 .infoIcon {
   width: 48px;
   height: 48px;
-  background: #fff0f1;
-  color: #e50914;
+  background: light-dark(#fff0f1, var(--red-50));
+  color: light-dark(#e50914, var(--red-700));
   border-radius: 14px;
   display: grid;
   place-items: center;
@@ -174,12 +174,12 @@
 .infoGrid h3 {
   margin: 20px 0 8px;
   font-size: 21px;
-  color: #14171f;
+  color: light-dark(#14171f, var(--ink-900));
 }
 
 .infoGrid p {
   margin: 0;
-  color: #666d7b;
+  color: light-dark(#666d7b, var(--ink-500));
   line-height: 1.75;
   font-size: 14.5px;
 }
@@ -191,7 +191,7 @@
 .whyHead h2 {
   font-size: clamp(28px, 3vw, 36px);
   margin: 10px 0 30px;
-  color: #14171f;
+  color: light-dark(#14171f, var(--ink-900));
 }
 
 .whyCards {
@@ -204,8 +204,8 @@
   min-height: 155px;
   padding: 24px;
   border-radius: 18px;
-  background: #fff7f7;
-  border: 1px solid #fae4e5;
+  background: light-dark(#fff7f7, var(--ink-100));
+  border: 1px solid light-dark(#fae4e5, var(--red-200));
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -219,8 +219,8 @@
 
 .feature:hover {
   transform: translateY(-4px);
-  background: #fff;
-  border-color: #f5b7bb;
+  background: light-dark(#fff, var(--surface));
+  border-color: light-dark(#f5b7bb, var(--red-200));
   box-shadow: 0 12px 26px rgba(229, 9, 20, 0.08);
 }
 
@@ -228,20 +228,20 @@
   width: 42px;
   height: 42px;
   border-radius: 12px;
-  background: #ffe8ea;
+  background: light-dark(#ffe8ea, var(--red-50));
   display: grid;
   place-items: center;
 }
 
 .feature svg {
-  color: #e50914;
+  color: light-dark(#e50914, var(--red-700));
 }
 
 .feature span {
   font-weight: 800;
   font-size: 14.5px;
   line-height: 1.4;
-  color: #1d212b;
+  color: light-dark(#1d212b, var(--ink-900));
 }
 
 .cta {
