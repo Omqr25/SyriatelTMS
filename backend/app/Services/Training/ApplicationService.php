@@ -534,14 +534,12 @@ class ApplicationService
             return collect();
         }
 
-        return $trainer
-            ->applications()
-            ->where('applications.training_program_id', $training_program->id)
-            ->where('applications.status', ApplicationStatus::ASSIGNED)
+        return Application::query()
+            ->assignedTo($trainer)
+            ->where('training_program_id', $training_program->id)
             ->with('assigns.trainer.user')
-            ->latest('applications.created_at')
+            ->latest('created_at')
             ->get();
-        //        return $trainer->applications()->latest()->get()->where('status', ApplicationStatus::ASSIGNED);
     }
 
     public function trainerInterviews(Trainer $trainer)

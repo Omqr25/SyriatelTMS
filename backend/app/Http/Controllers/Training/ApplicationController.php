@@ -57,7 +57,9 @@ class ApplicationController extends Controller
 
     public function answers(int $application_id)
     {
-        $application = Application::with('answers.question', 'answers.options')->findOrFail($application_id);
+        $application = Application::findOrFail($application_id);
+        $this->authorize('viewAnswers', $application);
+        $application->load('answers.question', 'answers.options');
 
         return $this->success([
             'application_form_id' => $application->application_form_id,

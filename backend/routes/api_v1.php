@@ -140,7 +140,6 @@ Route::prefix('v1')->group(function () {
 
             Route::prefix('application')->group(function () {
                 Route::get('/', [ApplicationController::class, 'findAll']);
-                Route::get('{application_id}/answers', [ApplicationController::class, 'answers'])->whereNumber('application_id');
                 Route::get('assignedAndQualifiedApplications', [ApplicationController::class, 'assignedAndQualifiedApplications']);
                 Route::get('interviewApplications', [ApplicationController::class, 'interviewApplications']);
                 Route::get('activateTrainee/{application_id}', [ApplicationController::class, 'activateTrainee']);
@@ -283,6 +282,8 @@ Route::prefix('v1')->group(function () {
 
         Route::prefix('application')->group(function () {
             Route::get('{application_id}', [ApplicationController::class, 'find']);
+            Route::get('{application_id}/answers', [ApplicationController::class, 'answers'])
+                ->middleware('role:HR,SUPERVISOR')->whereNumber('application_id');
         });
 
         Route::prefix('vacation_request')->group(function () {
