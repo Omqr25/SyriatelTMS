@@ -27,6 +27,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class ApplicationService
 {
@@ -140,24 +141,49 @@ class ApplicationService
 
     public function findAll(Request $request)
     {
-        //       $filters=[ 'search' => $request->query('search'),'status' => $request->query('status'),
-        //           ];
-        //        $training_program=$this->trainingProgramService->upcomingTrainingProgram();
-        //        if (! $training_program) {
-        //            return Application::query()->whereRaw('1 = 0')->paginate(
-        //                perPage: min(100, max(1, (int) $request->input('limit', 10))),
-        //                page: $request->input('page', 1)
-        //            );
-        //        }
-        return Application::filter($request->query())
+        $options = $request->validate([
+            'gpa_eligibility' => ['sometimes', 'required', 'string', Rule::in(['eligible', 'not_eligible'])],
+            'english_eligibility' => ['sometimes', 'required', 'string', Rule::in(['eligible', 'not_eligible', 'pending'])],
+            'sort_by' => ['sometimes', 'required', 'string', Rule::in(['name', 'gpa', 'english_test_score', 'status'])],
+            'sort_direction' => ['sometimes', 'required', 'string', Rule::in(['asc', 'desc'])],
+        ]);
+
+        $query = Application::filter($request->query())
             ->whereNotIn('status', [
                 ApplicationStatus::FIRED->value,
                 ApplicationStatus::REJECTED->value,
                 ApplicationStatus::COMPLETED->value,
             ])
             ->where('commitment', true)
-            ->where('previous_training', false)
-            ->orderByDesc('created_at')
+            ->where('previous_training', false);
+
+        $direction = $options['sort_direction'] ?? 'asc';
+        switch ($options['sort_by'] ?? null) {
+            case 'name':
+                $query->orderBy('full_name', $direction);
+                break;
+            case 'gpa':
+                $query->orderByRaw('CASE WHEN gpa IS NULL THEN 1 ELSE 0 END')->orderBy('gpa', $direction);
+                break;
+            case 'english_test_score':
+                $query->orderByRaw('CASE WHEN english_test_score IS NULL THEN 1 ELSE 0 END')
+                    ->orderBy('english_test_score', $direction);
+                break;
+            case 'status':
+                $workflow = [
+                    ApplicationStatus::PENDING, ApplicationStatus::ASSIGNED, ApplicationStatus::QUALIFIED,
+                    ApplicationStatus::FOR_INTERVIEW, ApplicationStatus::INTERVIEWED, ApplicationStatus::ACCEPTED,
+                    ApplicationStatus::ACTIVE, ApplicationStatus::COMPLETED, ApplicationStatus::REJECTED,
+                    ApplicationStatus::FIRED,
+                ];
+                $cases = implode(' ', array_map(fn ($rank) => "WHEN ? THEN $rank", array_keys($workflow)));
+                $query->orderByRaw("CASE status $cases ELSE 99 END $direction", array_column($workflow, 'value'));
+                break;
+            default:
+                $query->orderByDesc('created_at');
+        }
+
+        return $query
             ->orderByDesc('id')
             ->paginate(
                 perPage: min(100, max(1, (int) $request->input('limit', 10))),

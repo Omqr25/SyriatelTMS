@@ -1,7 +1,7 @@
 import styles from './Table.module.css';
 
 /**
- * columns: [{ key, header, render?(row), className? }]
+ * columns: [{ key, header, render?(row), className?, ariaSort? }]
  */
 export default function Table({ columns, rows, rowKey = 'id', emptyText }) {
   return (
@@ -10,7 +10,7 @@ export default function Table({ columns, rows, rowKey = 'id', emptyText }) {
         <thead>
           <tr>
             {columns.map((c) => (
-              <th key={c.key}>{c.header}</th>
+              <th key={c.key} aria-sort={c.ariaSort}>{c.header}</th>
             ))}
           </tr>
         </thead>

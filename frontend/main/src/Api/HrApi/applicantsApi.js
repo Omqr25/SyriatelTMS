@@ -33,6 +33,7 @@ export const acceptApplicant = async (id) => {
 
 export const searchApplicants = async ({
   filters,
+  sort,
   page = 1,
   limit = 10,
   signal,
@@ -45,9 +46,13 @@ export const searchApplicants = async ({
   if (filters.city) params.city = filters.city;
   if (filters.major) params.field_of_study = filters.major;
   if (filters.year) params.year_of_study = filters.year;
-  params.gpa_min = filters.gpa_min === "" ? 0 : (filters.gpa_min ?? 0);
-  params.gpa_max = filters.gpa_max === "" ? 100 : (filters.gpa_max ?? 100);
+  if (filters.gpa_eligibility) params.gpa_eligibility = filters.gpa_eligibility;
+  if (filters.english_eligibility) params.english_eligibility = filters.english_eligibility;
   if (filters.status) params.status = filters.status;
+  if (sort) {
+    params.sort_by = sort.key;
+    params.sort_direction = sort.direction;
+  }
 
   const response = await api.get("/application", {
     params,

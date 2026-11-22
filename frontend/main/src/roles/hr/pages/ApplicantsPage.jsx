@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { ChevronDown, ChevronUp, ChevronsUpDown, RotateCcw } from "lucide-react";
 import { ENGLISH_SCORES_CHANGED } from "../../../Api/HrApi/englishScoreImportsApi";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -12,7 +13,9 @@ import {
   MAJOR_KEYS,
   APPLICANT_STATUS_Arr,
 } from "../../../constants";
+import AdmissionFilters from "../components/AdmissionFilters";
 import ApplicantDetailsModal from "../components/ApplicantDetailsModal";
+import ApplicantScore from "../components/ApplicantScore";
 import AssignDepartmentModal from "../components/AssignDepartmentModal";
 import StatusBadge from "../components/StatusBadge";
 import styles from "./ApplicantsPage.module.css";
@@ -20,6 +23,8 @@ import useApplicants from "../../../hooks/HrHooks/useApplicants";
 import Modal from "../../../components/ui/Modal";
 import { toast } from "react-toastify";
 import Pagination from "../../../components/ui/Pagination";
+
+const ADMISSION_MINIMUMS = { gpa: 70, english: 45 };
 
 export default function ApplicantsPage() {
   const { t } = useTranslation("hr");
@@ -46,7 +51,8 @@ export default function ApplicantsPage() {
     // Search
     filters,
     updateFilter,
-    applyFilters,
+    sort,
+    toggleSort,
     resetFilters,
     // reject
     reject,
@@ -81,10 +87,25 @@ export default function ApplicantsPage() {
     setModal(null);
     clearApplicant();
   };
+  const sortableHeader = (key, label) => {
+    const direction = sort?.key === key ? sort.direction : null;
+    const Icon = direction === "asc" ? ChevronUp : direction === "desc" ? ChevronDown : ChevronsUpDown;
+
+    return {
+      ariaSort: direction === "asc" ? "ascending" : direction === "desc" ? "descending" : undefined,
+      header: (
+        <button type="button" className={styles.sortHeader} onClick={() => toggleSort(key)}>
+          {label}
+          <Icon size={14} className={direction ? styles.activeSort : undefined} aria-hidden="true" />
+        </button>
+      ),
+    };
+  };
+
   const columns = [
     {
       key: "name",
-      header: c("label.name"),
+      ...sortableHeader("name", c("label.name")),
       render: (a) => (
         <button
           type="button"
@@ -97,15 +118,36 @@ export default function ApplicantsPage() {
       ),
     },
     { key: "email", header: c("label.email") },
-    { key: "gpa", header: c("label.gpa"), render: (a) => `${a.gpa}%` },
+    {
+      key: "gpa",
+      ...sortableHeader("gpa", c("label.gpa")),
+      render: (a) => (
+        <ApplicantScore
+          value={a.gpa}
+          formattedValue={`${a.gpa}%`}
+          minimum={ADMISSION_MINIMUMS.gpa}
+          warning={t("applicants.admission.lowGpa", { minimum: ADMISSION_MINIMUMS.gpa })}
+          iconLabel={t("applicants.admission.scoreDetails", { score: c("label.gpa") })}
+        />
+      ),
+    },
     {
       key: "english_test_score",
-      header: t("englishScores:score"),
-      render: (a) => <bdi>{a.english_test_score ?? "—"}</bdi>,
+      ...sortableHeader("english_test_score", t("englishScores:score")),
+      render: (a) => (
+        <ApplicantScore
+          value={a.english_test_score}
+          formattedValue={a.english_test_score}
+          minimum={ADMISSION_MINIMUMS.english}
+          warning={t("applicants.admission.lowEnglish", { minimum: ADMISSION_MINIMUMS.english })}
+          pending={t("applicants.admission.missingEnglish")}
+          iconLabel={t("applicants.admission.scoreDetails", { score: t("englishScores:score") })}
+        />
+      ),
     },
     {
       key: "status",
-      header: c("label.status"),
+      ...sortableHeader("status", c("label.status")),
       render: (a) => <StatusBadge status={a.status} />,
     },
     {
@@ -151,36 +193,13 @@ export default function ApplicantsPage() {
       <Card className={styles.filters}>
         <Input
           placeholder={c("label.search")}
+          aria-label={c("label.search")}
           value={filters.search}
           onChange={(e) => updateFilter("search", e.target.value)}
         />
 
-        <div className={styles.gpaRange}>
-          <Input
-            placeholder={c("label.minimumGpa")}
-            aria-label={c("label.minimumGpa")}
-            title={c("label.minimumGpa")}
-            value={filters.gpa_min}
-            onChange={(e) => updateFilter("gpa_min", e.target.value)}
-            type="number"
-            min="0"
-            max="100"
-            step="0.01"
-          />
-          <Input
-            placeholder={c("label.maximumGpa")}
-            aria-label={c("label.maximumGpa")}
-            title={c("label.maximumGpa")}
-            value={filters.gpa_max}
-            onChange={(e) => updateFilter("gpa_max", e.target.value)}
-            type="number"
-            min="0"
-            max="100"
-            step="0.01"
-          />
-        </div>
-
         <Select
+          aria-label={c("label.status")}
           value={filters.status}
           onChange={(e) => updateFilter("status", e.target.value)}
         >
@@ -195,6 +214,7 @@ export default function ApplicantsPage() {
         </Select>
 
         <Select
+          aria-label={c("label.academicYear")}
           value={filters.year}
           onChange={(e) => updateFilter("year", e.target.value)}
         >
@@ -208,6 +228,7 @@ export default function ApplicantsPage() {
           ))}
         </Select>
         <Select
+          aria-label={c("label.major")}
           value={filters.major}
           onChange={(e) => updateFilter("major", e.target.value)}
         >
@@ -221,6 +242,7 @@ export default function ApplicantsPage() {
           ))}
         </Select>
         <Select
+          aria-label={c("label.city")}
           value={filters.city}
           onChange={(e) => updateFilter("city", e.target.value)}
         >
@@ -233,18 +255,19 @@ export default function ApplicantsPage() {
             </option>
           ))}
         </Select>
-        <Button variant="secondary" onClick={resetFilters} loading={loading}>
-          {c("action.reset")}
-        </Button>
-
-        <Button
-          variant="primary"
-          onClick={applyFilters}
-          loading={loading}
-          disabled={loading}
-        >
-          {c("action.search")}
-        </Button>
+        <div className={styles.filterActions}>
+          <AdmissionFilters filters={filters} updateFilter={updateFilter} minimums={ADMISSION_MINIMUMS} />
+          <Button
+            size="sm"
+            variant="secondary"
+            className={styles.resetFilters}
+            onClick={resetFilters}
+            aria-label={c("action.reset")}
+            title={c("action.reset")}
+          >
+            <RotateCcw size={16} aria-hidden="true" />
+          </Button>
+        </div>
       </Card>
 
       <div aria-busy={loading} style={{ opacity: loading ? 0.5 : 1 }}>
