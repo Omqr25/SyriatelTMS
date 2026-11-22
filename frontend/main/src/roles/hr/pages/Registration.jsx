@@ -11,6 +11,7 @@ import form from "../../../components/ui/Form.module.css";
 import Loading from "../../../components/ui/Loading";
 import Modal from "../../../components/ui/Modal";
 import PageHeader from "../../../components/ui/PageHeader";
+import ApplicationFormEditor from "../components/ApplicationFormEditor";
 import useRegistration from "../../../hooks/HrHooks/useRegistration";
 import styles from "./Registration.module.css";
 
@@ -214,6 +215,7 @@ export default function Registration() {
   const { t } = useTranslation("hr");
   const { programs, canManage, canArchive, loading, error, reload, save, remove, setArchived } = useRegistration();
   const [editor, setEditor] = useState(null);
+  const [formProgram, setFormProgram] = useState(null);
   const [action, setAction] = useState(null);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("current");
@@ -242,7 +244,7 @@ export default function Registration() {
     } catch (err) {
       const body = err.response?.data;
       const reason = body?.data?.reason;
-      const message = ["opened", "linked", "unknown_history", "archived"].includes(reason)
+      const message = ["opened", "linked", "unknown_history", "archived", "published_form"].includes(reason)
         ? t(`registration.blocks.${reason}`) : body?.message;
       toast.error(message || t("registration.saveFailed"));
       if ([403, 404, 409].includes(err.response?.status)) {
@@ -294,6 +296,9 @@ export default function Registration() {
               <>
                 <div className={styles.flex}>
                   <Button size="sm" variant="secondary" icon={Pencil} onClick={() => setEditor({ program })}>{t("registration.edit")}</Button>
+                  <Button size="sm" variant="secondary" onClick={() => setFormProgram(program)}>
+                    {t("applicationForm.manage")}
+                  </Button>
                   {canArchive && (
                     <Button size="sm" variant="secondary" icon={program.archived_at ? ArchiveRestore : Archive}
                       onClick={() => setAction({ type: program.archived_at ? "restore" : "archive", program })}>
@@ -317,6 +322,18 @@ export default function Registration() {
           setFilter(fields.draft ? "archived" : "current");
         }
       }} reload={reload} />}
+      {formProgram && (
+        <ApplicationFormEditor
+          key={formProgram.id}
+          program={formProgram}
+          onClose={() => setFormProgram(null)}
+          onPublished={() => {
+            setFormProgram(null);
+            toast.success(t("applicationForm.publishedNotice"));
+            reload();
+          }}
+        />
+      )}
       {action && (
         <Modal title={t(`registration.${action.type}`)} onClose={() => !pending.current && setAction(null)}>
           <p>{t(`registration.confirmAction.${action.type}`, { name: action.program.name })}</p>

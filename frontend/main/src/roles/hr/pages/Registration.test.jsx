@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 
 vi.mock("../../../Api/HrApi/registrationApi");
 vi.mock("react-toastify", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
-vi.mock("react-i18next", () => ({ useTranslation: () => ({ t: (key) => key }) }));
+vi.mock("react-i18next", () => ({ useTranslation: () => ({ t: (key) => key, i18n: { resolvedLanguage: "en" } }) }));
 
 const program = {
   id: 7, name: "Winter Training", start_date: "2030-02-01", end_date: "2030-03-31",
@@ -198,4 +198,49 @@ it("archives and restores the card through separate confirmations", async () => 
   expect(api.setProgramArchivedApi).toHaveBeenCalledWith(7, false, 2);
   fireEvent.change(screen.getByRole("combobox"), { target: { value: "current" } });
   expect(screen.getByRole("heading", { name: program.name })).toBeTruthy();
+});
+
+it("saves ordered choice questions and publishes the persisted revision", async () => {
+  const draft = { form: null, revision: 0, published_at: null, can_edit: true, requires_history_confirmation: true };
+  const question = { id: 25, prompt: "Preferred area", type: "multiple_choice", required: true, min_value: null, max_value: null };
+  const saved = { ...draft, revision: 1, form: { id: 8, questions: [{
+    ...question, options: [{ id: 4, label: "Operations" }, { id: 3, label: "Support" }],
+  }] } };
+  api.getApplicationForm.mockResolvedValue(draft);
+  api.saveApplicationForm.mockResolvedValue(saved);
+  api.publishApplicationForm.mockResolvedValue({ ...saved, can_edit: false, published_at: "2030-01-01T00:00:00Z" });
+
+  await openList();
+  fireEvent.click(button("applicationForm.manage"));
+  const dialog = within(screen.getByRole("dialog"));
+  fireEvent.click(await dialog.findByRole("button", { name: "applicationForm.addQuestion" }));
+  fireEvent.change(dialog.getByLabelText("applicationForm.prompt"), { target: { value: question.prompt } });
+  fireEvent.change(dialog.getByLabelText("applicationForm.type"), { target: { value: question.type } });
+  fireEvent.click(dialog.getByLabelText("applicationForm.required"));
+  fireEvent.click(dialog.getByRole("button", { name: "applicationForm.addOption" }));
+  fireEvent.click(dialog.getByRole("button", { name: "applicationForm.addOption" }));
+  const optionInputs = dialog.getAllByRole("textbox", { name: "applicationForm.option" });
+  fireEvent.change(optionInputs[0], { target: { value: "Support" } });
+  fireEvent.change(optionInputs[1], { target: { value: "Operations" } });
+  fireEvent.click(dialog.getAllByRole("button", { name: "applicationForm.moveUp" })[1]);
+
+  expect(dialog.getByRole("button", { name: "applicationForm.publish" }).disabled).toBe(true);
+  fireEvent.click(dialog.getByRole("button", { name: "applicationForm.saveDraft" }));
+  await waitFor(() => expect(api.saveApplicationForm).toHaveBeenCalledWith(7, {
+    expected_revision: 0,
+    questions: [{
+      prompt: question.prompt, type: question.type, required: true,
+      min_value: null, max_value: null, options: ["Operations", "Support"],
+    }],
+  }, "en"));
+  await waitFor(() => expect(dialog.getByRole("button", { name: "applicationForm.publish" }).disabled).toBe(false));
+  fireEvent.click(dialog.getByRole("button", { name: "applicationForm.publish" }));
+  const confirm = dialog.getByRole("button", { name: "applicationForm.confirmButton" });
+  expect(confirm.disabled).toBe(true);
+  fireEvent.click(dialog.getByLabelText("applicationForm.confirmUnopened"));
+  fireEvent.click(confirm);
+  await waitFor(() => expect(api.publishApplicationForm).toHaveBeenCalledWith(7, {
+    expected_revision: 1, confirm_unopened: true,
+  }, "en"));
+  await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
 });

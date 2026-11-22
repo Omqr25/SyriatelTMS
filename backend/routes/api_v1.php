@@ -14,8 +14,10 @@ use App\Http\Controllers\Organization\TrainerController;
 use App\Http\Controllers\Task\ProgramController;
 use App\Http\Controllers\Task\TaskController;
 use App\Http\Controllers\Training\ApplicationController;
+use App\Http\Controllers\Training\ApplicationFormController;
 use App\Http\Controllers\Training\EnglishScoreImportController;
 use App\Http\Controllers\Training\TrainingProgramController;
+use App\Http\Middleware\UseRequestLocale;
 use App\Jobs\TestQueueJob;
 use App\Http\Resources\Dashboard\HrDashboardResource;
 use Illuminate\Support\Facades\Mail;
@@ -115,6 +117,11 @@ Route::prefix('v1')->group(function () {
             Route::get('evaluation/allEvaluations',[EvaluationController::class,'findAll']);
             Route::prefix('training_program')->group(function () {
                 Route::get('management/list', [TrainingProgramController::class, 'management']);
+                Route::get('{training_program_id}/application-form', [ApplicationFormController::class, 'show']);
+                Route::put('{training_program_id}/application-form', [ApplicationFormController::class, 'save'])
+                    ->middleware(UseRequestLocale::class);
+                Route::post('{training_program_id}/application-form/publish', [ApplicationFormController::class, 'publish'])
+                    ->middleware(UseRequestLocale::class);
                 Route::post('/', [TrainingProgramController::class, 'store']);
                 Route::put('{training_program_id}', [TrainingProgramController::class, 'update']);
                 Route::post('{training_program_id}/archive', [TrainingProgramController::class, 'archive']);
@@ -122,7 +129,7 @@ Route::prefix('v1')->group(function () {
                 Route::delete('{training_program_id}', [TrainingProgramController::class, 'delete']);
             });
 
-            Route::prefix('english-score-imports')->middleware(\App\Http\Middleware\UseEnglishScoreImportLocale::class)->group(function () {
+            Route::prefix('english-score-imports')->middleware(UseRequestLocale::class)->group(function () {
                 Route::get('/', [EnglishScoreImportController::class, 'index']);
                 Route::get('template', [EnglishScoreImportController::class, 'template']);
                 Route::post('preview', [EnglishScoreImportController::class, 'preview'])->middleware('throttle:10,1');
@@ -133,6 +140,7 @@ Route::prefix('v1')->group(function () {
 
             Route::prefix('application')->group(function () {
                 Route::get('/', [ApplicationController::class, 'findAll']);
+                Route::get('{application_id}/answers', [ApplicationController::class, 'answers'])->whereNumber('application_id');
                 Route::get('assignedAndQualifiedApplications', [ApplicationController::class, 'assignedAndQualifiedApplications']);
                 Route::get('interviewApplications', [ApplicationController::class, 'interviewApplications']);
                 Route::get('activateTrainee/{application_id}', [ApplicationController::class, 'activateTrainee']);
@@ -283,7 +291,8 @@ Route::prefix('v1')->group(function () {
 
     });
     Route::prefix('application')->group(function () {
-        Route::post('/', [ApplicationController::class, 'store']);
+        Route::post('/', [ApplicationController::class, 'store'])
+            ->middleware(UseRequestLocale::class);
         Route::get('{application_id}/attachments/{type}', [ApplicationController::class, 'downloadAttachment'])->name('applications.attachments.download');
     });
 

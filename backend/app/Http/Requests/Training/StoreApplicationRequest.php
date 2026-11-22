@@ -6,13 +6,37 @@ use App\Enums\City;
 use App\Enums\FieldOfStudy;
 use App\Enums\HowHeard;
 use App\Enums\YearOfStudy;
+use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Validation\Rule;
+use JsonException;
+use stdClass;
 
 class StoreApplicationRequest extends FormRequest
 {
+    protected function prepareForValidation(): void
+    {
+        $answers = $this->input('answers');
+        if (! is_string($answers)) {
+            return;
+        }
+
+        try {
+            $decoded = json_decode($answers, false, 8, JSON_THROW_ON_ERROR | JSON_BIGINT_AS_STRING);
+        } catch (JsonException) {
+            return;
+        }
+
+        if (is_array($decoded)) {
+            $this->merge(['answers' => array_map(
+                fn ($entry) => $entry instanceof stdClass ? (array) $entry : $entry,
+                $decoded,
+            )]);
+        }
+    }
+
     public function messages(): array
     {
         $messages = [];
@@ -50,8 +74,22 @@ class StoreApplicationRequest extends FormRequest
      */
     public function rules(): array
     {
+        $identifier = static function (string $attribute, mixed $value, Closure $fail): void {
+            if (! is_int($value) && ! is_string($value)) {
+                $fail('validation.integer')->translate();
+            }
+        };
+
         return [
             'training_program_id' => ['required', 'integer', 'exists:training_programs,id'],
+            'application_form_id' => ['bail', 'sometimes', 'nullable', $identifier, 'integer', 'min:1'],
+            'answers' => ['sometimes', 'array', 'list'],
+            'answers.*' => ['required', 'array:question_id,text_value,numeric_value,option_ids'],
+            'answers.*.question_id' => ['bail', 'required', $identifier, 'integer', 'min:1', 'distinct'],
+            'answers.*.text_value' => ['sometimes', 'string'],
+            'answers.*.numeric_value' => ['sometimes'],
+            'answers.*.option_ids' => ['sometimes', 'array', 'list'],
+            'answers.*.option_ids.*' => ['bail', 'required', $identifier, 'integer', 'min:1'],
             'full_name' => ['required', 'string', 'max:30'],
             'email' => ['required', 'email', 'max:30','unique:applications,email','unique:users,email'],
             'phone_number' => ['required', 'string', 'max:10', 'regex:/^09[0-9]{8}$/',],

@@ -265,6 +265,46 @@
       "active_supervisor_accounts": "Active Supervisor Accounts"
     }
   },
+  "applicationForm": {
+    "manage": "Application questions",
+    "title": "Application questions for {{name}}",
+    "loading": "Loading questions…",
+    "loadFailed": "Could not load the application questions.",
+    "saveFailed": "Could not save the application questions.",
+    "published": "Published · read-only",
+    "closed": "Question setup is closed for this intake.",
+    "question": "Question {{number}}",
+    "prompt": "Prompt",
+    "type": "Answer type",
+    "required": "Required",
+    "types": {
+      "text": "Text",
+      "number": "Number",
+      "single_choice": "Single choice",
+      "multiple_choice": "Multiple choice"
+    },
+    "min_value": "Minimum (optional)",
+    "max_value": "Maximum (optional)",
+    "option": "Option {{number}}",
+    "addOption": "Add option",
+    "removeOption": "Remove option",
+    "addQuestion": "Add question",
+    "removeQuestion": "Remove question",
+    "moveUp": "Move up",
+    "moveDown": "Move down",
+    "saveDraft": "Save question draft",
+    "publish": "Publish questions",
+    "confirmPublish": "Publishing locks the questions and options for this intake.",
+    "confirmUnopened": "I confirm this intake has never opened for registration.",
+    "confirmButton": "Confirm publication",
+    "publishedNotice": "Application questions published.",
+    "reload": "Reload questions",
+    "answersTitle": "Additional answers",
+    "loadingAnswers": "Loading additional answers…",
+    "answersFailed": "Could not load additional answers.",
+    "noAnswers": "No additional answers were submitted.",
+    "optionSeparator": ", "
+  },
   "registration": {
     "title": "Training programs",
     "add": "Add new course",
@@ -303,6 +343,7 @@
       "archived": "Draft / archived"
     },
     "blocks": {
+      "published_form": "A published application form protects this program from deletion.",
       "opened": "Registration has already started. This program cannot be deleted.",
       "linked": "Linked records prevent deletion.",
       "unknown_history": "Deletion is blocked because earlier registration history cannot be verified.",

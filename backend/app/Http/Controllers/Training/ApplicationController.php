@@ -12,10 +12,12 @@ use App\Http\Requests\Training\InterviewResultRequest;
 use App\Http\Requests\Training\StoreApplicationRequest;
 use App\Http\Requests\Training\StoreInterviewRequest;
 use App\Http\Resources\Training\AllApplicationResource;
+use App\Http\Resources\Training\ApplicationAnswerResource;
 use App\Http\Resources\Training\ApplicationResource;
 use App\Http\Resources\Training\AssignedApplicationResource;
 use App\Http\Resources\Training\InterviewApplicationResource;
 use App\Http\Resources\Training\InterviewResource;
+use App\Models\Application;
 use App\Models\Interview;
 use App\Services\File\FileStorageService;
 use App\Services\Training\ApplicationService;
@@ -51,6 +53,18 @@ class ApplicationController extends Controller
     {
         $application = $this->applicationService->find($application_id);
         return $this->success(ApplicationResource::make($application));
+    }
+
+    public function answers(int $application_id)
+    {
+        $application = Application::with('answers.question', 'answers.options')->findOrFail($application_id);
+
+        return $this->success([
+            'application_form_id' => $application->application_form_id,
+            'answers' => ApplicationAnswerResource::collection(
+                $application->answers->sortBy(fn ($answer) => [$answer->question->display_order, $answer->question->id])->values(),
+            ),
+        ]);
     }
 
     public function findAll(Request $request)

@@ -20,7 +20,7 @@ class TrainingProgramService
 {
     private const DATES = ['application_start_date', 'application_end_date', 'start_date', 'end_date'];
 
-    private const LINKS = ['applications', 'programs', 'certificates'];
+    private const LINKS = ['applications', 'programs', 'certificates', 'publishedApplicationForm'];
 
     public function __construct(private ProgramDateChangeNotifier $dateChanges) {}
 
@@ -137,6 +137,7 @@ class TrainingProgramService
                 throw new ErrorException(__("training_program.delete_{$block}"), 409, ['reason' => $block]);
             }
             $this->audit($program, $actor, 'delete', $this->snapshot($program), null);
+            $program->applicationForm()->whereNull('published_at')->delete();
             $program->delete();
         }, 3);
     }

@@ -14,6 +14,7 @@ import { toast } from "react-toastify";
 import styles from "./Application.module.css";
 import axios from "axios";
 import NotAvailable from "./NotAvailable";
+import ApplicationQuestions, { collectAnswers, questionErrors } from "./ApplicationQuestions";
 
 const initialForm = {
   fullname: "",
@@ -61,6 +62,9 @@ export default function Application() {
   const [pageLoading, setPageLoading] = useState(true);
   const [formAvailable, setFormAvailable] = useState(false);
   const [Group, setGroup] = useState("1");
+  const [applicationForm, setApplicationForm] = useState(null);
+  const [answers, setAnswers] = useState({});
+  const [answerErrors, setAnswerErrors] = useState({});
 
   const BackArrow = i18n.dir() === "rtl" ? ArrowRight : ArrowLeft;
   const SubmitArrow = i18n.dir() === "rtl" ? ArrowLeft : ArrowRight;
@@ -156,7 +160,9 @@ export default function Application() {
   const handleSubmit = async (event) => {
     event.preventDefault();
 
-    if (!validateAll()) {
+    const extra = collectAnswers(applicationForm?.questions ?? [], answers, t);
+    setAnswerErrors(extra.errors);
+    if (!validateAll() || Object.keys(extra.errors).length > 0) {
       toast.error(
         t("form.errors.fixErrors") ||
           "Please fix the errors in the form before submitting.",
@@ -170,6 +176,10 @@ export default function Application() {
       formData.append(apiField, files[formField]);
     }
     formData.append("training_program_id", Group);
+    if (applicationForm) {
+      formData.append("application_form_id", applicationForm.id);
+      formData.append("answers", JSON.stringify(extra.entries));
+    }
 
     formData.append("full_name", form.fullname);
     formData.append("email", form.email);
@@ -190,12 +200,21 @@ export default function Application() {
     formData.append("national_id_number", form.nationalId);
 
     try {
-      await axios.post(`${import.meta.env.VITE_API_URL}/application`, formData);
+      await axios.post(`${import.meta.env.VITE_API_URL}/application`, formData, {
+        headers: { "Accept-Language": i18n.resolvedLanguage },
+      });
       setLoading(false);
       setSubmitted(true);
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (error) {
       const response = error.response?.data;
+      if (["application_form_changed", "registration_closed"].includes(response?.data?.reason)) {
+        await checkFormAvailability();
+        toast.error(t("applicationQuestions.changed"));
+        return;
+      }
+      const dynamicErrors = questionErrors(response?.errors ?? {}, extra.entries);
+      setAnswerErrors(dynamicErrors);
       const attachmentErrors = {};
       for (const [apiField, messages] of Object.entries(response?.errors ?? {})) {
         if (Object.hasOwn(attachmentFields, apiField) && messages[0]) {
@@ -205,6 +224,8 @@ export default function Application() {
       if (Object.keys(attachmentErrors).length > 0) {
         setErrors((previous) => ({ ...previous, ...attachmentErrors }));
         toast.error(t("form.errors.submitFailed"));
+      } else if (Object.keys(dynamicErrors).length > 0) {
+        toast.error(t("form.errors.fixErrors"));
       } else if (Array.isArray(response?.message)) {
         response.message.forEach((message) => toast.error(message));
       } else {
@@ -219,20 +240,23 @@ export default function Application() {
     try {
       const response = await axios.get(
         `${import.meta.env.VITE_API_URL}/training_program/openProgram`,
+        { params: { include: "application_form" } },
       );
-      setFormAvailable(response.data.data == null ? false : true);
-      setGroup(response.data.data?.id || " ");
-    } catch (error) {
+      const program = response.data.data;
+      setFormAvailable(Boolean(program));
+      setGroup(program?.id ?? " ");
+      setApplicationForm(program?.application_form ?? null);
+      setAnswers({});
+      setAnswerErrors({});
+    } catch {
       setFormAvailable(false);
+    } finally {
+      setPageLoading(false);
     }
   };
 
   useEffect(() => {
     checkFormAvailability();
-    const timer = setTimeout(() => {
-      setPageLoading(false);
-    }, 1000);
-    return () => clearTimeout(timer);
   }, []);
 
   if (pageLoading) {
@@ -538,6 +562,19 @@ export default function Application() {
               </span>
             )}
           </div>
+
+          {applicationForm && (
+            <ApplicationQuestions
+              questions={applicationForm.questions}
+              values={answers}
+              errors={answerErrors}
+              disabled={loading}
+              onChange={(id, value) => {
+                setAnswers((current) => ({ ...current, [id]: value }));
+                setAnswerErrors((current) => ({ ...current, [id]: undefined }));
+              }}
+            />
+          )}
 
           <button type="submit" disabled={loading} className={styles.submit}>
             {loading ? (

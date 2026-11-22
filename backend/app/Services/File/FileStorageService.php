@@ -6,6 +6,7 @@ use App\Enums\ApplicationAttachmentTypes;
 use App\Models\Application;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use League\Flysystem\UnableToDeleteDirectory;
 
 class FileStorageService
 {
@@ -25,6 +26,13 @@ class FileStorageService
             Storage::disk($disk)->delete($path);
         }
     }
+    public function deleteDirectory(string $directory, string $disk = 'private'): void
+    {
+        if (! Storage::disk($disk)->deleteDirectory($directory)) {
+            throw UnableToDeleteDirectory::atLocation($directory);
+        }
+    }
+
     public function replace(UploadedFile $file, ?string $oldPath, string $directory, string $disk = 'private'): string {
         $this->delete($oldPath, $disk);
         return $this->store($file, $directory, $disk);

@@ -67,3 +67,6 @@ export const assignApplicant = async (applicationID, supervisorID) => {
   );
   return response.data;
 };
+
+export const getApplicantAnswers = async (id, signal) =>
+  (await api.get(`/application/${id}/answers`, { signal })).data.data;

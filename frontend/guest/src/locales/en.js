@@ -1,4 +1,13 @@
 const en = {
+  applicationQuestions: {
+    title: "Additional questions",
+    changed: "Registration or the application questions changed. Review the current form before submitting again.",
+    required: "Answer this required question.",
+    select: "Select an option",
+    textLength: "Use 100 characters or fewer.",
+    min: "Minimum {{value}}",
+    max: "Maximum {{value}}",
+  },
   theme: { darkMode: "Dark mode", switchLight: "Switch to light mode", switchDark: "Switch to dark mode" },
   header: { language: "Change language", menu: "Navigation menu" },
   nav: { home: "Home", about: "About", faqs: "FAQs", apply: "Apply Now" },

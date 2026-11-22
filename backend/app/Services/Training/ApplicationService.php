@@ -28,6 +28,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Throwable;
 
 class ApplicationService
 {
@@ -56,61 +57,70 @@ class ApplicationService
         protected FileStorageService $fileStorageService,
         protected TrainingProgramService $trainingProgramService,
         protected InboxPublisher $inbox,
+        protected ApplicationAnswerService $applicationAnswers,
     ) {
         //
     }
 
     public function create(array $data): Application
     {
-        $data['status'] = ApplicationStatus::PENDING;
-        $application = DB::transaction(function () use ($data) {
-            $program = TrainingProgram::lockForUpdate()->findOrFail($data['training_program_id']);
-            if ($program->phase() !== 'registration_open') {
-                throw new ErrorException(__('training_program.registration_closed'), 409);
+        $formId = isset($data['application_form_id']) ? (int) $data['application_form_id'] : null;
+        $answers = $data['answers'] ?? [];
+        unset($data['application_form_id'], $data['answers']);
+
+        $directory = 'applications/'.Str::uuid();
+        $paths = [];
+        $commitAttempted = false;
+
+        try {
+            foreach ([
+                'cv' => 'cv',
+                'national_id' => 'national-id',
+                'academic_qualification' => 'qualifications',
+                'personal_photo' => 'photo',
+            ] as $field => $subdirectory) {
+                $paths[$field] = isset($data[$field])
+                    ? $this->fileStorageService->store($data[$field], "$directory/$subdirectory")
+                    : null;
+                if ($paths[$field] === '') {
+                    throw new ErrorException(__('application_upload.server'));
+                }
             }
-            $program->registration_has_opened = true;
-            $program->save();
 
-            return Application::create($data);
-        });
-        $paths['cv'] = $this->storeFile(
-            $data,
-            'cv',
-            "applications/{$application->id}/cv",
-        );
-        $paths['national_id'] = $this->storeFile(
-            $data,
-            'national_id',
-            "applications/{$application->id}/national-id",
-        );
-        $paths['academic_qualification'] = $this->storeFile(
-            $data,
-            'academic_qualification',
-            "applications/{$application->id}/qualifications",
-        );
-        $paths['personal_photo'] = $this->storeFile(
-            $data,
-            'personal_photo',
-            "applications/{$application->id}/photo",
-        );
+            $application = DB::transaction(function () use ($data, $formId, $answers, $paths, &$commitAttempted) {
+                $program = TrainingProgram::lockForUpdate()->findOrFail($data['training_program_id']);
+                if ($program->phase() !== 'registration_open') {
+                    throw new ErrorException(__('training_program.registration_closed'), 409, ['reason' => 'registration_closed']);
+                }
+                $form = $this->applicationAnswers->resolveForm($program, $formId, $answers);
+                $values = $form ? $this->applicationAnswers->validate($form, $answers) : [];
 
-        $application->update($paths);
+                $program->registration_has_opened = true;
+                $program->save();
+
+                $application = Application::create(array_replace($data, $paths, [
+                    'status' => ApplicationStatus::PENDING,
+                    'application_form_id' => $form?->id,
+                ]));
+                $this->applicationAnswers->save($application, $values);
+                $commitAttempted = true;
+
+                return $application;
+            });
+        } catch (Throwable $error) {
+            // An unacknowledged commit may still succeed. Keep its files for reconciliation.
+            if (! $commitAttempted) {
+                try {
+                    $this->fileStorageService->deleteDirectory($directory);
+                } catch (Throwable $cleanupError) {
+                    report($cleanupError);
+                }
+            }
+
+            throw $error;
+        }
 
         return $application->fresh();
-    }
-
-    private function storeFile(
-        array &$data,
-        string $field,
-        string $directory,
-    ): ?string {
-        if (! isset($data[$field])) {
-            return null;
-        }
-        $file = $data[$field];
-        unset($data[$field]);
-
-        return $this->fileStorageService->store($file, $directory);
     }
 
     public function delete(int $application_id): void
