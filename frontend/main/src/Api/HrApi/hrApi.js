@@ -42,3 +42,13 @@ export const getReportApi = async () => {
   const data = response?.data?.data ?? response?.data ?? response;
   return data;
 };
+
+export const updateAnnouncementApi = async (id, body) => {
+  const response = await api.put(`announcement/${id}`, body);
+  return response.data;
+};
+
+export const deleteAnnouncementApi = async (id) => {
+  const response = await api.delete(`announcement/${id}`);
+  return response.data;
+};

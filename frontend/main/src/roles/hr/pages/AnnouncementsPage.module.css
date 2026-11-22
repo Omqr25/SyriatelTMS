@@ -26,3 +26,16 @@
   font-size: 12.5px;
   color: var(--ink-500);
 }
+
+.footer, .actions, .dates {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+}
+.footer { justify-content: space-between; }
+.actions { justify-content: flex-end; }
+.top { flex-wrap: wrap; }
+.top h4, .details { overflow-wrap: anywhere; min-width: 0; }
+.details { white-space: pre-wrap; }
+.error { color: var(--red-700); }

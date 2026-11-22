@@ -6,6 +6,10 @@ import { NotificationProvider, useNotifications } from "../../context/Notificati
 import { ACCESS_TOKEN_KEY } from "../../Api/axios";
 import { hasBrowserPush, requestForToken, subscribeToForegroundPush } from "../../firebase/firebase";
 import NotificationsPage from "./NotificationsPage";
+import TraineeAnnouncements from "../../roles/trainee/pages/announcement/AnnouncmentPage";
+import { getAnnouncementsTraineeApi } from "../../Api/Trainee/announcementApi";
+
+vi.mock("../../Api/Trainee/announcementApi");
 
 vi.mock("../../Api/notificationApi", () => ({
   getInbox: vi.fn(),
@@ -180,4 +184,35 @@ it("revokes the token when browser notifications are disabled", async () => {
   fireEvent.click(await screen.findByRole("button", { name: "notificationsPage.disableBrowserPush" }));
   await screen.findByRole("button", { name: "notificationsPage.enableBrowserPush" });
   expect(revokeNotificationTokenApi).toHaveBeenCalledWith("device-to-revoke", accessToken);
+});
+
+it("refreshes the open trainee announcements after push, deletion and reconnect", async () => {
+  getUnreadCount.mockResolvedValue(0);
+  getAnnouncementsTraineeApi.mockResolvedValue({ data: [] });
+  render(
+    <NotificationProvider accessToken={accessToken} userId={42}>
+      <TraineeAnnouncements />
+    </NotificationProvider>
+  );
+  await screen.findByText("announcements.listTitle");
+  const receivePush = subscribeToForegroundPush.mock.calls.at(-1)[0];
+  const announcement = {
+    id: 7, title: "New announcement", description: "Schedule",
+    publisher: { name: "HR" }, announced_at: "2026-11-22 10:30",
+  };
+  getAnnouncementsTraineeApi.mockResolvedValue({ data: [announcement] });
+  act(() => receivePush({ notification_id: "40", recipient_id: "42", type: "announcement" }));
+  expect(await screen.findByText("New announcement")).toBeTruthy();
+
+  getAnnouncementsTraineeApi.mockResolvedValue({ data: [{ ...announcement, title: "Updated announcement" }] });
+  act(() => expect(receivePush({ notification_id: "41", recipient_id: "42", type: "announcement_sync" })).toBe(false));
+  expect(await screen.findByText("Updated announcement")).toBeTruthy();
+
+  getAnnouncementsTraineeApi.mockResolvedValue({ data: [] });
+  act(() => receivePush({ notification_id: "42", recipient_id: "42", type: "announcement_sync" }));
+  await waitFor(() => expect(screen.queryByText("Updated announcement")).toBeNull());
+
+  getAnnouncementsTraineeApi.mockResolvedValue({ data: [announcement] });
+  act(() => window.dispatchEvent(new Event("online")));
+  expect(await screen.findByText("New announcement")).toBeTruthy();
 });

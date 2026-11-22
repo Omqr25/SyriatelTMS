@@ -17,6 +17,7 @@ self.addEventListener("notificationclick", (event) => {
 });
 
 async function showInboxPush(data) {
+  if (data?.type === "announcement_sync") return;
   if (!/^\d+$/.test(data?.notification_id) || !/^\d+$/.test(data?.recipient_id)) return;
   const owner = await caches.match(ownerPath, { cacheName: ownerCache });
   if (await owner?.text() !== data.recipient_id) return;

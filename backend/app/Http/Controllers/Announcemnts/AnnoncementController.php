@@ -29,6 +29,20 @@ class AnnoncementController extends Controller
         return $this->success(AnnouncemntResource::make($announcement));
     }
 
+    public function update(StoreAnnoncementRequest $request, int $announcement)
+    {
+        $updated = $this->annoncementService->update($request->user(), $announcement, $request->validated());
+
+        return $this->success(AnnouncemntResource::make($updated), __('announcements.updated'));
+    }
+
+    public function destroy(Request $request, int $announcement)
+    {
+        $this->annoncementService->delete($request->user(), $announcement);
+
+        return $this->success(null, __('announcements.deleted'));
+    }
+
     public function traineeAnnouncements(Request $request)
     {
         $announcements = $this->annoncementService->getForTrainee($request->user());

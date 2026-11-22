@@ -9,6 +9,7 @@ const REFRESH_INTERVAL = 30_000;
 export function NotificationProvider({ accessToken, userId, children }) {
   const [unreadCount, setUnreadCount] = useState(null);
   const [countUnavailable, setCountUnavailable] = useState(false);
+  const [announcementRevision, setAnnouncementRevision] = useState(0);
   const [revision, setRevision] = useState(0);
   const refresh = useCallback(() => setRevision((value) => value + 1), []);
 
@@ -85,18 +86,24 @@ export function NotificationProvider({ accessToken, userId, children }) {
         if (seen.size > 100) seen.delete(seen.values().next().value);
       }
       refresh();
-      return !localStorage.getItem(optOutKey);
+      const announcementChanged = data.type === "announcement" || data.type === "announcement_sync";
+      if (announcementChanged) setAnnouncementRevision((value) => value + 1);
+      return data.type !== "announcement_sync" && !localStorage.getItem(optOutKey);
     };
     const receiveWorkerMessage = ({ data }) => {
       if (data?.type === "inbox-push") receivePush(data.payload);
     };
     const refreshIfVisible = () => {
-      if (document.visibilityState === "visible") refresh();
+      if (document.visibilityState === "visible") {
+        refresh();
+        setAnnouncementRevision((value) => value + 1);
+      }
     };
 
     const unsubscribe = subscribeToForegroundPush(receivePush);
     navigator.serviceWorker?.addEventListener("message", receiveWorkerMessage);
     window.addEventListener("focus", refreshIfVisible);
+    window.addEventListener("online", refreshIfVisible);
     document.addEventListener("visibilitychange", refreshIfVisible);
     const timer = window.setInterval(refreshIfVisible, REFRESH_INTERVAL);
 
@@ -104,13 +111,14 @@ export function NotificationProvider({ accessToken, userId, children }) {
       unsubscribe();
       navigator.serviceWorker?.removeEventListener("message", receiveWorkerMessage);
       window.removeEventListener("focus", refreshIfVisible);
+      window.removeEventListener("online", refreshIfVisible);
       document.removeEventListener("visibilitychange", refreshIfVisible);
       window.clearInterval(timer);
     };
   }, [optOutKey, refresh, userId]);
 
   return (
-    <NotificationContext.Provider value={{ unreadCount, countUnavailable, revision, refresh, pushStatus, enableBrowserPush, disableBrowserPush }}>
+    <NotificationContext.Provider value={{ unreadCount, countUnavailable, revision, announcementRevision, refresh, pushStatus, enableBrowserPush, disableBrowserPush }}>
       {children}
     </NotificationContext.Provider>
   );
