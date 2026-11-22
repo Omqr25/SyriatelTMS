@@ -6,6 +6,7 @@ use App\Enums\ApplicationStatus;
 use App\Enums\City;
 use App\Enums\HowHeard;
 use App\Enums\YearOfStudy;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -76,6 +77,12 @@ class Application extends Model
     public function answers(): HasMany
     {
         return $this->hasMany(ApplicationAnswer::class);
+    }
+
+    public function scopeAssignedTo(Builder $query, Trainer $trainer): Builder
+    {
+        return $query->where('applications.status', ApplicationStatus::ASSIGNED)
+            ->whereRelation('latestAssignment', 'trainer_id', $trainer->id);
     }
 
     public function scopeFilter($query,array $filters)

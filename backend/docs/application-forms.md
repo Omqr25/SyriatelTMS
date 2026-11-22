@@ -1,6 +1,6 @@
 # Configurable application questions
 
-Each training intake can have one form. The HR Registration page can save and reorder draft questions, set required fields and optional numeric bounds, and publish the saved draft before registration first opens. HR must confirm the history before publishing a future legacy intake whose registration history is unknown. A scheduled intake saved as a draft can have its questions published before the intake is restored to the calendar.
+Each training intake can have one form. The HR Registration page can save and reorder draft questions, set required fields and optional numeric bounds, and publish the saved draft before registration first opens. Publishing the intake to the calendar leaves its question draft editable until registration first opens. HR must confirm the history before publishing a future legacy intake whose registration history is unknown. A scheduled intake saved as a draft can have its questions published before the intake is restored to the calendar.
 
 Publication freezes the prompt, type, bounds, order, and options. Schedule changes, archive, and restore retain the form. Form saves and publication take the intake lock first and then the form lock. Their required draft revision rejects stale writes. Submissions resolve the published form under the same intake lock.
 
@@ -12,7 +12,7 @@ With `include=application_form`, `GET /api/v1/training_program/openProgram` incl
 
 The number and both bounds use signed `DECIMAL(12,4)`. Send fractional values as decimal strings. Whole JSON integers are accepted as well. Decimal strings use a period as the separator, up to eight whole digits and four fractional digits, and may use an explicit sign. Scientific notation and rounding are outside the API contract. A number can have either bound, both, or neither. Text is trimmed and limited to 100 characters. Blank optional text is omitted. A blank required text answer fails validation.
 
-`GET /api/v1/application/{id}/answers` is HR-only. It returns the pinned form ID, original prompts, and stored answers with the original option labels. Legacy rows return a null form ID and an empty array. General application resources, other roles' views, and reports do not include the extra answers. Prompts and labels display as entered by HR.
+`GET /api/v1/application/{id}/answers` is available to HR and to the supervisor currently assigned to review that application. It returns the pinned form ID, original prompts, and stored answers with the original option labels. Legacy rows return a null form ID and an empty array. General application resources and reports do not include the extra answers. Prompts and labels display as entered by HR.
 
 ## Database constraints and lifecycle
 

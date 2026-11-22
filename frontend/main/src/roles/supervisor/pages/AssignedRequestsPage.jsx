@@ -6,6 +6,7 @@ import styles from "./Pages.module.css";
 import Loading from "../../../components/ui/Loading";
 import { toast } from "react-toastify";
 import { useEffect, useState } from "react";
+import ApplicantAnswers from "../../hr/components/ApplicantAnswers";
 import ApplicantDetailsModal from "../../hr/components/ApplicantDetailsModal";
 import { Check } from "lucide-react";
 import { getMyAssignApi } from "../../../Api/SupervisorApi/assignedApi";
@@ -142,6 +143,7 @@ export default function AssignedRequestsPage() {
         <ApplicantDetailsModal
           // applicant={modal.applicant}
           applicant={applicant}
+          extraDetails={<ApplicantAnswers key={applicant.id} applicationId={applicant.id} />}
           onClose={closeModal}
           // onAssign={() => open("assign", modal.applicant)}
           // onSchedule={() => open("schedule", modal.applicant)}

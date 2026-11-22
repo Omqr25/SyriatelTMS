@@ -5,7 +5,9 @@ namespace Tests\Feature;
 use App\Models\Application;
 use App\Models\ApplicationAnswer;
 use App\Models\ApplicationForm;
+use App\Models\Department;
 use App\Models\Role;
+use App\Models\Trainer;
 use App\Models\TrainingProgram;
 use App\Models\User;
 use App\Services\File\FileStorageService;
@@ -46,11 +48,13 @@ class ApplicationFormsTest extends TestCase
         ]);
     }
 
-    private function login(string $role = 'HR'): void
+    private function login(string $role = 'HR'): User
     {
         $user = User::factory()->create();
         $user->roles()->attach(Role::firstOrCreate(['role' => $role]));
         $this->actingAs($user, 'api');
+
+        return $user;
     }
 
     private function url(TrainingProgram $program): string
@@ -190,6 +194,64 @@ class ApplicationFormsTest extends TestCase
         $this->assertDatabaseHas('application_forms', ['id' => $form['id']]);
     }
 
+    public function test_answers_follow_the_current_supervisor_assignment(): void
+    {
+        $program = $this->program();
+        $form = $this->publishedForm($program, [
+            self::question('single_choice', ['prompt' => 'Preferred topic', 'options' => ['Networks']]),
+        ]);
+        $question = $form['questions'][0];
+        $this->travelTo($program->application_start_date);
+        $id = $this->submit($program, [
+            'application_form_id' => $form['id'],
+            'answers' => json_encode([[
+                'question_id' => $question['id'],
+                'option_ids' => [$question['options'][0]['id']],
+            ]], JSON_THROW_ON_ERROR),
+        ])->assertCreated()->json('data.id');
+
+        $department = Department::factory()->create();
+        $firstSupervisor = $this->login('SUPERVISOR');
+        $firstTrainer = Trainer::factory()->forUser($firstSupervisor)->forDepartment($department)->create();
+        $secondSupervisor = $this->login('SUPERVISOR');
+        $secondTrainer = Trainer::factory()->forUser($secondSupervisor)->forDepartment($department)->create();
+        $history = self::APPLY."/$id/answers";
+        $assignedRequests = self::APPLY.'/trainer/assigned';
+        $this->getJson($history)->assertForbidden();
+
+        $hr = $this->login();
+        $this->getJson(self::APPLY."/$id/assign/{$firstTrainer->id}")->assertOk();
+        $this->actingAs($firstSupervisor, 'api');
+        $this->getJson($assignedRequests)->assertOk()->assertJsonPath('data.0.id', $id);
+        $this->getJson($history)->assertOk()
+            ->assertJsonPath('data.answers.0.prompt', 'Preferred topic')
+            ->assertJsonPath('data.answers.0.options.0.label', 'Networks');
+
+        $this->actingAs($secondSupervisor, 'api')->getJson($history)->assertForbidden();
+        $this->login('TRAINEE');
+        $this->getJson($history)->assertForbidden();
+
+        $this->actingAs($firstSupervisor, 'api');
+        $this->getJson(self::APPLY."/trainer/$id/rejected")->assertOk();
+        $this->getJson($history)->assertForbidden();
+
+        $this->actingAs($hr, 'api');
+        $this->getJson(self::APPLY."/$id/assign/{$secondTrainer->id}")->assertOk();
+
+        $this->actingAs($firstSupervisor, 'api');
+        $this->getJson($assignedRequests)->assertOk()->assertJsonPath('data', []);
+        $this->getJson($history)->assertForbidden();
+
+        $this->actingAs($secondSupervisor, 'api');
+        $this->getJson($assignedRequests)->assertOk()->assertJsonPath('data.0.id', $id);
+        $this->getJson($history)->assertOk()->assertJsonPath('data.answers.0.options.0.label', 'Networks');
+
+        $legacy = Application::factory()->forProgram($program)->create(['status' => 'pending']);
+        $this->actingAs($hr, 'api')->getJson(self::APPLY."/{$legacy->id}/assign/{$secondTrainer->id}")->assertOk();
+        $this->actingAs($secondSupervisor, 'api')->getJson(self::APPLY."/{$legacy->id}/answers")->assertOk()
+            ->assertJsonPath('data.application_form_id', null)->assertJsonPath('data.answers', []);
+    }
+
     public function test_hr_permissions_draft_revision_publication_and_intake_history(): void
     {
         $program = $this->program();
@@ -225,6 +287,31 @@ class ApplicationFormsTest extends TestCase
         $this->postJson("/api/v1/training_program/{$program->id}/restore")->assertOk();
         $this->getJson(self::OPEN_PROGRAM.'?include=application_form')->assertOk()
             ->assertJsonPath('data.application_form.questions.0.options.1.label', 'B');
+    }
+
+    public function test_hr_can_edit_draft_questions_after_publishing_an_upcoming_training_program(): void
+    {
+        $this->login();
+        $programId = $this->postJson('/api/v1/training_program', [
+            'name' => 'Upcoming training',
+            'draft' => true,
+            'application_start_date' => '2030-01-06',
+            'application_end_date' => '2030-01-10',
+            'start_date' => '2030-01-11',
+            'end_date' => '2030-01-24',
+        ])->assertCreated()->json('data.0.id');
+        $program = TrainingProgram::findOrFail($programId);
+        $draft = $this->saveForm($program, [self::question('text')]);
+
+        $this->postJson("/api/v1/training_program/{$program->id}/restore")->assertOk()
+            ->assertJsonPath('data.phase', 'upcoming');
+        $this->getJson($this->url($program))->assertOk()
+            ->assertJsonPath('data.can_edit', true)->assertJsonPath('data.published_at', null);
+
+        $updated = $this->saveForm($program, [self::question('number', ['prompt' => 'Available hours'])], $draft['revision']);
+        $this->assertSame('Available hours', $updated['form']['questions'][0]['prompt']);
+        $this->assertTrue($updated['can_edit']);
+        $this->assertNull($updated['published_at']);
     }
 
     public function test_open_intake_with_unpublished_draft_accepts_old_clients_and_keeps_legacy_reads_working(): void

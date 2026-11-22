@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Enums\UserRole;
 use App\Models\Application;
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
@@ -26,6 +27,23 @@ class ApplicationPolicy
 
         return Response::allow();
     }
+
+    public function viewAnswers(User $user, Application $application): bool
+    {
+        $roles = $user->roles()->pluck('role');
+        if ($roles->containsStrict(UserRole::TRAINING_TEAM)) {
+            return true;
+        }
+        if (! $roles->containsStrict(UserRole::TRAINER)) {
+            return false;
+        }
+
+        $trainer = $user->trainer;
+
+        return $trainer !== null
+            && Application::query()->whereKey($application->id)->assignedTo($trainer)->exists();
+    }
+
     public function viewAny(User $user): bool
     {
         return false;
