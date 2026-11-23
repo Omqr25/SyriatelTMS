@@ -29,6 +29,15 @@ class Notification extends Model
             ->orWhere('notifications.type', '<>', self::ANNOUNCEMENT_SYNC));
     }
 
+    public function scopeForAnnouncements(Builder $query, array $announcementIds): Builder
+    {
+        $originalEvents = array_map(fn ($id) => "announcement:$id", $announcementIds);
+
+        return $query->where('type', 'announcement')->where(fn (Builder $query) => $query
+            ->whereIn('event_key', $originalEvents)
+            ->orWhereIn('metadata->announcement_id', $announcementIds));
+    }
+
     public function notifier()
     {
         return $this->belongsTo(User::class, 'notifier_id');

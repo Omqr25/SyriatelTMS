@@ -23,6 +23,12 @@
     margin-block-end: 12px;
 }
 
+.dates {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 16px;
+}
+
 .date {
     display: inline-flex;
     align-items: center;

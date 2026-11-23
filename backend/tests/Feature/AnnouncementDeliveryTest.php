@@ -127,16 +127,30 @@ class AnnouncementDeliveryTest extends TestCase
         $this->assertDatabaseCount('notification_deliveries', 3);
 
         $this->actingAs($original, 'api')->getJson('/api/v1/notification/myNotifications')->assertOk()
-            ->assertJsonCount(1, 'data')->assertJsonPath('data.0.id', $notificationId)
-            ->assertJsonPath('data.0.description', 'A new announcement was published: New schedule');
+            ->assertJsonCount(2, 'data')->assertJsonPath('data.0.title', 'Announcement Updated')
+            ->assertJsonPath('data.0.metadata.announcement_id', $id)
+            ->assertJsonPath('data.1.id', $notificationId);
+        $this->getJson('/api/v1/notification/unread-count')->assertOk()->assertJsonPath('data.unread_count', 1);
+        $this->getJson(self::API.'traineeAnnouncements')->assertOk()
+            ->assertJsonPath('data.0.description', 'Training begins at 10.')
+            ->assertJsonPath('data.0.updated_at', $updated['updated_at']);
         $this->getJson('/api/v1/notification/unread-count')->assertOk()->assertJsonPath('data.unread_count', 0);
-        $this->getJson(self::API.'traineeAnnouncements')->assertOk()->assertJsonPath('data.0.description', 'Training begins at 10.');
         $this->actingAs($other, 'api')->getJson('/api/v1/notification/myNotifications')->assertOk()
-            ->assertJsonCount(1, 'data')->assertJsonPath('data.0.id', $notificationId);
+            ->assertJsonCount(1, 'data')->assertJsonPath('data.0.title', 'Announcement Updated');
 
+        $this->travel(1)->minutes();
         $this->actingAs($hr, 'api')->putJson(self::API.$id, self::CONTENT + ['department_id' => $department->id])->assertOk();
         $this->actingAs($other, 'api')->getJson(self::API.'traineeAnnouncements')->assertOk()->assertJsonCount(0, 'data');
         $this->getJson('/api/v1/notification/myNotifications')->assertOk()->assertJsonCount(0, 'data');
+
+        $this->travel(1)->minutes();
+        $this->actingAs($hr, 'api')->putJson(self::API.$id, [
+            'title' => 'Latest schedule', 'description' => 'Training begins at 11.',
+        ])->assertOk()->assertJsonPath('data.audiences_count', 1);
+        $this->actingAs($original, 'api')->getJson('/api/v1/notification/myNotifications')->assertOk()
+            ->assertJsonCount(4, 'data')
+            ->assertJsonPath('data.0.description', 'An announcement was updated: Latest schedule');
+        $this->actingAs($other, 'api')->getJson('/api/v1/notification/myNotifications')->assertOk()->assertJsonCount(0, 'data');
 
         $this->actingAs($hr, 'api')->deleteJson(self::API.$id)->assertOk();
         $this->getJson(self::API.'getSentByMe')->assertOk()->assertJsonCount(0, 'data');
