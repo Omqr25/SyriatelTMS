@@ -12,6 +12,7 @@ import styles from "./NotificationsPage.module.css";
 const DESTINATIONS = {
   HR: { evaluation_completed: "/hr/evaluations", training_program_registration_reminder: "/hr/registration" },
   SUPERVISOR: {
+    application_assigned: "/supervisor/assigned-requests",
     "training_program.dates_changed": "/supervisor/programs",
     interview: "/supervisor/interviews",
     reevaluation_request_created: "/supervisor/re-evaluations",
