@@ -2,15 +2,11 @@ import Image from "../../../../components/ui/Image.jsx";
 import TitleField from "../../../../components/ui/Title_Field.jsx";
 import TextField from "../../../../components/ui/Text_Field.jsx";
 import BlocArea from "../../../../components/ui/Bloc_Area.jsx";
-import Button from "../../../../components/ui/Button.jsx"
+import ApplicationAttachmentButton from "../../../../components/ui/ApplicationAttachmentButton";
 import styles from "./ProfilePage.module.css"
-// import { FileText } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import useTraineeProfile from "../../../../hooks/TraineeHooks/useTraineeProfile.js";
 
-import {
-FileText
-} from 'lucide-react';
 export default function ProfilePage() {
     const {t}=useTranslation('trainee');
     const { profile, loading, error } = useTraineeProfile();
@@ -29,7 +25,6 @@ export default function ProfilePage() {
     const personal = profile.personal_information;
     const contact = profile.contact_information;
     const education = profile.educational_information;
-    const attachments = profile.attachments;
 
     return (
         <main className={styles["page"]}>
@@ -85,25 +80,16 @@ export default function ProfilePage() {
                         value={t("profile.universityWorkshop")}
                     />
                 </BlocArea> */}
-                {/* <BlocArea title={t("profile.attachments")}>
-                    <Button variant="soft" icon={FileText} children={attachments.cv ?? "—"}/>
-                    <Button variant="soft" icon={FileText} children={attachments.national_id ?? "—"}/>
-                    <Button variant="soft" icon={FileText} children={attachments.academic_qualification ?? "—"}/>
-                </BlocArea> */}
                 <BlocArea title={t("profile.attachments")}>
-
-                    <a href={attachments.cv} target="_blank" rel="noopener noreferrer">
-                        {t("profile.cv")}
-                    </a>
-
-                    <a href={attachments.national_id} target="_blank" rel="noopener noreferrer">
-                        {t("profile.idAttachment")}
-                    </a>
-
-                    <a href={attachments.academic_qualification} target="_blank" rel="noopener noreferrer">
-                        {t("profile.academicCertification")}
-                    </a>
-
+                    {[
+                        ["cv", "profile.cv"],
+                        ["national_id", "profile.idAttachment"],
+                        ["academic_qualification", "profile.academicCertification"],
+                    ].map(([type, label]) => (
+                        <ApplicationAttachmentButton key={type} applicationId={profile.application_id} attachmentType={type}>
+                            {t(label)}
+                        </ApplicationAttachmentButton>
+                    ))}
                 </BlocArea>
             </section>
         </main>

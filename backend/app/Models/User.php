@@ -39,6 +39,7 @@ class User extends Authenticatable implements JWTSubject
         'password',
         'remember_token',
         'training_program_admin',
+        'session_version',
     ];
 
     /**
@@ -51,6 +52,7 @@ class User extends Authenticatable implements JWTSubject
         return [
             'email_verified_at' => 'datetime',
             'training_program_admin' => 'boolean',
+            'session_version' => 'integer',
             'password' => 'hashed',
             'status'=>UserStatus::class,
         ];
@@ -64,7 +66,7 @@ class User extends Authenticatable implements JWTSubject
 
     public function getJWTCustomClaims(): array
     {
-        return [];
+        return ['session_version' => (int) $this->session_version];
     }
 
     public function trainer()

@@ -2,6 +2,7 @@ import { Routes, Route } from "react-router-dom";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import Home from "./pages/Home";
+import NotFound from "./pages/NotFound";
 import About from "./pages/About";
 import Application from "./pages/Application";
 import Gallery from "./pages/Gallery";
@@ -21,7 +22,7 @@ export default function App() {
           <Route path="/apply" element={<Application />} />
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/faq" element={<FAQ />} />
-          <Route path="*" element={<Home />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
       <Footer />

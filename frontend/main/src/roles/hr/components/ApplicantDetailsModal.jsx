@@ -1,4 +1,4 @@
-import { FileText } from "lucide-react";
+import ApplicationAttachmentButton from "../../../components/ui/ApplicationAttachmentButton";
 import { useTranslation } from "react-i18next";
 import Button from "../../../components/ui/Button";
 import Modal from "../../../components/ui/Modal";
@@ -106,34 +106,16 @@ export default function ApplicantDetailsModal({
 
       <h5 className={styles.sub}>{t("applicants.attachments")}</h5>
       <div className={styles.files}>
-        {/* {applicant.files.map((f) => (
-          <span key={f} className={styles.file}><FileText size={14} /> {f}</span>
-        ))} */}
-        <a href={applicant.cv} rel="noopener noreferrer" target="_blank">
-
-          <span className={styles.file}>
-            <FileText size={14} /> {c("label.cv")}
-          </span>
-        </a>
-
-        <a href={applicant.academic_qualification} rel="noopener noreferrer"  target="_blank">
-          
-          <span className={styles.file}>
-            <FileText size={14} /> {c("label.academicQualification")}
-          </span>
-        </a>
-
-        <a href={applicant.national_id} rel="noopener noreferrer" target="_blank">
-          <span className={styles.file}>
-            <FileText size={14} /> {c("label.nationalID")}
-          </span>
-        </a>
-
-        <a href={applicant.personal_photo} rel="noopener noreferrer" target="_blank">
-          <span className={styles.file}>
-            <FileText size={14} /> {c("label.personalPhoto")}
-          </span>
-        </a>
+        {[
+          ["cv", "label.cv"],
+          ["academic_qualification", "label.academicQualification"],
+          ["national_id", "label.nationalID"],
+          ["personal_photo", "label.personalPhoto"],
+        ].map(([type, label]) => (
+          <ApplicationAttachmentButton key={type} applicationId={applicant.id} attachmentType={type}>
+            {c(label)}
+          </ApplicationAttachmentButton>
+        ))}
       </div>
 
       {applicant.status === "active" && <p>{t("applicants.activeTraineeHelp")} <Link to="/hr/trainees">{t("nav.trainees")}</Link></p>}

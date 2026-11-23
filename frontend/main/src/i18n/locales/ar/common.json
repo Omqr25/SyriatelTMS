@@ -1,4 +1,5 @@
 {
+  "attachmentDownloadFailed": "تعذر تنزيل المرفق. حاول مرة أخرى.",
   "appName": "سيريتل",
   "appTitle": "نظام إدارة التدريب",
   "theme": { "darkMode": "الوضع الداكن", "switchLight": "التبديل إلى الوضع الفاتح", "switchDark": "التبديل إلى الوضع الداكن" },

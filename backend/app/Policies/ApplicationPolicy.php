@@ -44,6 +44,12 @@ class ApplicationPolicy
             && Application::query()->whereKey($application->id)->assignedTo($trainer)->exists();
     }
 
+    public function downloadAttachment(User $user, Application $application): bool
+    {
+        return $user->trainee?->application_id === $application->id
+            || $this->viewAnswers($user, $application);
+    }
+
     public function viewAny(User $user): bool
     {
         return false;

@@ -1,4 +1,5 @@
 const en = {
+  notFound: {"title": "Page not found", "description": "This page may have moved or the address may be incorrect.", "home": "Back to home"},
   gallery: {
     "title": "Training gallery",
     "intro": "Explore moments from previous Syriatel training cohorts.",

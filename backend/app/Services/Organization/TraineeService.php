@@ -87,9 +87,11 @@ class TraineeService
 
             $trainee->status = TraineeStatus::FIRED;
             $trainee->save();
-            $user = $trainee->user;
+            $user = $trainee->user()->lockForUpdate()->firstOrFail();
             $user->status = UserStatus::FIRED;
+            $user->session_version++;
             $user->save();
+            $user->deviceTokens()->delete();
             $application=$trainee->application;
             $application->status=ApplicationStatus::FIRED;
             $application->save();

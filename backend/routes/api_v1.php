@@ -18,6 +18,7 @@ use App\Http\Controllers\Training\ApplicationController;
 use App\Http\Controllers\Training\ApplicationFormController;
 use App\Http\Controllers\Training\EnglishScoreImportController;
 use App\Http\Controllers\Training\TrainingProgramController;
+use App\Http\Middleware\EnsureApiSessionIsCurrent;
 use App\Http\Middleware\UseRequestLocale;
 use App\Jobs\TestQueueJob;
 use App\Http\Resources\Dashboard\HrDashboardResource;
@@ -27,7 +28,7 @@ use Illuminate\Support\Facades\Route;
 Route::post('/debug-device-token', [
     \App\Http\Controllers\Notification\DeviceTokenController::class,
     'storeToken',
-])->middleware('auth:api');
+])->middleware(['auth:api', EnsureApiSessionIsCurrent::class]);
 
 Route::get('/health-check', function () {
     return response()->json([
@@ -81,7 +82,7 @@ Route::prefix('v1')->group(function () {
 
 
 
-    Route::middleware('auth:api')->group(function () {
+    Route::middleware(['auth:api', EnsureApiSessionIsCurrent::class])->group(function () {
 
 
 
@@ -290,6 +291,8 @@ Route::prefix('v1')->group(function () {
 
         Route::prefix('application')->group(function () {
             Route::get('{application_id}', [ApplicationController::class, 'find']);
+            Route::get('{application_id}/attachments/{type}', [ApplicationController::class, 'downloadAttachment'])
+                ->name('applications.attachments.download')->whereNumber('application_id');
             Route::get('{application_id}/answers', [ApplicationController::class, 'answers'])
                 ->middleware('role:HR,SUPERVISOR')->whereNumber('application_id');
         });
@@ -302,7 +305,6 @@ Route::prefix('v1')->group(function () {
     Route::prefix('application')->group(function () {
         Route::post('/', [ApplicationController::class, 'store'])
             ->middleware(UseRequestLocale::class);
-        Route::get('{application_id}/attachments/{type}', [ApplicationController::class, 'downloadAttachment'])->name('applications.attachments.download');
     });
 
 
