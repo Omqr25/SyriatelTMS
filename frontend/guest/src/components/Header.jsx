@@ -42,6 +42,9 @@ export default function Header() {
           >
             {t("nav.about")}
           </NavLink>
+          <NavLink to="/gallery" className={({ isActive }) => (isActive ? styles.active : "")}>
+            {t("nav.gallery")}
+          </NavLink>
           <NavLink
             to="/faq"
             className={({ isActive }) => (isActive ? styles.active : "")}
