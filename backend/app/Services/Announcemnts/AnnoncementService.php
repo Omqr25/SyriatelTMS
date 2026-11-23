@@ -7,6 +7,7 @@ use App\Enums\UserStatus;
 use App\Models\Announcement;
 use App\Models\AnnouncementAudience;
 use App\Models\Notification;
+use App\Models\Notified;
 use App\Models\User;
 use App\Services\Notification\InboxPublisher;
 use App\Services\Notification\NotificationService;
@@ -77,9 +78,8 @@ class AnnoncementService
                 return $announcement->load(['publisher', 'department'])->loadCount('audiences');
             }
 
-            $recipients = $announcement->isDirty('department_id')
-                ? $this->eligibleRecipients(departmentId: $announcement->department_id)
-                : $previous;
+            $eligible = $this->eligibleRecipients(departmentId: $announcement->department_id);
+            $recipients = $announcement->isDirty('department_id') ? $eligible : $previous;
             abort_if($recipients->isEmpty() && $announcement->isDirty('department_id'), 422, __('announcements.no_recipients'));
 
             $added = $recipients->diff($previous);
@@ -89,15 +89,23 @@ class AnnoncementService
             $announcement->audiences()->whereIn('audience_id', $removed)->delete();
             $this->addAudience($announcement, $added);
 
-            $notification = Notification::where('event_key', "announcement:$id")->first();
-            $notification?->update(['description' => $this->notificationDescription($announcement)]);
-            $notification?->notified()->whereIn('notified_id', $removed)->delete();
-            if ($added->isNotEmpty()) {
-                $this->publishAnnouncement($announcement, $sender, $added);
+            Notification::where('event_key', "announcement:$id")
+                ->update(['description' => $this->notificationDescription($announcement)]);
+            if ($removed->isNotEmpty()) {
+                Notified::whereIn('notified_id', $removed)
+                    ->whereIn('notification_id', Notification::forAnnouncements([$id])->select('id'))
+                    ->delete();
             }
 
-            // Existing and removed recipients only need to reload their current snapshot.
-            $this->syncTrainees($sender, $previous);
+            $updatedRecipients = $recipients->intersect($eligible);
+            if ($updatedRecipients->isNotEmpty()) {
+                $this->inbox->publish(
+                    $sender, $updatedRecipients, 'announcement', "$id:update:".Str::uuid(),
+                    'Announcement Updated', 'An announcement was updated: '.$announcement->title,
+                    ['announcement_id' => $id],
+                );
+            }
+            $this->syncTrainees($sender, $removed);
 
             return $announcement->load(['publisher', 'department'])->loadCount('audiences');
         }, 3);
@@ -108,7 +116,7 @@ class AnnoncementService
         DB::transaction(function () use ($sender, $id) {
             $announcement = $this->ownedAnnouncement($sender, $id);
             $recipients = $announcement->audiences()->pluck('audience_id');
-            Notification::where('event_key', "announcement:$id")->delete();
+            Notification::forAnnouncements([$id])->delete();
             $announcement->delete();
             $this->syncTrainees($sender, $recipients);
         }, 3);

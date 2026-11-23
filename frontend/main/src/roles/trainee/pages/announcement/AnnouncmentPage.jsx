@@ -12,7 +12,11 @@ import { useNotifications } from "../../../../context/NotificationContext";
 import { getAnnouncementsTraineeApi } from "../../../../Api/Trainee/announcementApi";
 
 export default function AnnouncementsPage() {
-  const { t } = useTranslation("hr");
+  const { t, i18n } = useTranslation("hr");
+  const dateFormat = new Intl.DateTimeFormat(i18n.language, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
   const { refresh, announcementRevision } = useNotifications();
   const loadAnnouncements = useCallback(async () => {
     const result = await getAnnouncementsTraineeApi();
@@ -34,9 +38,20 @@ export default function AnnouncementsPage() {
               <Badge>{a.publisher?.name}</Badge>
             </div>
             <p className={styles.details}>{a.description}</p>
-            <span className={styles.date}>
-              <Clock size={14} /> {a.announced_at}
-            </span>
+            <div className={styles.dates}>
+              <span className={styles.date}>
+                <Clock size={14} aria-hidden="true" /> {t("announcements.published")}
+                <time dateTime={a.created_at}>
+                  {a.created_at ? dateFormat.format(new Date(a.created_at)) : a.announced_at}
+                </time>
+              </span>
+              {a.updated_at && a.updated_at !== a.created_at && (
+                <span className={styles.date}>
+                  {t("announcements.updated")}
+                  <time dateTime={a.updated_at}>{dateFormat.format(new Date(a.updated_at))}</time>
+                </span>
+              )}
+            </div>
           </Card>
         ))}
       </div>

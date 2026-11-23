@@ -54,9 +54,8 @@ class NotificationService
             return;
         }
 
-        $events = array_map(fn ($id) => "announcement:$id", $announcementIds);
         $user->notified()->whereNull('read_at')
-            ->whereIn('notification_id', Notification::query()->whereIn('event_key', $events)->select('id'))
+            ->whereIn('notification_id', Notification::forAnnouncements($announcementIds)->select('id'))
             ->update(['read_at' => now(), 'read' => true]);
     }
 }
