@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Enums\ApplicationStatus;
 use App\Exceptions\ErrorException;
+use App\Jobs\DeliverInboxPush;
 use App\Mail\ApplicationDecisionMail;
 use App\Models\Application;
 use App\Models\Department;
@@ -186,6 +187,34 @@ class ApplicationWorkflowTest extends TestCase
         $this->postJson("/api/v1/trainee/fire/{$trainee->id}", [
             'reason' => 'Duplicate',
         ])->assertStatus(400);
+    }
+
+    public function test_assignment_notifies_only_the_selected_supervisor_once(): void
+    {
+        Queue::fake();
+        $supervisorRole = Role::firstOrCreate(['role' => 'SUPERVISOR']);
+        $trainer = Trainer::factory()->forUser(User::factory()->create())
+            ->forDepartment(Department::factory()->create())->create();
+        $trainer->user->roles()->attach($supervisorRole);
+        $otherSupervisor = User::factory()->create();
+        $otherSupervisor->roles()->attach($supervisorRole);
+
+        $application = Application::factory()->forProgram(TrainingProgram::factory()->create())
+            ->create(['status' => ApplicationStatus::PENDING]);
+        $assign = "/api/v1/application/{$application->id}/assign/{$trainer->id}";
+        $this->getJson($assign)->assertOk();
+        $this->getJson($assign)->assertStatus(400);
+
+        $this->actingAs($trainer->user, 'api')->getJson('/api/v1/notification/myNotifications')
+            ->assertOk()->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.type', 'application_assigned')
+            ->assertJsonPath('data.0.metadata.application_id', $application->id)
+            ->assertJsonPath('data.0.read', false);
+        $this->getJson('/api/v1/notification/unread-count')->assertOk()->assertJsonPath('data.unread_count', 1);
+        $this->actingAs($otherSupervisor, 'api')->getJson('/api/v1/notification/myNotifications')
+            ->assertOk()->assertJsonCount(0, 'data');
+        $this->assertDatabaseCount('notification_deliveries', 1);
+        Queue::assertPushed(DeliverInboxPush::class, 1);
     }
 
     public function test_assignment_and_interview_refresh_status_and_reject_duplicate_scheduling(): void

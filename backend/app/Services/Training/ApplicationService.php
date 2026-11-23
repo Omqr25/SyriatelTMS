@@ -295,12 +295,16 @@ class ApplicationService
             $application->update([
                 'status' => ApplicationStatus::ASSIGNED,
             ]);
-            ApplicationAssign::create([
+            $assignment = ApplicationAssign::create([
                 'application_id' => $application_id,
                 'trainer_id' => $trainer_id,
                 'status' => ApplicationStatus::ASSIGNED,
             ]);
-            $application->fresh();
+            $this->inbox->publish(
+                auth('api')->user(), [$assignment->trainer->user_id], 'application_assigned', (string) $assignment->id,
+                'New application assignment', 'The training team assigned you an application to review.',
+                ['application_id' => $application->id],
+            );
 
             return $application->load(self::RESOURCE_RELATIONS);
         });
