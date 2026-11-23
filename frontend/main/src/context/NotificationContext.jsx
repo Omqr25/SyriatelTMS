@@ -5,8 +5,9 @@ import { pushOptOutKey, registerBrowser, revokeBrowserRegistration } from "../fi
 
 const NotificationContext = createContext(null);
 const REFRESH_INTERVAL = 30_000;
+const TRAINEE_REFRESH_INTERVAL = 10_000;
 
-export function NotificationProvider({ accessToken, userId, children }) {
+export function NotificationProvider({ accessToken, userId, role, children }) {
   const [unreadCount, setUnreadCount] = useState(null);
   const [countUnavailable, setCountUnavailable] = useState(false);
   const [announcementRevision, setAnnouncementRevision] = useState(0);
@@ -105,7 +106,7 @@ export function NotificationProvider({ accessToken, userId, children }) {
     window.addEventListener("focus", refreshIfVisible);
     window.addEventListener("online", refreshIfVisible);
     document.addEventListener("visibilitychange", refreshIfVisible);
-    const timer = window.setInterval(refreshIfVisible, REFRESH_INTERVAL);
+    const timer = window.setInterval(refreshIfVisible, role === "TRAINEE" ? TRAINEE_REFRESH_INTERVAL : REFRESH_INTERVAL);
 
     return () => {
       unsubscribe();
@@ -115,7 +116,7 @@ export function NotificationProvider({ accessToken, userId, children }) {
       document.removeEventListener("visibilitychange", refreshIfVisible);
       window.clearInterval(timer);
     };
-  }, [optOutKey, refresh, userId]);
+  }, [optOutKey, refresh, role, userId]);
 
   return (
     <NotificationContext.Provider value={{ unreadCount, countUnavailable, revision, announcementRevision, refresh, pushStatus, enableBrowserPush, disableBrowserPush }}>

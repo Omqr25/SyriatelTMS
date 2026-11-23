@@ -17,7 +17,7 @@ import styles from './AppShell.module.css';
 export default function AppShell({ module }) {
   const { token, user } = useAuth();
   return (
-    <NotificationProvider key={token} accessToken={token} userId={user?.sub}>
+    <NotificationProvider key={token} accessToken={token} userId={user?.sub} role={module.role}>
       <ShellContent module={module} />
     </NotificationProvider>
   );

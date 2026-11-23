@@ -40,6 +40,7 @@ class ProfileResource extends JsonResource
                 'technical_skills' => $application?->technical_skills,
             ],
 
+            'application_id' => $application->id,
             'attachments' => [
                 'cv' => route('applications.attachments.download', ['application_id' => $application->id, 'type' => ApplicationAttachmentTypes::CV->value]),
                 'national_id' => route('applications.attachments.download', ['application_id' => $application->id, 'type' => ApplicationAttachmentTypes::NATIONAL_ID->value]),

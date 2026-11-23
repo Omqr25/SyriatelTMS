@@ -38,7 +38,8 @@ class FileStorageService
         return $this->store($file, $directory, $disk);
     }
 
-    public function downloadApplicationAttachment(Application $application, ApplicationAttachmentTypes $type) {
+    public function downloadApplicationAttachment(Application $application, ApplicationAttachmentTypes $type, bool $asJson)
+    {
         $path = match ($type) {
             ApplicationAttachmentTypes::CV => $application->cv,
             ApplicationAttachmentTypes::NATIONAL_ID => $application->national_id,
@@ -49,6 +50,20 @@ class FileStorageService
         abort_unless($path, 404);
         /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
         $disk = Storage::disk('private');
-        return $disk->download($path);
+        $headers = ['Cache-Control' => 'private, no-store'];
+        if ($asJson) {
+            $content = $disk->get($path);
+            abort_if($content === null, 404);
+
+            return response()->json([
+                'content' => base64_encode($content),
+                'mime_type' => $disk->mimeType($path) ?: 'application/octet-stream',
+                'filename' => $type->value.'.'.pathinfo($path, PATHINFO_EXTENSION),
+            ], headers: $headers);
+        }
+
+        abort_unless($disk->exists($path), 404);
+
+        return $disk->download($path, headers: $headers);
     }
 }

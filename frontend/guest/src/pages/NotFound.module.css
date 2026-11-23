@@ -1,0 +1,39 @@
+.page {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 12px;
+  min-height: 56dvh;
+  padding: 35px 18px;
+  text-align: center;
+  color: var(--ink-900);
+}
+
+.icon {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  color: var(--red-700);
+  background: var(--red-50);
+}
+
+.page h1 { margin: 0; font-size: clamp(24px, 4vw, 40px); }
+.page p { margin: 0; color: var(--ink-500); }
+.page .code { font-weight: 800; color: var(--red-700); }
+
+.home {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  margin-block-start: 8px;
+  border-radius: 10px;
+  background: var(--red-50);
+  color: var(--red-700);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+:global([dir="rtl"]) .home svg { transform: scaleX(-1); }

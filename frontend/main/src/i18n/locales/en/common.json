@@ -1,4 +1,5 @@
 {
+  "attachmentDownloadFailed": "The attachment could not be downloaded. Please try again.",
   "appName": "Syriatel",
   "appTitle": "Training Management System",
   "theme": { "darkMode": "Dark mode", "switchLight": "Switch to light mode", "switchDark": "Switch to dark mode" },

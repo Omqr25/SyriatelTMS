@@ -2,6 +2,7 @@
 
 namespace App\Services\Training;
 
+use App\Enums\ApplicationAttachmentTypes;
 use App\Enums\ApplicationStatus;
 use App\Enums\TraineeStatus;
 use App\Enums\UserRole;
@@ -267,13 +268,16 @@ class ApplicationService
         //            ->get();
     }
 
-    public function downloadApplicationAttachment($application_id, $type)
+    public function downloadApplicationAttachment(int $application_id, ApplicationAttachmentTypes $type, bool $asJson)
     {
         $application = $this->find($application_id);
+
+        Gate::forUser(auth('api')->user())->authorize('downloadAttachment', $application);
 
         return $this->fileStorageService->downloadApplicationAttachment(
             $application,
             $type,
+            $asJson,
         );
     }
 

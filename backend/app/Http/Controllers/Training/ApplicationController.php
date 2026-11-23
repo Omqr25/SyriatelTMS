@@ -87,9 +87,13 @@ class ApplicationController extends Controller
         return $this->success(InterviewApplicationResource::collection($applications));
     }
 
-    public function downloadAttachment(int $application_id, ApplicationAttachmentTypes $type)
+    public function downloadAttachment(int $application_id, ApplicationAttachmentTypes $type, Request $request)
     {
-        return $this->applicationService->downloadApplicationAttachment($application_id, $type);
+        return $this->applicationService->downloadApplicationAttachment(
+            $application_id,
+            $type,
+            $request->query('format') === 'json',
+        );
     }
 
     public function assignApplication(int $application_id, int $trainer_id)

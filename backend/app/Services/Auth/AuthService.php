@@ -77,6 +77,7 @@ class AuthService
     {
         $status = Password::sendResetLink([
             'email' => $email,
+            'status' => UserStatus::ACTIVE->value,
         ]);
 
         if ($status !== Password::RESET_LINK_SENT)
@@ -90,6 +91,7 @@ class AuthService
         $status = Password::reset(
             [
                 'email' => $data['email'],
+                'status' => UserStatus::ACTIVE->value,
                 'password' => $data['password'],
                 'password_confirmation' => $data['password_confirmation'],
                 'token' => $data['token'],
