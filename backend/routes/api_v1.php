@@ -4,6 +4,7 @@ use App\Http\Controllers\Announcemnts\AnnoncementController;
 use App\Http\Controllers\Attendance\AbsenceController;
 use App\Http\Controllers\Attendance\VacationRequestController;
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Gallery\GalleryController;
 use App\Http\Controllers\Dashboard\DashboardController;
 use App\Http\Controllers\Evaluation\EvaluationController;
 use App\Http\Controllers\Notification\DeviceTokenController;
@@ -59,6 +60,9 @@ Route::get('/test-queue', function () {
 Route::prefix('v1')->group(function () {
 
 
+    Route::get('gallery', [GalleryController::class, 'index']);
+    Route::get('gallery/{photo}/image', [GalleryController::class, 'image'])->whereNumber('photo');
+
     Route::prefix('auth')->group(function () {
         Route::post('login', [AuthController::class, 'login']);
         Route::post('forgotPassword', [AuthController::class, 'forgotPassword']);
@@ -112,6 +116,10 @@ Route::prefix('v1')->group(function () {
 
 
         Route::middleware('role:HR')->group(function () {
+            Route::post('gallery', [GalleryController::class, 'store']);
+            Route::patch('gallery/{photo}', [GalleryController::class, 'update'])->whereNumber('photo');
+            Route::delete('gallery/{photo}', [GalleryController::class, 'destroy'])->whereNumber('photo');
+
             Route::get('dashboard/hr', [DashboardController::class, 'HR']);
             Route::get('/reports/training_cycle', [DashboardController::class, 'trainingCycle',]);
             Route::get('evaluation/allEvaluations',[EvaluationController::class,'findAll']);

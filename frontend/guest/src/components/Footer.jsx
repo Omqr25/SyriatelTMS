@@ -66,6 +66,7 @@ export default function Footer() {
         <div className={styles.links}>
           <Link to="/">{t("nav.home")}</Link>
           <Link to="/about">{t("nav.about")}</Link>
+          <Link to="/gallery">{t("nav.gallery")}</Link>
           <a href="/faq">{t("nav.faqs")}</a>
           {/* <a href="#contact">{t("footer.contact")}</a> */}
         </div>

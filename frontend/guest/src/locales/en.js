@@ -1,4 +1,16 @@
 const en = {
+  gallery: {
+    "title": "Training gallery",
+    "intro": "Explore moments from previous Syriatel training cohorts.",
+    "view": "View {{title}}",
+    "close": "Close photo",
+    "empty": "No photos yet",
+    "emptyHint": "Photos from past cohorts will appear here.",
+    "failed": "Could not load the gallery.",
+    "retry": "Try again",
+    "loading": "Loading photos…",
+    "more": "Load more photos"
+  },
   applicationQuestions: {
     title: "Additional questions",
     changed: "Registration or the application questions changed. Review the current form before submitting again.",
@@ -10,7 +22,7 @@ const en = {
   },
   theme: { darkMode: "Dark mode", switchLight: "Switch to light mode", switchDark: "Switch to dark mode" },
   header: { language: "Change language", menu: "Navigation menu" },
-  nav: { home: "Home", about: "About", faqs: "FAQs", apply: "Apply Now" },
+  nav: { gallery: "Gallery", home: "Home", about: "About", faqs: "FAQs", apply: "Apply Now" },
   brand: { program: "Talent Development Program" },
   hero: {
     eyebrow: "Talent Development Program",

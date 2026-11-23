@@ -1,7 +1,7 @@
 import { HrCertificatesPage } from '../../features/certificates/CertificatesPage';
 import {
   Building2, CalendarCheck, ClipboardList, FileText, GraduationCap,
-  LayoutDashboard, ListChecks, Megaphone, UserCog, Users,Star,BookLock ,BellRing
+  Images, LayoutDashboard, ListChecks, Megaphone, UserCog, Users,Star,BookLock ,BellRing
 } from 'lucide-react';
 import AnnouncementsPage from './pages/AnnouncementsPage';
 import ApplicantsPage from './pages/ApplicantsPage';
@@ -10,6 +10,7 @@ import AssignedRequestsPage from './pages/AssignedRequestsPage';
 import AttendancePage from './pages/AttendancePage';
 import DashboardPage from './pages/DashboardPage';
 import DepartmentsPage from './pages/DepartmentsPage';
+import GalleryPage from './pages/GalleryPage';
 import InterviewsPage from './pages/InterviewsPage';
 import ReportsPage from './pages/ReportsPage';
 import SupervisorsPage from './pages/SupervisorsPage';
@@ -36,6 +37,7 @@ export const hrModule = {
     { path: 'supervisors', icon: UserCog, labelKey: 'hr:nav.supervisors', Component: SupervisorsPage },
     { path: 'attendance', icon: ClipboardList, labelKey: 'hr:nav.attendance', Component: AttendancePage },
     { path: 'announcements', icon: Megaphone, labelKey: 'hr:nav.announcements', Component: AnnouncementsPage },
+    { path: 'gallery', icon: Images, labelKey: 'gallery:title', Component: GalleryPage },
     { path: 'reports', icon: FileText, labelKey: 'hr:nav.reports', Component: ReportsPage },
     { path: 'evaluations', icon: Star, labelKey: 'hr:nav.evaluations', Component: EvaluationsPage },
     { path: 'registration', icon: BookLock, labelKey: 'hr:nav.registration', Component: Registration },
