@@ -7,6 +7,8 @@ use App\Models\Application;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use League\Flysystem\UnableToDeleteDirectory;
+use League\Flysystem\WhitespacePathNormalizer;
+use LogicException;
 
 class FileStorageService
 {
@@ -18,17 +20,34 @@ class FileStorageService
         //
     }
     public function store(UploadedFile $file, string $directory, string $disk = 'private'): string {
+        $directory = (new WhitespacePathNormalizer)->normalizePath($directory);
+        if ($disk === 'private' && str_starts_with($directory, 'applications/')
+            && Storage::disk($disk)->exists($file->hashName($directory))) {
+            throw new LogicException('Committed applicant uploads are write-once.');
+        }
         return $file->store($directory, $disk);
     }
 
     public function delete(?string $path, string $disk = 'private'): void {
+        if ($path && $disk === 'private' && str_starts_with((new WhitespacePathNormalizer)->normalizePath($path), 'applications/')) {
+            throw new LogicException('Committed applicant uploads are write-once.');
+        }
         if ($path && Storage::disk($disk)->exists($path)) {
             Storage::disk($disk)->delete($path);
         }
     }
-    public function deleteDirectory(string $directory, string $disk = 'private'): void
+    public function discardUncommittedApplication(string $directory): void
     {
-        if (! Storage::disk($disk)->deleteDirectory($directory)) {
+        if (! preg_match('~\Aapplications/[0-9a-f-]{36}\z~', $directory)) {
+            throw new LogicException('Invalid staged applicant directory.');
+        }
+        $committed = Application::query()->where(function ($query) use ($directory) {
+            foreach (['cv', 'national_id', 'academic_qualification', 'personal_photo'] as $field) {
+                $query->orWhere($field, 'like', "$directory/%");
+            }
+        })->exists();
+        if ($committed) throw new LogicException('Committed applicant uploads are write-once.');
+        if (! Storage::disk('private')->deleteDirectory($directory)) {
             throw UnableToDeleteDirectory::atLocation($directory);
         }
     }

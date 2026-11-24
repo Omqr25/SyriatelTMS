@@ -14,10 +14,14 @@ class ProcessApplicantExport implements ShouldQueue
 
     public int $timeout;
 
-    public function __construct(public int $taskId)
+    public const DOCUMENT_QUEUE = 'applicant-exports';
+
+    public const EXCEL_QUEUE = 'applicant-exports-excel';
+
+    public function __construct(public int $taskId, string $kind = '')
     {
         $this->timeout = max(1, config('applicant_exports.timeout'));
-        $this->onConnection('applicant_exports')->onQueue('applicant-exports');
+        $this->onConnection('applicant_exports')->onQueue($kind === 'excel' ? self::EXCEL_QUEUE : self::DOCUMENT_QUEUE);
     }
 
     public function handle(ExportQueue $queue): void

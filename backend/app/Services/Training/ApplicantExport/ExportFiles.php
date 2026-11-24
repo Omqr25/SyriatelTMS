@@ -3,7 +3,6 @@
 namespace App\Services\Training\ApplicantExport;
 
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Storage;
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -22,14 +21,17 @@ class ExportFiles
     }
 
     /** The caller holds the export lock while writing, serving, or pruning files. */
-    public function lock(string $id, bool $exclusive = false)
+    public function lock(string $id, bool $exclusive = false, ?bool &$busy = null)
     {
+        $busy = false;
         $directory = $this->directory('.locks');
         if (! is_dir($directory) && ! @mkdir($directory, 0700, true) && ! is_dir($directory)) {
             return null;
         }
         $lock = @fopen($directory.'/'.$id, 'c+b');
-        if (! $lock || ! flock($lock, ($exclusive ? LOCK_EX : LOCK_SH) | LOCK_NB)) {
+        $wouldBlock = 0;
+        if (! $lock || ! flock($lock, ($exclusive ? LOCK_EX : LOCK_SH) | LOCK_NB, $wouldBlock)) {
+            $busy = $wouldBlock === 1;
             if ($lock) fclose($lock);
 
             return null;
@@ -40,8 +42,8 @@ class ExportFiles
 
     public function capture(object $export, callable $checkpoint): int
     {
-        $root = realpath(Storage::disk('private')->path(''));
-        if (! $root || ! is_readable($root)) {
+        $root = realpath(config('filesystems.disks.private.root'));
+        if (! $root || ! is_dir($root) || ! is_readable($root)) {
             throw new RuntimeException('source_storage_unavailable');
         }
         $directory = $this->directory($export->id).'/pins';
@@ -148,7 +150,7 @@ class ExportFiles
 
     public function excel(object $export, string $path, callable $checkpoint): void
     {
-        $columns = array_values(array_diff(json_decode($export->columns, true, flags: JSON_THROW_ON_ERROR), array_keys(ExportStore::DOCUMENTS)));
+        $columns = array_values(array_intersect(json_decode($export->columns, true, flags: JSON_THROW_ON_ERROR), ExportStore::EXCEL_FIELDS));
         $book = new Spreadsheet;
         try {
             $sheet = $book->getActiveSheet()->setTitle('Applicants');

@@ -1,6 +1,6 @@
 import { useId, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Archive, ArchiveRestore, CalendarDays, CircleAlert, Download, Pencil, Plus, School, Trash2 } from "lucide-react";
+import { Archive, ArchiveRestore, CalendarDays, CircleAlert, ClipboardList, Download, Pencil, Plus, School, Trash2 } from "lucide-react";
 import { toast } from "react-toastify";
 import Badge from "../../../components/ui/Badge";
 import Button from "../../../components/ui/Button";
@@ -11,6 +11,7 @@ import form from "../../../components/ui/Form.module.css";
 import Loading from "../../../components/ui/Loading";
 import Modal from "../../../components/ui/Modal";
 import PageHeader from "../../../components/ui/PageHeader";
+import ProgramActions from "../components/ProgramActions";
 import ApplicantExportModal from "../components/ApplicantExportModal";
 import ApplicationFormEditor from "../components/ApplicationFormEditor";
 import useRegistration from "../../../hooks/HrHooks/useRegistration";
@@ -283,7 +284,7 @@ export default function Registration() {
       <div className={styles.grid}>
         {visiblePrograms.map((program) => (
           <Card key={program.id} className={styles.card}>
-            <div className={styles.flex}>
+            <div className={`${styles.flex} ${styles.programHeading}`}>
               <School color="#e60000" size={22} />
               <h3>{program.name}</h3>
               <Badge tone={phaseTones[program.phase]}>{t(`registration.phases.${program.phase}`)}</Badge>
@@ -294,31 +295,21 @@ export default function Registration() {
                 <p className={styles.value} dir="ltr">{formatDate(program[key])}</p>
               </div>
             ))}
-            <div className={styles.flex}>
-              <Button size="sm" variant="secondary" icon={Download} onClick={() => setExportProgram(program)}>
-                {t("applicantExports.open")}
-              </Button>
-            </div>
-            {canManage && (
-              <>
-                <div className={styles.flex}>
-                  <Button size="sm" variant="secondary" icon={Pencil} onClick={() => setEditor({ program })}>{t("registration.edit")}</Button>
-                  <Button size="sm" variant="secondary" onClick={() => setFormProgram(program)}>
-                    {t("applicationForm.manage")}
-                  </Button>
-                  {canArchive && (
-                    <Button size="sm" variant="secondary" icon={program.archived_at ? ArchiveRestore : Archive}
-                      onClick={() => setAction({ type: program.archived_at ? "restore" : "archive", program })}>
-                      {t(program.archived_at ? "registration.restore" : "registration.archive")}
-                    </Button>
-                  )}
-                  <Button size="sm" variant="soft" icon={Trash2} disabled={!!program.delete_block}
-                    aria-describedby={program.delete_block ? `blocked-${program.id}` : undefined}
-                    onClick={() => setAction({ type: "delete", program })}>{t("registration.delete")}</Button>
-                </div>
-                {program.delete_block && <small className={styles.value} id={`blocked-${program.id}`}>{t(`registration.blocks.${program.delete_block}`)}</small>}
-              </>
-            )}
+            <ProgramActions program={program} actions={[
+              { label: t("applicantExports.open"), icon: Download, run: () => setExportProgram(program) },
+              ...(canManage ? [
+                { label: t("registration.edit"), icon: Pencil, run: () => setEditor({ program }) },
+                { label: t("applicationForm.manage"), icon: ClipboardList, run: () => setFormProgram(program) },
+                ...(canArchive ? [{
+                  label: t(program.archived_at ? "registration.restore" : "registration.archive"),
+                  icon: program.archived_at ? ArchiveRestore : Archive,
+                  run: () => setAction({ type: program.archived_at ? "restore" : "archive", program }),
+                }] : []),
+                { label: t("registration.delete"), icon: Trash2, destructive: true,
+                  reason: program.delete_block ? t(`registration.blocks.${program.delete_block}`) : null,
+                  run: () => setAction({ type: "delete", program }) },
+              ] : []),
+            ]} />
           </Card>
         ))}
       </div>

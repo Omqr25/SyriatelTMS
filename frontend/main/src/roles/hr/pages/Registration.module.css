@@ -17,6 +17,7 @@
     color: var(--ink-500);
 }
 .card{
+    position: relative;
     min-width: 320px;
     /* width: fit-content; */
 }
@@ -33,6 +34,8 @@
   gap: 12px;
   margin-bottom: 16px;
 }
+
+.programHeading { padding-inline-end: 32px; }
 
 .card h3 { overflow-wrap: anywhere; }
 

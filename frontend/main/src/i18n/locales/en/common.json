@@ -4,6 +4,7 @@
   "appTitle": "Training Management System",
   "theme": { "darkMode": "Dark mode", "switchLight": "Switch to light mode", "switchDark": "Switch to dark mode" },
   "action": {
+    "signOutUnconfirmed": "Signed out on this device. The server could not confirm session revocation.",
     "save": "Save",
     "close": "Close",
     "reset": "Reset",

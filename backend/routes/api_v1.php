@@ -119,12 +119,14 @@ Route::prefix('v1')->group(function () {
         Route::middleware('role:HR')->group(function () {
             Route::prefix('training_program/{program}/applicant-exports')
                 ->where(['program' => '[0-9]+', 'snapshot' => '[0-9A-HJKMNP-TV-Z]{26}'])
+                ->middleware(UseRequestLocale::class)
                 ->controller(\App\Http\Controllers\Training\ApplicantExportController::class)->group(function () {
                     Route::get('/', 'index');
                     Route::post('/', 'store')->middleware('throttle:10,1');
                     Route::post('{snapshot}/retry', 'retry')->middleware('throttle:10,1');
                     Route::post('{snapshot}/cancel', 'cancel');
                     Route::get('{snapshot}/manifest', 'manifest');
+                    Route::get('{snapshot}/report', 'report')->middleware('throttle:10,1');
                 });
 
             Route::post('gallery', [GalleryController::class, 'store']);

@@ -1,32 +1,33 @@
 import api, { ACCESS_TOKEN_KEY } from "../axios";
+import { isTokenExpired } from "../../features/auth/auth.utils";
 
 const exportsPath = (program) => `/training_program/${program}/applicant-exports`;
 
-export async function listApplicantExports(program, signal) {
-  return (await api.get(exportsPath(program), { signal })).data.data;
+export async function listApplicantExports(program, signal, params) {
+  return (await api.get(exportsPath(program), { signal, params })).data;
 }
 
-export async function requestApplicantExport(program, payload) {
-  return (await api.post(exportsPath(program), payload)).data.id;
+export async function requestApplicantExport(program, payload, language) {
+  return (await api.post(exportsPath(program), payload, { headers: { "Accept-Language": language } })).data.id;
 }
 
-export async function changeApplicantExport(program, snapshot, action) {
-  return (await api.post(`${exportsPath(program)}/${snapshot}/${action}`)).data;
+export async function changeApplicantExport(program, snapshot, action, kind, language) {
+  return (await api.post(`${exportsPath(program)}/${snapshot}/${action}`, { kind }, { headers: { "Accept-Language": language } })).data;
 }
 
-export async function downloadExportManifest(program, snapshot) {
-  const { data } = await api.get(`${exportsPath(program)}/${snapshot}/manifest`, { responseType: "blob" });
+export async function downloadExportReport(program, snapshot, language) {
+  const { data } = await api.get(`${exportsPath(program)}/${snapshot}/report`, { responseType: "blob", headers: { "Accept-Language": language } });
   const url = URL.createObjectURL(data);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `snapshot-${snapshot}-manifest.json`;
+  link.download = `applicant-export-report-${snapshot}.xlsx`;
   link.click();
   window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 export function downloadApplicantArtifact(snapshot, artifact) {
   const token = localStorage.getItem(ACCESS_TOKEN_KEY);
-  if (!token) {
+  if (!token || isTokenExpired(token)) {
     window.dispatchEvent(new Event("auth:unauthorized"));
     return;
   }

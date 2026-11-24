@@ -13,6 +13,8 @@ use Throwable;
 
 class ExportQueue
 {
+    private const EXCEL_BURST = 3;
+
     public function __construct(private ExportFiles $files) {}
 
     public function reconcile(): void
@@ -35,8 +37,9 @@ class ExportQueue
                 'export_id' => $id, 'kind' => 'prune', 'part' => 0, 'state' => 'queued', 'due_at' => now(),
             ]);
         }
-        ExportStore::tasks()->where('kind', 'prune')->where('state', 'failed')->where('due_at', '<=', now()->subHour())
-            ->update(['state' => 'queued', 'attempts' => 0, 'dispatch_after' => null]);
+        ExportStore::tasks()->where('kind', 'prune')->whereNull('owner')->where(fn ($query) => $query->where('state', 'cancelled')
+            ->orWhere(fn ($query) => $query->where('state', 'failed')->where('due_at', '<=', now()->subHour())))
+            ->update(['state' => 'queued', 'attempts' => 0, 'lock_failures' => 0, 'dispatch_after' => null, 'due_at' => now()]);
         $this->dispatch();
     }
 
@@ -47,15 +50,18 @@ class ExportQueue
         $tasks = ExportStore::tasks()->where('state', 'queued')->where('due_at', '<=', now())
             ->where(fn ($query) => $query->whereNull('dispatch_after')->orWhere('dispatch_after', '<=', now()))
             ->whereNotExists(fn ($query) => $query->selectRaw('1')->from($jobTable)
-                ->whereColumn($jobTable.'.id', 'applicant_export_tasks.queue_job_id')->where('queue', 'applicant-exports'))
-            ->when($id, fn ($query) => $query->where('export_id', $id))->orderBy('id')->limit(8)->pluck('id');
-        foreach ($tasks as $taskId) {
-            DB::transaction(function () use ($taskId) {
+                ->whereColumn($jobTable.'.id', 'applicant_export_tasks.queue_job_id'))
+            ->when($id, fn ($query) => $query->where('export_id', $id))
+            ->orderByRaw("CASE kind WHEN 'prune' THEN 0 WHEN 'excel' THEN 1 ELSE 2 END")->orderBy('id')
+            ->limit(8)->get(['id', 'kind']);
+        foreach ($tasks as $task) {
+            $taskId = $task->id;
+            DB::transaction(function () use ($task, $taskId) {
                 $changed = ExportStore::tasks()->where('id', $taskId)->where('state', 'queued')
                     ->where(fn ($query) => $query->whereNull('dispatch_after')->orWhere('dispatch_after', '<=', now()))
                     ->update(['dispatch_after' => now()->addMinutes(15)]);
                 if ($changed) {
-                    $jobId = Bus::dispatch(new ProcessApplicantExport($taskId));
+                    $jobId = Bus::dispatch(new ProcessApplicantExport($taskId, $task->kind));
                     if (is_numeric($jobId)) ExportStore::tasks()->where('id', $taskId)->update(['queue_job_id' => $jobId]);
                 }
             }, 3);
@@ -65,11 +71,11 @@ class ExportQueue
     public function process(int $taskId): void
     {
         $candidate = ExportStore::tasks()->find($taskId);
-        if (! $candidate || $candidate->state !== 'queued') return;
+        if (! $candidate || $candidate->state !== 'queued' || now()->lt($candidate->due_at)) return;
 
-        $taskLock = $this->files->lock($candidate->export_id.'-'.$taskId, true);
+        $taskLock = $this->files->lock($candidate->export_id.'-'.$taskId, true, $busy);
         if (! $taskLock) {
-            $this->defer($candidate->id);
+            $this->lockFailed($candidate, $busy);
 
             return;
         }
@@ -79,13 +85,23 @@ class ExportQueue
         $publishing = false;
         $pruned = false;
         try {
-            $exportLock = $this->files->lock($candidate->export_id, $candidate->kind === 'prune');
+            $exportLock = $this->files->lock($candidate->export_id, $candidate->kind === 'prune', $busy);
             if (! $exportLock) {
-                $this->defer($candidate->id);
+                $this->lockFailed($candidate, $busy);
 
                 return;
             }
             $directory = $this->files->directory($candidate->export_id);
+            if ($candidate->kind !== 'prune') {
+                // Both filesystem locks are held. A queued task may still have an unpublished attempt.
+                foreach (File::glob("$directory/attempt-$taskId-*") as $orphan) {
+                    if (basename($orphan) !== $candidate->file && ! File::delete($orphan)) {
+                        $this->lockFailed($candidate, false, 'temporary_cleanup_failed');
+                        return;
+                    }
+                }
+            }
+            clearstatcache();
             $free = disk_free_space($this->files->directory('.locks'));
             $task = $this->claim($candidate, $free === false ? 0 : $free);
             if (! $task) return;
@@ -96,10 +112,6 @@ class ExportQueue
             }
 
             File::ensureDirectoryExists($directory, 0700);
-            // A prior worker may have died after writing but before recording the result.
-            foreach (File::glob("$directory/attempt-$task->id-*") as $orphan) {
-                if (! File::delete($orphan)) throw new RuntimeException('temporary_cleanup_failed');
-            }
             $temporary = "$directory/attempt-$task->id-$task->owner";
             $export = ExportStore::exports()->find($task->export_id);
             $deadline = microtime(true) + max(1, config('applicant_exports.timeout'));
@@ -119,6 +131,9 @@ class ExportQueue
             $this->checkpoint($task, $export->applicant_count, true);
 
             $result = [];
+            if (in_array($task->kind, ['excel', 'zip'], true) && ! is_file($temporary)) {
+                throw new RuntimeException('artifact_missing');
+            }
             if (is_file($temporary)) {
                 $size = filesize($temporary);
                 $hash = hash_file('sha256', $temporary);
@@ -154,9 +169,30 @@ class ExportQueue
                 $locks = $this->files->directory('.locks');
                 File::delete(array_merge(["$locks/$candidate->export_id"], File::glob("$locks/$candidate->export_id-*")));
             }
+            $this->dispatch();
+        }
+    }
+
+    private function lockFailed(object $candidate, bool $busy, string $reason = 'storage_unavailable'): void
+    {
+        if ($busy) {
+            // A live download or task owns the lock. It is safe to wait for its release.
+            $this->defer($candidate->id);
+            return;
         }
 
-        $this->dispatch($candidate->export_id);
+        DB::transaction(function () use ($candidate, $reason) {
+            $export = ExportStore::exports()->where('id', $candidate->export_id)->lockForUpdate()->first();
+            $task = ExportStore::tasks()->where('id', $candidate->id)->where('state', 'queued')->lockForUpdate()->first();
+            if (! $export || ! $task) return;
+            $failures = $task->lock_failures + 1;
+            $terminal = $failures >= config('applicant_exports.attempts');
+            ExportStore::tasks()->where('id', $task->id)->update([
+                'state' => $terminal ? 'failed' : 'queued', 'error' => $reason, 'lock_failures' => $failures,
+                'dispatch_after' => null, 'due_at' => now()->addSeconds(15 * $failures),
+            ]);
+            if ($terminal) ExportStore::settle($task->export_id, $task->kind);
+        }, 3);
     }
 
     private function defer(int $id): void
@@ -168,40 +204,80 @@ class ExportQueue
     private function claim(object $candidate, float $free): ?object
     {
         return DB::transaction(function () use ($candidate, $free) {
-            DB::table('applicant_export_capacity')->where('id', 1)->lockForUpdate()->first();
+            $capacity = DB::table('applicant_export_capacity')->where('id', 1);
+            $streak = $capacity->lockForUpdate()->first()->excel_streak;
             $export = ExportStore::exports()->where('id', $candidate->export_id)->lockForUpdate()->first();
             $task = ExportStore::tasks()->where('id', $candidate->id)->lockForUpdate()->first();
             if (! $export || ! $task || $task->state !== 'queued' || now()->lt($task->due_at)) return null;
 
-            if ($task->kind !== 'prune' && (now()->gte($export->expires_at) || ! $export->operation)) {
-                ExportStore::tasks()->where('id', $task->id)->update(['state' => 'cancelled']);
-                ExportStore::settle($export->id);
+            if ($task->kind === 'prune' && now()->lt($export->expires_at)) {
+                ExportStore::tasks()->where('id', $task->id)->update(['due_at' => $export->expires_at, 'dispatch_after' => null]);
                 return null;
             }
-            if (ExportStore::tasks()->whereNotNull('owner')->count() >= max(1, config('applicant_exports.concurrency'))) {
+            if ($task->kind !== 'prune' && now()->gte($export->expires_at)) {
+                ExportStore::tasks()->where('id', $task->id)->update(['state' => 'cancelled']);
+                ExportStore::settle($export->id, $task->kind);
+                return null;
+            }
+            if (ExportStore::tasks()->whereNotNull('owner')->exists()) {
                 $this->defer($task->id);
                 return null;
             }
 
-            $other = ExportStore::tasks()->where('id', '!=', $task->id);
-            $required = $task->estimate;
-            if ($required > 0 && ($required + (clone $other)->sum('reservation') > config('applicant_exports.storage_bytes')
-                || $required + (clone $other)->whereNotNull('owner')->sum('reservation') + config('applicant_exports.min_free_bytes') > $free)) {
-                ExportStore::tasks()->where('id', $task->id)->update(['state' => 'failed', 'error' => 'storage_exhausted']);
-                ExportStore::settle($export->id);
+            $excel = $task->kind === 'excel';
+            $due = ExportStore::tasks()->join('applicant_exports', 'applicant_exports.id', '=', 'applicant_export_tasks.export_id')
+                ->where('state', 'queued')->where('due_at', '<=', now())
+                ->where(fn ($query) => $query->where('kind', 'prune')->orWhere('expires_at', '>', now()));
+            $ordinaryWaiting = $excel && (clone $due)->where('kind', '!=', 'excel')->exists();
+            if (($ordinaryWaiting && $streak >= self::EXCEL_BURST)
+                || (! $excel && $streak < self::EXCEL_BURST && (clone $due)->where('kind', 'excel')->exists())) {
+                $this->defer($task->id);
                 return null;
             }
 
+            if ($task->estimate && ! $this->reserve($task, $free)) {
+                ExportStore::settle($export->id, $task->kind);
+                return null;
+            }
+
+            $capacity->update(['excel_streak' => $ordinaryWaiting ? min(self::EXCEL_BURST, $streak + 1) : 0]);
+            $required = $task->estimate;
             $owner = (string) Str::uuid();
             $attempts = $task->attempts + 1;
             ExportStore::tasks()->where('id', $task->id)->update([
                 'state' => 'running', 'owner' => $owner, 'attempts' => $attempts,
                 'lease_until' => now()->addSeconds(config('queue.connections.applicant_exports.retry_after')),
-                'reservation' => $required, 'progress' => 0,
+                'reservation' => $required, 'progress' => 0, 'error' => null, 'lock_failures' => 0,
             ]);
 
             return (object) array_replace((array) $task, ['owner' => $owner, 'attempts' => $attempts, 'reservation' => $required]);
         }, 3);
+    }
+
+    /** Admit all unfinished ZIP parts together while the singleton capacity row is locked. */
+    private function reserve(object $task, float $free): bool
+    {
+        $excel = $task->kind === 'excel';
+        $allowance = max(0, min(config('applicant_exports.excel_storage_bytes'), config('applicant_exports.storage_bytes')));
+        $pending = ExportStore::tasks()->where('export_id', $task->export_id)->where('kind', $task->kind)->where('state', 'queued');
+        $remaining = (clone $pending)->sum('estimate');
+        $committed = ExportStore::tasks()->where('kind', $task->kind)->sum('reservation') - (clone $pending)->sum('reservation');
+        // Space for Excel is withheld from both document quota and the document free-space floor.
+        $quota = ($excel ? $allowance : config('applicant_exports.storage_bytes') - $allowance) - $committed;
+        $otherPending = ExportStore::tasks()->where('kind', $task->kind)->where('export_id', '!=', $task->export_id)
+            ->where('state', 'queued')->sum('reservation');
+        $available = (int) max(0, min($quota, $free - config('applicant_exports.min_free_bytes')
+            - ($excel ? 0 : $allowance) - $otherPending));
+        if ($remaining > $available) {
+            (clone $pending)->where('attempts', 0)->update(['reservation' => 0]);
+            $pending->update(['state' => 'failed', 'error' => 'storage_exhausted',
+                'capacity_required' => $remaining, 'capacity_available' => $available]);
+
+            return false;
+        }
+        $pending->update(['reservation' => DB::raw('estimate'), 'capacity_required' => null, 'capacity_available' => null]);
+
+        return true;
     }
 
     private function checkpoint(object $task, int $count, bool $reconnect = false): void
@@ -235,7 +311,7 @@ class ExportQueue
                 'state' => $ready ? 'ready' : 'cancelled', 'owner' => null, 'lease_until' => null,
                 'reservation' => 0, 'error' => null,
             ]);
-            ExportStore::settle($task->export_id);
+            ExportStore::settle($task->export_id, $task->kind);
             return $ready;
         }, 3);
     }
@@ -252,11 +328,13 @@ class ExportQueue
             ExportStore::tasks()->where('id', $task->id)->update([
                 'state' => $cancelled ? 'cancelled' : ($retry ? 'queued' : 'failed'),
                 'owner' => null, 'lease_until' => null, 'dispatch_after' => null,
+                // The transport row from a killed worker can still be reserved until Laravel reaps it.
+                'queue_job_id' => $error === 'worker_interrupted' ? null : $current->queue_job_id,
                 'due_at' => now()->addSeconds(30 * 2 ** ($task->attempts - 1)), 'error' => $error,
                 // An interrupted attempt can have partially written output. Keep its reservation until cleaned.
                 'reservation' => $released ? 0 : $current->reservation,
             ]);
-            ExportStore::settle($task->export_id);
+            ExportStore::settle($task->export_id, $task->kind);
         }, 3);
     }
 

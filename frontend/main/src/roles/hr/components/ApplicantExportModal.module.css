@@ -1,43 +1,126 @@
 .layout,
-.summary {
+.cards,
+.partGroup,
+.footer {
   display: grid;
   gap: 12px;
 }
 
-.summary {
-  border: 1px solid var(--ink-200);
-  border-radius: var(--radius-lg);
-  padding: 12px;
+.program,
+.hint,
+.footer p {
+  margin: 0;
+  color: var(--ink-600);
 }
 
+.program {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.history,
 .actions,
-.line {
+.part {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 8px 12px;
 }
 
-.line {
-  justify-content: space-between;
+.history {
+  align-items: end;
 }
 
-.parts {
+.history > :first-child {
+  flex: 1 1 220px;
+  min-inline-size: 0;
+}
+
+.cards {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr));
+}
+
+.summaryCard {
   display: grid;
-  gap: 8px;
-  list-style: none;
+  grid-template-columns: 20px 1fr;
+  gap: 4px 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--ink-200);
+  border-radius: var(--radius-md);
+  background: var(--ink-50);
+}
+
+.summaryCard strong {
+  grid-column: 2;
+}
+
+.statusRows,
+.parts {
   padding: 0;
   margin: 0;
 }
 
-.parts li {
-  display: grid;
-  gap: 4px;
-  border-block-start: 1px solid var(--ink-200);
-  padding-block-start: 8px;
+.statusRows > div,
+.part {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-block: 8px;
+  border-block-end: 1px solid var(--ink-200);
+}
+
+.statusRows dd {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+}
+
+.part small {
+  display: block;
+  color: var(--ink-600);
 }
 
 .warning {
-  color: var(--ink-700);
-  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 8px 10px;
+  background: var(--ink-100);
+  color: var(--ink-800);
+  border-inline-start: 3px solid var(--red-600);
+  border-radius: var(--radius-sm);
+}
+
+.warning svg {
+  flex-shrink: 0;
+}
+
+.summaryCard.warning {
+  display: grid;
+}
+
+.parts {
+  list-style: none;
+}
+
+.partGroup,
+.confirmation {
+  border: 1px solid var(--ink-200);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+}
+
+.confirmation p {
+  margin-block: 0 10px;
+}
+
+.footer {
+  border-block-start: 1px solid var(--ink-200);
+  padding-block-start: 12px;
+  gap: 6px;
+  font-size: 13px;
 }
