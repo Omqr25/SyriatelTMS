@@ -117,6 +117,16 @@ Route::prefix('v1')->group(function () {
 
 
         Route::middleware('role:HR')->group(function () {
+            Route::prefix('training_program/{program}/applicant-exports')
+                ->where(['program' => '[0-9]+', 'snapshot' => '[0-9A-HJKMNP-TV-Z]{26}'])
+                ->controller(\App\Http\Controllers\Training\ApplicantExportController::class)->group(function () {
+                    Route::get('/', 'index');
+                    Route::post('/', 'store')->middleware('throttle:10,1');
+                    Route::post('{snapshot}/retry', 'retry')->middleware('throttle:10,1');
+                    Route::post('{snapshot}/cancel', 'cancel');
+                    Route::get('{snapshot}/manifest', 'manifest');
+                });
+
             Route::post('gallery', [GalleryController::class, 'store']);
             Route::patch('gallery/{photo}', [GalleryController::class, 'update'])->whereNumber('photo');
             Route::delete('gallery/{photo}', [GalleryController::class, 'destroy'])->whereNumber('photo');
@@ -303,6 +313,13 @@ Route::prefix('v1')->group(function () {
         });
 
     });
+    Route::prefix('applicant-export-downloads/{snapshot}/{artifact}')
+        ->where(['snapshot' => '[0-9A-HJKMNP-TV-Z]{26}', 'artifact' => '[0-9]+'])
+        ->controller(\App\Http\Controllers\Training\ApplicantExportDownloadController::class)->group(function () {
+            Route::post('ticket', 'ticket')->middleware('throttle:30,1');
+            Route::get('download', 'download')->name('applicant-exports.download');
+        });
+
     Route::prefix('application')->group(function () {
         Route::post('/', [ApplicationController::class, 'store'])
             ->middleware(UseRequestLocale::class);

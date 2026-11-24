@@ -1,10 +1,12 @@
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import Registration from "./Registration";
+import * as exportApi from "../../../Api/HrApi/applicantExportsApi";
 import * as api from "../../../Api/HrApi/registrationApi";
 import { toast } from "react-toastify";
 
 vi.mock("../../../Api/HrApi/registrationApi");
+vi.mock("../../../Api/HrApi/applicantExportsApi");
 vi.mock("react-toastify", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 vi.mock("react-i18next", () => ({ useTranslation: () => ({ t: (key) => key, i18n: { resolvedLanguage: "en" } }) }));
 
@@ -243,4 +245,29 @@ it("saves ordered choice questions and publishes the persisted revision", async 
     expected_revision: 1, confirm_unopened: true,
   }, "en"));
   await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+});
+
+
+it("reopens the selected program’s persisted export and downloads the ready part independently", async () => {
+  const snapshot = {
+    id: "snapshot-7", applicant_count: 3, capture_state: "ready", excel_state: "none",
+    documents_state: "ready", document_warnings: 1, operation: null,
+    created_at: "2030-01-01T12:00:00+03:00", expires_at: "2030-01-02T12:00:00+03:00",
+    tasks: [{ id: 53, kind: "zip", part: 1, state: "ready", bytes: 90000 }],
+  };
+  exportApi.listApplicantExports.mockResolvedValue([snapshot]);
+  await openList();
+  fireEvent.click(button("applicantExports.open"));
+  expect(await screen.findByRole("button", { name: "download" })).toBeTruthy();
+  expect(exportApi.listApplicantExports).toHaveBeenCalledWith(7, expect.any(AbortSignal));
+  fireEvent.click(button("download"));
+  expect(exportApi.downloadApplicantArtifact).toHaveBeenCalledWith("snapshot-7", 53);
+  fireEvent.click(button("action.close"));
+  fireEvent.click(button("applicantExports.open"));
+  expect(await screen.findByRole("button", { name: "download" })).toBeTruthy();
+  exportApi.requestApplicantExport.mockResolvedValue("snapshot-7");
+  fireEvent.click(button("excel"));
+  await waitFor(() => expect(exportApi.requestApplicantExport).toHaveBeenCalledWith(
+    7, { kind: "excel", fresh: false, snapshot_id: "snapshot-7" },
+  ));
 });

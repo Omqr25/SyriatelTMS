@@ -1,0 +1,43 @@
+.layout,
+.summary {
+  display: grid;
+  gap: 12px;
+}
+
+.summary {
+  border: 1px solid var(--ink-200);
+  border-radius: var(--radius-lg);
+  padding: 12px;
+}
+
+.actions,
+.line {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+}
+
+.line {
+  justify-content: space-between;
+}
+
+.parts {
+  display: grid;
+  gap: 8px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.parts li {
+  display: grid;
+  gap: 4px;
+  border-block-start: 1px solid var(--ink-200);
+  padding-block-start: 8px;
+}
+
+.warning {
+  color: var(--ink-700);
+  font-weight: 600;
+}

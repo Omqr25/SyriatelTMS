@@ -12,6 +12,11 @@ Artisan::command('notifications:deliver {--limit=25}', function (\App\Services\N
     $this->info("Due notification deliveries remaining: $remaining");
 })->purpose('Deliver pending inbox pushes and recover missed queue dispatches');
 
+Artisan::command('applicant-exports:reconcile', function (\App\Services\Training\ApplicantExport\ExportQueue $queue) {
+    $queue->reconcile();
+})->purpose('Reconcile interrupted applicant exports and enqueue bounded work');
+Schedule::command('applicant-exports:reconcile')->everyMinute()->withoutOverlapping(5);
+
 Schedule::command('model:prune', ['--model' => [\App\Models\EnglishScoreImport::class]])->daily();
 Schedule::command('notifications:deliver')->everyMinute()->withoutOverlapping(10)->runInBackground();
 Schedule::command('training-programs:remind-hr')->hourly()->withoutOverlapping();
