@@ -306,6 +306,7 @@
     "optionSeparator": ", "
   },
   "registration": {
+    "programActions": "Actions for {{name}}",
     "title": "Training programs",
     "add": "Add new course",
     "publishNow": "Publish program",
@@ -430,28 +431,30 @@
   },
   "applicantExports": {
     "open": "Export",
-    "title": "Export applicants · {{program}}",
-    "snapshot": "Snapshot",
+    "title": "Export Applicant Data",
     "excel": "Export Excel",
     "documents": "Export Documents",
     "new": "Create New Export",
-    "refresh": "Refresh",
     "loading": "Loading export status…",
     "loadError": "Could not refresh export status. Trying again shortly.",
-    "actionError": "Could not complete the export request. Refresh the status and try again.",
-    "applicants": "{{value}} eligible applicants",
+    "actionError": "Could not complete the export request. Try again.",
     "expires": "Expires {{value}}",
     "noApplicants": "This snapshot has no Accepted or Active applicants.",
     "noDocuments": "No applicant documents are available to archive.",
-    "documentWarnings": "{{value}} documents are missing, unreadable, or unsupported. Check the manifest for details.",
-    "confirmNew": "Capture the latest Accepted and Active applicants in a new snapshot? Existing snapshots remain available until they expire.",
+    "documentWarnings": "{{value}} unavailable documents will be omitted from the archives. See the export report for details.",
+    "confirmNew": "A new export captures current eligible applicant data. Select a previous export to reuse its captured data. Completed exports remain available until they expire. Excel and documents are generated separately when you request them.",
     "confirmCancel": "Cancel the current operation? Completed downloads will remain available until they expire.",
     "confirm": "Confirm",
     "back": "Back",
     "downloadExcel": "Download Excel",
-    "manifest": "Download manifest",
-    "retry": "Retry",
-    "cancel": "Cancel operation",
+    "retry": {
+      "excel": "Retry Excel",
+      "documents": "Retry documents"
+    },
+    "cancel": {
+      "excel": "Cancel Excel",
+      "documents": "Cancel documents"
+    },
     "parts": "ZIP parts ready: {{ready}} of {{total}}",
     "part": "Part {{value}}",
     "download": "Download",
@@ -459,26 +462,39 @@
     "oversized": "One applicant’s documents exceed the target part size and are grouped in this part.",
     "progress": "{{value}} entries processed",
     "applicantProgress": "{{value}} of {{total}} applicants processed",
-    "processingError": "Processing issue ({{error}}).",
+    "processingError": "The operation could not be completed. Retry or contact support.",
     "state": {
       "ready": "Ready",
-      "queued": "Queued or processing",
+      "queued": "Queued",
       "running": "Processing",
       "failed": "Failed",
       "cancelled": "Cancelled",
       "empty": "Empty",
-      "none": "Not requested"
-    },
-    "operation": {
-      "capture": "Capturing the applicant snapshot.",
-      "excel": "Generating the Excel workbook.",
-      "documents": "Planning or creating the ZIP parts."
+      "none": "Not requested",
+      "expired": "Expired"
     },
     "errors": {
       "storage_exhausted": "Insufficient disk space or export storage quota. Free space before retrying.",
       "worker_interrupted": "The worker was interrupted. The operation can resume from completed parts.",
       "document_changed": "An original document changed after capture. Create a new snapshot.",
-      "pin_failed": "The worker could not preserve an original document. Contact the system administrator."
-    }
+      "pin_failed": "The worker could not preserve an original document. Contact the system administrator.",
+      "storage_unavailable": "The export storage is unavailable. Contact support.",
+      "source_storage_unavailable": "Original document storage is unavailable. You can still export Excel."
+    },
+    "previous": "Previous Exports",
+    "historyOption": "{{date}} · {{count}} applicants · {{status}}",
+    "older": "Load older exports",
+    "eligible": "Eligible applicants",
+    "unavailable": "Unavailable documents",
+    "dataStage": "Data preparation",
+    "excelStage": "Excel file",
+    "documentsStage": "Documents",
+    "pendingCount": "Pending preparation",
+    "unavailableCount": "Count unavailable",
+    "preparingDocuments": "Preparing original files",
+    "capacity": "This export needs {{required}}. Available capacity is {{available}}. Free space and retry.",
+    "otherDocumentExport": "Another export is preparing document archives for this program.",
+    "report": "Download Export Report",
+    "retention": "Files are retained for {{hours}} hours from export creation."
   }
 }

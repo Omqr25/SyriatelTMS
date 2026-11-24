@@ -24,7 +24,7 @@ class AuthController extends Controller
     }
     public function logout(){
         $this->authService->logout();
-        return $this->success(null, __('messages.logout'));
+        return $this->success(null, __('messages.logout'))->header('Cache-Control', 'private, no-store');
     }
 
     public function changePassword(ChangePasswordRequest $request)

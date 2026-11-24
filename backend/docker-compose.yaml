@@ -12,6 +12,12 @@ services:
       context: .
       dockerfile: Dockerfile
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "nc", "-z", "127.0.0.1", "9000"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 20s
     depends_on:
       - syriatel_tms_db
     env_file:
@@ -30,16 +36,40 @@ services:
     env_file:
       - ./.env
 
+  syriatel_tms_export:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    stop_grace_period: 17m
+    command: runuser -u www-data -- sh ./start-worker.sh applicant-exports
+    depends_on:
+      syriatel_tms_app:
+        condition: service_healthy
+    env_file:
+      - ./.env
+    environment:
+      SKIP_STORAGE_INITIALIZATION: "1"
+      SKIP_STARTUP_MIGRATIONS: "1"
+    volumes:
+      - syriatel_app_attach:/var/www/html/storage/app/private
+
   syriatel_tms_sched:
     build:
       context: .
       dockerfile: Dockerfile
     restart: unless-stopped
-    command: sh ./start-worker.sh scheduler
+    command: runuser -u www-data -- sh ./start-worker.sh scheduler
     depends_on:
-      - syriatel_tms_db
+      syriatel_tms_app:
+        condition: service_healthy
     env_file:
       - ./.env
+    environment:
+      SKIP_STORAGE_INITIALIZATION: "1"
+      SKIP_STARTUP_MIGRATIONS: "1"
+    volumes:
+      - syriatel_app_attach:/var/www/html/storage/app/private
 
   syriatel_tms_db:
     image: mysql

@@ -112,7 +112,7 @@ class ApplicationService
             // An unacknowledged commit may still succeed. Keep its files for reconciliation.
             if (! $commitAttempted) {
                 try {
-                    $this->fileStorageService->deleteDirectory($directory);
+                    $this->fileStorageService->discardUncommittedApplication($directory);
                 } catch (Throwable $cleanupError) {
                     report($cleanupError);
                 }

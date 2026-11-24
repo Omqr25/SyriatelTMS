@@ -6,7 +6,7 @@ return [
     'storage_bytes' => (int) env('APPLICANT_EXPORT_STORAGE_BYTES', 20 * 1024 ** 3),
     'min_free_bytes' => (int) env('APPLICANT_EXPORT_MIN_FREE_BYTES', 1024 ** 3),
     'max_applicants' => (int) env('APPLICANT_EXPORT_MAX_APPLICANTS', 5000),
-    'concurrency' => (int) env('APPLICANT_EXPORT_CONCURRENCY', 1),
+    'excel_storage_bytes' => (int) env('APPLICANT_EXPORT_EXCEL_STORAGE_BYTES', 256 * 1024 ** 2),
     'timeout' => (int) env('APPLICANT_EXPORT_TIMEOUT', 900),
     'attempts' => 3,
     'retention_hours' => (int) env('APPLICANT_EXPORT_RETENTION_HOURS', 24),

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import Registration from "./Registration";
 import * as exportApi from "../../../Api/HrApi/applicantExportsApi";
 import * as api from "../../../Api/HrApi/registrationApi";
@@ -23,6 +23,10 @@ function openList(canArchive = false, fields = {}) {
 }
 
 const button = (name) => screen.getByRole("button", { name });
+function action(name) {
+  if (!screen.queryByRole("menu")) fireEvent.click(screen.getByRole("button", { name: "registration.programActions" }));
+  return screen.getByRole("menuitem", { name });
+}
 
 beforeEach(() => vi.resetAllMocks());
 afterEach(cleanup);
@@ -34,9 +38,9 @@ it("shows creation, editing, and deletion to HR without archive permission", asy
   for (const date of ["1/2/30", "31/3/30", "1/1/30", "31/1/30"]) {
     expect(screen.getByText(date)).toBeTruthy();
   }
-  expect(button("registration.edit").disabled).toBe(false);
-  expect(button("registration.delete").disabled).toBe(false);
-  expect(screen.queryByRole("button", { name: "registration.archive" })).toBeNull();
+  expect(action("registration.edit").disabled).toBe(false);
+  expect(action("registration.delete").disabled).toBe(false);
+  expect(screen.queryByRole("menuitem", { name: "registration.archive" })).toBeNull();
 });
 
 it("creates from the existing form once and updates the list on persistence", async () => {
@@ -79,13 +83,13 @@ it("saves a new program as a draft and shows it in the draft list", async () => 
   expect(await screen.findByRole("heading", { name: "Spring draft" })).toBeTruthy();
   expect(api.createProgramsApi).toHaveBeenCalledWith(expect.objectContaining({ draft: true }));
   expect(screen.getByRole("combobox").value).toBe("archived");
-  expect(button("registration.restore")).toBeTruthy();
+  expect(action("registration.restore")).toBeTruthy();
 });
 
 it("prefills the edit form, warns for changed dates, and updates the card after confirmation", async () => {
   await openList(false, { has_applicants: true });
   api.updateProgramApi.mockResolvedValue({ ...program, start_date: "2030-02-03", revision: 2 });
-  fireEvent.click(button("registration.edit"));
+  fireEvent.click(action("registration.edit"));
   const start = screen.getByLabelText("registration.startDate");
   expect(start.value).toBe("1/2/30");
   fireEvent.change(start, { target: { value: "2030-02-02" } });
@@ -103,7 +107,7 @@ it("prefills the edit form, warns for changed dates, and updates the card after 
 it("keeps the form open when a new applicant registers during an edit", async () => {
   await openList();
   api.updateProgramApi.mockRejectedValueOnce({ response: { status: 409, data: { data: { reason: "confirm_dates" } } } });
-  fireEvent.click(button("registration.edit"));
+  fireEvent.click(action("registration.edit"));
   fireEvent.change(screen.getByLabelText("registration.endDate"), { target: { value: "2030-04-30" } });
   fireEvent.click(button("common:action.save"));
   expect(await screen.findByRole("checkbox")).toBeTruthy();
@@ -113,7 +117,7 @@ it("keeps the form open when a new applicant registers during an edit", async ()
 
 it("shows chronology errors and field-level server errors without discarding edits", async () => {
   await openList();
-  fireEvent.click(button("registration.edit"));
+  fireEvent.click(action("registration.edit"));
   const start = screen.getByLabelText("registration.startDate");
   fireEvent.change(start, { target: { value: "2030-01-31" } });
   fireEvent.click(button("common:action.save"));
@@ -132,7 +136,7 @@ it("shows chronology errors and field-level server errors without discarding edi
 
 it("flags an impossible date before saving and shows shorter dates after blur", async () => {
   await openList();
-  fireEvent.click(button("registration.edit"));
+  fireEvent.click(action("registration.edit"));
   const end = screen.getByLabelText("registration.endDate");
   fireEvent.change(end, { target: { value: "29/2/30" } });
   fireEvent.click(button("common:action.save"));
@@ -147,17 +151,17 @@ it("flags an impossible date before saving and shows shorter dates after blur", 
 
 it.each(["opened", "linked", "unknown_history"])("disables deletion with the reason %s", async (reason) => {
   await openList(false, { delete_block: reason });
-  expect(button("registration.edit").disabled).toBe(false);
-  expect(button("registration.delete").disabled).toBe(true);
+  expect(action("registration.edit").disabled).toBe(false);
+  expect(action("registration.delete").getAttribute("aria-disabled")).toBe("true");
   expect(screen.getByText(`registration.blocks.${reason}`)).toBeTruthy();
 });
 
 it("requires a separate delete confirmation and removes only after success", async () => {
   await openList();
-  fireEvent.click(button("registration.delete"));
+  fireEvent.click(action("registration.delete"));
   fireEvent.click(button("common:action.cancel"));
   expect(api.deleteProgramApi).not.toHaveBeenCalled();
-  fireEvent.click(button("registration.delete"));
+  fireEvent.click(action("registration.delete"));
   fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "registration.delete" }));
   await waitFor(() => expect(screen.queryByRole("heading", { name: program.name })).toBeNull());
   expect(api.deleteProgramApi).toHaveBeenCalledWith(7, 1);
@@ -180,7 +184,7 @@ it("searches names and filters the lifecycle or archived programs without refetc
   fireEvent.change(search, { target: { value: "" } });
   fireEvent.change(screen.getByRole("combobox"), { target: { value: "archived" } });
   expect(screen.getByRole("heading", { name: "Old Training" })).toBeTruthy();
-  expect(button("registration.delete").disabled).toBe(true);
+  expect(action("registration.delete").getAttribute("aria-disabled")).toBe("true");
   expect(api.getProgramsApi).toHaveBeenCalledTimes(1);
 });
 
@@ -188,13 +192,13 @@ it("archives and restores the card through separate confirmations", async () => 
   await openList(true);
   const archived = { ...program, archived_at: "2030-01-02", delete_block: "archived", phase: "archived", revision: 2 };
   api.setProgramArchivedApi.mockResolvedValueOnce(archived).mockResolvedValueOnce({ ...program, revision: 3 });
-  fireEvent.click(button("registration.archive"));
+  fireEvent.click(action("registration.archive"));
   expect(api.setProgramArchivedApi).not.toHaveBeenCalled();
   fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "registration.archive" }));
   await waitFor(() => expect(screen.queryByRole("heading", { name: program.name })).toBeNull());
   expect(api.setProgramArchivedApi).toHaveBeenCalledWith(7, true, 1);
   fireEvent.change(screen.getByRole("combobox"), { target: { value: "archived" } });
-  fireEvent.click(button("registration.restore"));
+  fireEvent.click(action("registration.restore"));
   fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "registration.restore" }));
   await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
   expect(api.setProgramArchivedApi).toHaveBeenCalledWith(7, false, 2);
@@ -213,7 +217,7 @@ it("saves ordered choice questions and publishes the persisted revision", async 
   api.publishApplicationForm.mockResolvedValue({ ...saved, can_edit: false, published_at: "2030-01-01T00:00:00Z" });
 
   await openList();
-  fireEvent.click(button("applicationForm.manage"));
+  fireEvent.click(action("applicationForm.manage"));
   const dialog = within(screen.getByRole("dialog"));
   fireEvent.click(await dialog.findByRole("button", { name: "applicationForm.addQuestion" }));
   fireEvent.change(dialog.getByLabelText("applicationForm.prompt"), { target: { value: question.prompt } });
@@ -255,19 +259,82 @@ it("reopens the selected program’s persisted export and downloads the ready pa
     created_at: "2030-01-01T12:00:00+03:00", expires_at: "2030-01-02T12:00:00+03:00",
     tasks: [{ id: 53, kind: "zip", part: 1, state: "ready", bytes: 90000 }],
   };
-  exportApi.listApplicantExports.mockResolvedValue([snapshot]);
+  exportApi.listApplicantExports.mockResolvedValue({ data: [snapshot], retention_hours: 24 });
   await openList();
-  fireEvent.click(button("applicantExports.open"));
+  fireEvent.click(action("applicantExports.open"));
   expect(await screen.findByRole("button", { name: "download" })).toBeTruthy();
-  expect(exportApi.listApplicantExports).toHaveBeenCalledWith(7, expect.any(AbortSignal));
+  expect(exportApi.listApplicantExports).toHaveBeenCalledWith(7, expect.any(AbortSignal), undefined);
   fireEvent.click(button("download"));
   expect(exportApi.downloadApplicantArtifact).toHaveBeenCalledWith("snapshot-7", 53);
   fireEvent.click(button("action.close"));
-  fireEvent.click(button("applicantExports.open"));
+  fireEvent.click(action("applicantExports.open"));
   expect(await screen.findByRole("button", { name: "download" })).toBeTruthy();
   exportApi.requestApplicantExport.mockResolvedValue("snapshot-7");
   fireEvent.click(button("excel"));
   await waitFor(() => expect(exportApi.requestApplicantExport).toHaveBeenCalledWith(
-    7, { kind: "excel", fresh: false, snapshot_id: "snapshot-7" },
+    7, { kind: "excel", fresh: false, snapshot_id: "snapshot-7" }, "en",
   ));
+});
+
+it("keeps card information in place and restores focus when the action menu closes", async () => {
+  const heading = await openList(true, { delete_block: "linked" });
+  const card = within(heading.closest("section"));
+  expect(card.getAllByText(/1\/2\/30|31\/3\/30|1\/1\/30|31\/1\/30/)).toHaveLength(4);
+  expect(card.getAllByRole("button")).toHaveLength(1);
+  const trigger = card.getByRole("button", { name: "registration.programActions" });
+  trigger.focus();
+  fireEvent.keyDown(trigger, { key: "ArrowDown" });
+  const items = card.getAllByRole("menuitem");
+  expect(items).toHaveLength(5);
+  expect(document.activeElement).toBe(items[0]);
+  fireEvent.keyDown(items[0], { key: "End" });
+  expect(document.activeElement).toBe(items[4]);
+  expect(items[4].getAttribute("aria-disabled")).toBe("true");
+  fireEvent.keyDown(items[4], { key: "Escape" });
+  expect(card.queryByRole("menu")).toBeNull();
+  expect(document.activeElement).toBe(trigger);
+});
+
+it("loads retained history and keeps a ready workbook available with a failed document stage", async () => {
+  const base = { applicant_count: 4, capture_state: "failed", documents_state: "failed", document_warnings: null,
+    data_state: "ready", excel_state: "ready", expires_at: "2030-01-03T12:00:00+03:00",
+    created_at: "2030-01-02T12:00:00+03:00", tasks: [{ id: 21, kind: "excel", state: "ready" }] };
+  exportApi.listApplicantExports.mockImplementation(async (_, _signal, options) => options?.before
+    ? { data: [{ ...base, id: "former-export" }], next_before: null }
+    : { data: [{ ...base, id: "current-export" }], next_before: "current-export", retention_hours: 24 });
+  await openList();
+  fireEvent.click(action("applicantExports.open"));
+  expect(await screen.findByText("unavailableCount")).toBeTruthy();
+  expect(button("downloadExcel")).toBeTruthy();
+  expect(button("retry.documents")).toBeTruthy();
+  expect(screen.queryByRole("button", { name: "refresh" })).toBeNull();
+  fireEvent.click(button("older"));
+  await waitFor(() => expect(screen.getAllByRole("option").some((option) => option.value === "former-export")).toBe(true));
+  fireEvent.change(screen.getByLabelText("previous"), { target: { value: "former-export" } });
+  fireEvent.click(button("downloadExcel"));
+  expect(exportApi.downloadApplicantArtifact).toHaveBeenCalledWith("former-export", 21);
+});
+
+it("polls while the modal is idle, speeds up on active work, and stops on close", async () => {
+  await openList();
+  const data = { id: "polling-export", capture_state: "queued", data_state: "ready", excel_state: "queued",
+    documents_state: "none", applicant_count: 2, document_warnings: null, tasks: [],
+    created_at: "2030-01-01T12:00:00+03:00", expires_at: "2030-01-02T12:00:00+03:00" };
+  exportApi.listApplicantExports.mockResolvedValueOnce({ data: [], retention_hours: 24 })
+    .mockResolvedValue({ data: [data], retention_hours: 24 });
+  vi.useFakeTimers();
+  try {
+    const exportAction = action("applicantExports.open");
+    await act(async () => { fireEvent.click(exportAction); });
+    expect(exportApi.listApplicantExports).toHaveBeenCalledTimes(1);
+    await act(async () => { await vi.advanceTimersByTimeAsync(20000); });
+    expect(exportApi.listApplicantExports).toHaveBeenCalledTimes(2);
+    await act(async () => { await vi.advanceTimersByTimeAsync(4000); });
+    expect(exportApi.listApplicantExports).toHaveBeenCalledTimes(3);
+    fireEvent.click(button("action.close"));
+    await act(async () => { await vi.advanceTimersByTimeAsync(20000); });
+    expect(exportApi.listApplicantExports).toHaveBeenCalledTimes(3);
+  } finally {
+    vi.useRealTimers();
+  }
 });

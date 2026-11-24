@@ -10,11 +10,17 @@ mkdir -p /var/www/html/storage/app/public
 mkdir -p /var/www/html/bootstrap/cache
 
 
-chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
-chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+if [ "${SKIP_STORAGE_INITIALIZATION:-0}" = "1" ]; then
+    # Worker and scheduler share the web service's private volume.
+    chown -R www-data:www-data /var/www/html/storage/framework /var/www/html/bootstrap/cache
+    chown www-data:www-data /var/www/html/storage/logs
+else
+    chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+    chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+fi
 
 # Run migrations if the database is ready
-if [ "$DB_HOST" != "" ]; then
+if [ "${SKIP_STARTUP_MIGRATIONS:-0}" != "1" ] && [ "$DB_HOST" != "" ]; then
     # Wait for the database to be ready
     until nc -z -v -w30 $DB_HOST 3306; do
       echo "Waiting for database connection..."
