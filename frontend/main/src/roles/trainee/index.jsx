@@ -1,7 +1,7 @@
 import CertificatesPage from '../../features/certificates/CertificatesPage';
 import {
   BellRing,
-  User,Megaphone,CalendarCheck,CalendarOff,Star,CalendarX,LayoutDashboard,Settings
+  UserRound,Megaphone,CalendarCheck,CalendarOff,Star,CalendarX,LayoutDashboard,Settings
 } from 'lucide-react';
  
 import ProfilePage from"./pages/profile/ProfilePage";
@@ -24,10 +24,6 @@ export const traineeModule = {
       icon: LayoutDashboard, 
       labelKey: 'hr:nav.dashboard', 
       Component: Dashboard },
-    { path: 'profile', 
-      icon: User, 
-      labelKey: 'hr:nav.profile', 
-      Component: ProfilePage },
     { path: 'training-programs', 
       icon: CalendarCheck, 
       labelKey: 'hr:nav.trainingPrograms', 
@@ -54,14 +50,12 @@ export const traineeModule = {
       labelKey: "hr:nav.notification",
       Component: NotificationsPage,
     },
-    {
-      path: "settings",
-      icon: Settings,
-      labelKey: "hr:nav.settings",
-      Component: SettingsPage,
-    },
-
     { path: 'certificates', icon: Star, labelKey: 'certificates:title', Component: CertificatesPage },
+  ],
+
+  accountNav: [
+    { path: 'profile', icon: UserRound, labelKey: 'trainee:profile.title', descriptionKey: 'trainee:profile.menuDescription', Component: ProfilePage },
+    { path: 'settings', icon: Settings, labelKey: 'trainee:settings.title', descriptionKey: 'trainee:settings.menuDescription', Component: SettingsPage },
   ],
 
   extraRoutes:[

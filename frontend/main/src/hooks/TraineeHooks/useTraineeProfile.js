@@ -1,40 +1,34 @@
-import { useEffect, useState } from "react";
-import { getTraineeProfile } from "../../Api/Trainee/profileApi.js";
+import { useEffect, useState } from 'react';
+import { getTraineeProfile } from '../../Api/Trainee/profileApi';
 
 export default function useTraineeProfile() {
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [attempt, setAttempt] = useState(0);
 
-    const [profile, setProfile] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+  useEffect(() => {
+    const controller = new AbortController();
 
-    useEffect(() => {
+    getTraineeProfile({ signal: controller.signal })
+      .then((data) => {
+        if (!controller.signal.aborted) setProfile(data);
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) setError(true);
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setLoading(false);
+      });
 
-        const fetchProfile = async () => {
-            try {
-                const response = await getTraineeProfile();
+    return () => controller.abort();
+  }, [attempt]);
 
-                console.log("Profile response:", response.data);
+  function retry() {
+    setLoading(true);
+    setError(false);
+    setAttempt((previous) => previous + 1);
+  }
 
-                // Adjust this after inspecting the actual response.
-                const profileData = response.data.data ?? response.data;
-
-                setProfile(profileData);
-            }
-            catch (err) {
-                setError(
-                    err.response?.data?.message ??
-                    err.message ??
-                    "Failed to fetch profile"
-                );
-            }
-            finally {
-                setLoading(false);
-            }
-        };
-
-        fetchProfile();
-
-    }, []);
-
-    return { profile, loading, error };
+  return { profile, loading, error, retry };
 }

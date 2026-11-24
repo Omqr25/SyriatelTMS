@@ -1,7 +1,6 @@
-import api from "../axios";
+import api from '../axios';
 
-export const changePassword = async (body) => {
-    const response = await api.post("auth/changePassword", body);
-    console.log(response.data)
-    return response.data
+export async function changePassword(body) {
+  const response = await api.post('auth/changePassword', body);
+  return response.data;
 }

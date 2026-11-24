@@ -1,109 +1,69 @@
-import { changePassword } from "../../Api/Trainee/settings";
-import { useState } from "react";
-import { toast } from "react-toastify";
-import { useTranslation } from "react-i18next";
-export default function SettingsHooks() {
-    const { t } = useTranslation('trainee');
+import { useState } from 'react';
+import { changePassword } from '../../Api/Trainee/settings';
 
-    const [loadingAction, setLoadingAction] = useState(false);
+const emptyForm = { currentPassword: '', newPassword: '', confirmPassword: '' };
 
-    const [showCurrentPassword, setShowCurrentPassword] =
-        useState(false);
-    const [showNewPassword, setShowNewPassword] = useState(false);
-    const [showConfirmPassword, setShowConfirmPassword] =
-        useState(false);
+function validate({ currentPassword, newPassword, confirmPassword }) {
+  const errors = {};
 
-    const [formData, setFormData] = useState({
-        currentPassword: "",
-        newPassword: "",
-        confirmPassword: "",
-    });
+  if (!currentPassword) errors.currentPassword = 'settings.validation.currentRequired';
 
-    const [errors, setErrors] = useState({});
+  if (!newPassword) errors.newPassword = 'settings.validation.newRequired';
+  else if (newPassword.length < 8) errors.newPassword = 'settings.validation.minLength';
+  else if (newPassword === currentPassword) errors.newPassword = 'settings.validation.samePassword';
 
+  if (!confirmPassword) errors.confirmPassword = 'settings.validation.confirmRequired';
+  else if (newPassword !== confirmPassword) errors.confirmPassword = 'settings.validation.passwordMismatch';
 
-    const handleSubmit = async () => {
-        console.log('asdkfjalsdkfjal;skdjf;laskdjf')
-        if (!validateForm()) return;
-        try {
-            setLoadingAction(true);
-            const response = await changePassword({
-                current_password: formData.currentPassword,
-                new_password: formData.newPassword,
-                new_password_confirmation: formData.confirmPassword
-            });
-            setFormData({
-                currentPassword: "",
-                newPassword: "",
-                confirmPassword: "",
-            });
-            toast.success(response.message);
+  return errors;
+}
 
-        } catch (error) {
-            toast.error(error.message);
-        }
-        finally {
-            setLoadingAction(false)
+export default function usePasswordSettings() {
+  const [form, setForm] = useState(emptyForm);
+  const [visible, setVisible] = useState({});
+  const [errors, setErrors] = useState({});
+  const [status, setStatus] = useState('idle');
 
-        }
+  function updateField(name, value) {
+    setForm((previous) => ({ ...previous, [name]: value }));
+    setErrors((previous) => ({ ...previous, [name]: undefined }));
+    setStatus('idle');
+  }
 
-    };
-    const validateForm = () => {
-        const nextErrors = {};
+  function toggleVisibility(name) {
+    setVisible((previous) => ({ ...previous, [name]: !previous[name] }));
+  }
 
-        if (!formData.currentPassword) {
-            nextErrors.currentPassword = t(
-                "settings.validation.currentRequired",
-                { defaultValue: "Current password is required." }
-            );
-        }
+  async function handleSubmit(event) {
+    event.preventDefault();
+    if (status === 'saving') return;
 
-        if (!formData.newPassword) {
-            nextErrors.newPassword = t(
-                "settings.validation.newRequired",
-                { defaultValue: "New password is required." }
-            );
-        } else if (formData.newPassword.length < 8) {
-            nextErrors.newPassword = t(
-                "settings.validation.minLength",
-                { defaultValue: "Password must contain at least 8 characters." }
-            );
-        } else if (formData.newPassword === formData.currentPassword) {
-            nextErrors.newPassword = t(
-                "settings.validation.samePassword",
-                { defaultValue: "New password must differ from current password." }
-            );
-        }
-
-        if (!formData.confirmPassword) {
-            nextErrors.confirmPassword = t(
-                "settings.validation.confirmRequired",
-                { defaultValue: "Please confirm your new password." }
-            );
-        } else if (
-            formData.newPassword !== formData.confirmPassword
-        ) {
-            nextErrors.confirmPassword = t(
-                "settings.validation.passwordMismatch",
-                { defaultValue: "Passwords do not match." }
-            );
-        }
-
-        setErrors(nextErrors);
-        return Object.keys(nextErrors).length === 0;
-    };
-    return {
-        loadingAction,
-        showCurrentPassword,
-        showNewPassword,
-        showConfirmPassword,
-        setShowCurrentPassword,
-        setShowNewPassword,
-        setShowConfirmPassword,
-        errors,
-        formData,
-        setFormData,
-        setErrors,
-        handleSubmit
+    const validationErrors = validate(form);
+    setErrors(validationErrors);
+    if (Object.keys(validationErrors).length) {
+      setStatus('idle');
+      return;
     }
+
+    setStatus('saving');
+    try {
+      await changePassword({
+        current_password: form.currentPassword,
+        new_password: form.newPassword,
+        new_password_confirmation: form.confirmPassword,
+      });
+      setForm(emptyForm);
+      setVisible({});
+      setStatus('success');
+    } catch (error) {
+      if (error.response?.data?.errors?.current_password) {
+        setErrors({ currentPassword: 'settings.validation.currentIncorrect' });
+        setStatus('idle');
+      } else {
+        setStatus('failure');
+      }
+    }
+  }
+
+  return { form, visible, errors, status, updateField, toggleVisibility, handleSubmit };
 }

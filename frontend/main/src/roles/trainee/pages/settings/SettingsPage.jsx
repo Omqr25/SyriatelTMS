@@ -1,257 +1,81 @@
+import { CheckCircle2, Eye, EyeOff, ShieldCheck } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import Button from '../../../../components/ui/Button';
+import Card from '../../../../components/ui/Card';
+import usePasswordSettings from '../../../../hooks/TraineeHooks/settingsHooks';
+import styles from './SettingsPage.module.css';
 
-import { useTranslation } from "react-i18next";
-import {
-  Eye,
-  EyeOff,
-  LockKeyhole,
-  ShieldCheck,
-} from "lucide-react";
-import Button from "../../../../components/ui/Button.jsx"
+const passwordFields = [
+  { name: 'currentPassword', autoComplete: 'current-password' },
+  { name: 'newPassword', autoComplete: 'new-password', hintId: 'new-password-hint' },
+  { name: 'confirmPassword', autoComplete: 'new-password' },
+];
 
-import styles from "./SettingsPage.module.css";
-import SettingsHooks from "../../../../hooks/TraineeHooks/settingsHooks";
-
-export default function SettingsPage({
-  loading = false,
-}) {
-  const { t, i18n } = useTranslation('trainee');
-  const {
-        loadingAction,
-        showCurrentPassword,
-        showNewPassword,
-        showConfirmPassword,
-        setShowCurrentPassword,
-        setShowNewPassword,
-        setShowConfirmPassword,
-        errors,
-        formData,
-        setFormData,
-        setErrors,
-        handleSubmit
-    }=SettingsHooks()
-
-  const updateField = (field, value) => {
-    setFormData((previous) => ({
-      ...previous,
-      [field]: value,
-    }));
-
-    setErrors((previous) => ({
-      ...previous,
-      [field]: "",
-      ...(field === "newPassword" ? { confirmPassword: "" } : {}),
-    }));
-
-  };
-
-
-  const passwordFields = [
-    {
-      name: "currentPassword",
-      label: t("settings.currentPassword", {
-        defaultValue: "Current password",
-      }),
-      placeholder: t("settings.currentPlaceholder", {
-        defaultValue: "Enter your current password",
-      }),
-      visible: showCurrentPassword,
-      toggle: () => setShowCurrentPassword((value) => !value),
-    },
-    {
-      name: "newPassword",
-      label: t("settings.newPassword", {
-        defaultValue: "New password",
-      }),
-      placeholder: t("settings.newPlaceholder", {
-        defaultValue: "Enter your new password",
-      }),
-      visible: showNewPassword,
-      toggle: () => setShowNewPassword((value) => !value),
-    },
-    {
-      name: "confirmPassword",
-      label: t("settings.confirmPassword", {
-        defaultValue: "Confirm new password",
-      }),
-      placeholder: t("settings.confirmPlaceholder", {
-        defaultValue: "Re-enter your new password",
-      }),
-      visible: showConfirmPassword,
-      toggle: () =>
-        setShowConfirmPassword((value) => !value),
-    },
-  ];
+export default function SettingsPage() {
+  const { t } = useTranslation('trainee');
+  const { form, visible, errors, status, updateField, toggleVisibility, handleSubmit } = usePasswordSettings();
+  const saving = status === 'saving';
 
   return (
-  <main className={styles.page} dir={i18n.dir()}>
-    <header className={styles.pageHeader}>
-      <div className={styles.headerIcon}>
-        <LockKeyhole size={25} />
-      </div>
-
-      <div>
-        <h1 className={styles.pageTitle}>
-          {t("settings.title", {
-            defaultValue: "Settings",
-          })}
-        </h1>
-
-        <p className={styles.pageDescription}>
-          {t("settings.description", {
-            defaultValue:
-              "Manage your account security and password.",
-          })}
-        </p>
-      </div>
-    </header>
-
-    <div className={styles.layout}>
-      {/* <aside className={styles.sidebar}>
-        <p className={styles.sidebarTitle}>
-          {t("settings.account", {
-            defaultValue: "Account",
-          })}
-        </p>
-
-        <Button
-          type="Button"
-          className={`${styles.tab} `}
-          aria-current="page"
-        >
-          <LockKeyhole size={18} />
-          <span>
-            {t("settings.changePassword", {
-              defaultValue: "Change Password",
-            })}
-          </span>
-        </Button>
-      </aside> */}
-
-      <section className={styles.content}>
-        <div className={styles.cardHeader}>
-          <div>
-            <h2>
-              {t("settings.changePassword", {
-                defaultValue: "Change Password",
-              })}
-            </h2>
-            <p>
-              {t("settings.passwordDescription", {
-                defaultValue:
-                  "Update your password to keep your account secure.",
-              })}
-            </p>
-          </div>
-          <div className={styles.securityIcon}>
-            <ShieldCheck size={23} />
-          </div>
+    <Card as="div" className={styles.page}>
+      <header className={styles.heading}>
+        <div className={styles.icon}><ShieldCheck size={24} aria-hidden="true" /></div>
+        <div>
+          <h1>{t('settings.changePassword')}</h1>
+          <p>{t('settings.passwordDescription')}</p>
         </div>
+      </header>
 
-        <div className={styles.divider} />
-          <form
-            className={styles.form}
-            onSubmit={(event) => {
-              event.preventDefault();
-              handleSubmit();
-            }}
-          >
-            {passwordFields.map((field) => (
-              <div className={styles.field} key={field.name + field.label}>
-                <label htmlFor={field.name}>
-                  {t(field.label, {
-                    defaultValue: field.label,
-                  })}
-                  <span className={styles.required}>*</span>
-                </label>
+      <form className={styles.form} onSubmit={handleSubmit} aria-busy={saving} noValidate>
+        {passwordFields.map(({ name, autoComplete, hintId }) => {
+          const errorId = errors[name] ? `${name}-error` : undefined;
+          const label = t(`settings.${name}`);
 
-                <div
-                  className={`${styles.inputWrapper} ${
-                    errors[field.name] ? styles.inputError : ""
-                  }`}
+          return (
+            <div className={styles.field} key={name}>
+              <label htmlFor={name}>{label}</label>
+              <div className={`${styles.inputWrapper} ${errorId ? styles.invalid : ''}`}>
+                <input
+                  id={name}
+                  name={name}
+                  type={visible[name] ? 'text' : 'password'}
+                  value={form[name]}
+                  onChange={(event) => updateField(name, event.target.value)}
+                  autoComplete={autoComplete}
+                  aria-invalid={Boolean(errorId)}
+                  aria-describedby={[hintId, errorId].filter(Boolean).join(' ') || undefined}
+                  disabled={saving}
+                  required
+                />
+                <button
+                  type="button"
+                  className={styles.visibilityButton}
+                  onClick={() => toggleVisibility(name)}
+                  aria-label={t(visible[name] ? 'settings.hidePassword' : 'settings.showPassword', { field: label })}
+                  disabled={saving}
                 >
-                  <input
-                    id={field.name}
-                    name={field.name}
-                    type={field.visible ? "text" : "password"}
-                    value={formData[field.name]}
-                    onChange={(event) =>
-                      updateField(field.name, event.target.value)
-                    }
-                    placeholder={t(field.placeholder, {
-                      defaultValue: field.placeholder,
-                    })}
-                    autoComplete={
-                      field.name === "currentPassword"
-                        ? "current-password"
-                        : "new-password"
-                    }
-                    aria-invalid={Boolean(errors[field.name])}
-                    aria-describedby={
-                      errors[field.name]
-                        ? `${field.name}-error`
-                        : undefined
-                    }
-                    disabled={loading}
-                    required
-                  />
-
-                  <button
-                    type="button"
-                    className={styles.visibilityButton}
-                    onClick={field.toggle}
-                    aria-label={
-                      field.visible
-                        ? t("settings.hidePassword", {
-                            defaultValue: "Hide password",
-                          })
-                        : t("settings.showPassword", {
-                            defaultValue: "Show password",
-                          })
-                    }
-                    disabled={loading}
-                  >
-                    {field.visible ? (
-                      <EyeOff size={19} />
-                    ) : (
-                      <Eye size={19} />
-                    )}
-                  </button>
-                </div>
-
-                {errors[field.name] && (
-                  <p
-                    className={styles.errorText}
-                    id={`${field.name}-error`}
-                    role="alert"
-                  >
-                    {t(errors[field.name], {
-                      defaultValue: errors[field.name],
-                    })}
-                  </p>
-                )}
+                  {visible[name] ? <EyeOff size={18} aria-hidden="true" /> : <Eye size={18} aria-hidden="true" />}
+                </button>
               </div>
-            ))}
-
-            <p className={styles.passwordHint}>
-              {t("settings.passwordHint", {
-                defaultValue:
-                  "Use at least 8 characters. Avoid reusing your current password.",
-              })}
-            </p>
-
-            <div className={styles.formActions}>
-              <Button
-                type="submit"
-                className={styles.saveButton}
-                disabled={loadingAction}
-                loading={loadingAction}
-              >
-                {t("settings.saveChanges")}
-              </Button>
+              {hintId && <p id={hintId} className={styles.hint}>{t('settings.passwordHint')}</p>}
+              {errorId && <p id={errorId} role="alert" className={styles.error}>{t(errors[name])}</p>}
             </div>
-          </form>
-      </section>
-    </div>
-  </main>
-);
+          );
+        })}
+
+        {status === 'failure' && <p role="alert" className={styles.error}>{t('settings.failure')}</p>}
+        {status === 'success' && (
+          <p role="status" className={styles.success}>
+            <CheckCircle2 size={18} aria-hidden="true" /> {t('settings.success')}
+          </p>
+        )}
+
+        <div className={styles.actions}>
+          <Button type="submit" loading={saving}>
+            {t(saving ? 'common.saving' : 'settings.saveChanges')}
+          </Button>
+        </div>
+      </form>
+    </Card>
+  );
 }

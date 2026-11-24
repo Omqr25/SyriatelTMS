@@ -1,5 +1,6 @@
-import api from "../axios";
+import api from '../axios';
 
-export const getTraineeProfile = async () => {
-    return api.get("profile");
-};
+export async function getTraineeProfile(config) {
+  const { data } = await api.get('profile', config);
+  return data?.data === undefined ? data : data.data;
+}

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
+import { Link, matchPath, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { BellRing, LogOut, Menu } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
@@ -8,6 +8,7 @@ import Badge from '../ui/Badge';
 import Logo from './Logo';
 import ThemeToggle from '../ThemeToggle';
 import LanguageSwitcher from './LanguageSwitcher';
+import AccountMenu from './AccountMenu';
 import styles from './AppShell.module.css';
 
 /**
@@ -29,15 +30,11 @@ function ShellContent({ module }) {
   const { unreadCount, countUnavailable } = useNotifications();
   const { pathname } = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
-  // console.log("module:",module)
   useEffect(() => setMenuOpen(false), [pathname]);
 
-  const current = module?.nav?.find(
-  (item) =>
-    item &&
-    typeof item.path === "string" &&
-    pathname.startsWith(`${module.basePath}/${item.path}`)
-);
+  const current = [...module.nav, ...(module.accountNav ?? [])].find(
+    ({ path }) => matchPath({ path: `${module.basePath}/${path}`, end: false }, pathname),
+  );
   const roleName = t(`role.${module.role}`);
 
   return (
@@ -90,9 +87,11 @@ function ShellContent({ module }) {
               <Menu size={20} aria-hidden="true" />
             </button>
             {current && <h2>{t(current.labelKey)}</h2>}
-            <span className={current ? styles.roleWithHeading : undefined}>
-              <Badge tone="red">{roleName}</Badge>
-            </span>
+            {!module.accountNav?.includes(current) && (
+              <span className={current ? styles.roleWithHeading : undefined}>
+                <Badge tone="red">{roleName}</Badge>
+              </span>
+            )}
           </div>
 
           <div className={styles.tools}>
@@ -112,11 +111,15 @@ function ShellContent({ module }) {
               )}
             </NavLink>
             <ThemeToggle />
-            <LanguageSwitcher />
-            <div className={styles.user}>
-              <span className={styles.avatar} title={roleName} aria-label={roleName}>{module.role.slice(0, 2)}</span>
-              <span className={styles.userName}>{roleName}</span>
-            </div>
+            <LanguageSwitcher className={module.accountNav ? styles.accountLanguage : undefined} />
+            {module.accountNav ? (
+              <AccountMenu basePath={module.basePath} items={module.accountNav} />
+            ) : (
+              <div className={styles.user}>
+                <span className={styles.avatar} title={roleName} aria-label={roleName}>{module.role.slice(0, 2)}</span>
+                <span className={styles.userName}>{roleName}</span>
+              </div>
+            )}
           </div>
         </header>
 

@@ -38,7 +38,7 @@ export default function AppRouter() {
         >
 
           <Route index element={<Navigate to={module.nav[0].path} replace />} />
-          {module.nav.map(({ path, Component }) => (
+          {[...module.nav, ...(module.accountNav ?? [])].map(({ path, Component }) => (
             <Route key={path} path={path} element={<Component />} />
 
           ))}

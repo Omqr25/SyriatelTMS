@@ -227,6 +227,9 @@
   .user { display: none; }
 }
 
+@media (max-width: 440px) {
+  .accountLanguage span { display: none; }
+}
 
 .unreadBadge {
   position: absolute;

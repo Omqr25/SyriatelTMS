@@ -1,61 +1,184 @@
 .page {
-    width: 100%;
-    max-width: 1200px;
-    margin-inline: auto;
-    padding: 32px;
-    box-sizing: border-box;
-    color: light-dark(#1e293b, var(--ink-900));
+  display: grid;
+  gap: 22px;
+  width: 100%;
+  max-width: 1120px;
+  margin-inline: auto;
 }
 
-.image-label {
-    display: flex;
-    align-items: center;
-    gap: 24px;
-    padding: 8px 0 28px;
-    border-bottom: 1px solid light-dark(#e2e8f0, var(--ink-200));
+.hero {
+  display: flex;
+  align-items: center;
+  gap: clamp(14px, 3vw, 24px);
+  padding: clamp(20px, 4vw, 36px);
+  border: 1px solid var(--red-100);
+  border-radius: var(--radius-lg);
+  background: radial-gradient(ellipse at 15% 0%, var(--red-50), transparent 68%), var(--surface);
 }
 
-.profile {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    align-items: stretch;
-    gap: 32px 24px;
-    margin-top: 36px;
+:global([dir='rtl']) .hero {
+  background: radial-gradient(ellipse at 85% 0%, var(--red-50), transparent 68%), var(--surface);
 }
 
-.profile> :nth-child(3) {
-    grid-column: 1 / -1;
+.avatar {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: clamp(54px, 8vw, 80px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--red-600);
+  color: #fff;
+  box-shadow: 0 0 0 5px var(--surface);
+  font-size: clamp(20px, 3vw, 30px);
+  font-weight: 800;
+  line-height: 1;
 }
 
-@media (max-width: 768px) {
-    .page {
-        padding: 24px 20px;
-    }
-
-    .profile {
-        grid-template-columns: minmax(0, 1fr);
-        gap: 28px;
-        margin-top: 28px;
-    }
-
-    .profile> :nth-child(3) {
-        grid-column: auto;
-    }
+.identity {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
-@media (max-width: 480px) {
-    .page {
-        padding: 20px 14px;
-    }
+.role {
+  color: var(--red-700);
+  font-size: 13px;
+  font-weight: 800;
+}
 
-    .image-label {
-        align-items: center;
-        gap: 14px;
-        padding-bottom: 20px;
-    }
+.identity h1 {
+  margin-block: 2px 3px;
+  font-size: clamp(24px, 4vw, 36px);
+  line-height: 1.2;
+}
 
-    .profile {
-        margin-top: 24px;
-        gap: 26px;
-    }
+.identity p {
+  color: var(--ink-700);
+  font-size: 14px;
+}
+
+.trainingTitle {
+  margin-block-end: 10px;
+  font-size: 17px;
+}
+
+.training,
+.sections {
+  display: grid;
+  gap: 14px;
+  margin: 0;
+}
+
+.training {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.trainingItem {
+  position: relative;
+  padding: 15px;
+  padding-inline-start: 63px;
+  border: 1px solid var(--ink-200);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.trainingIcon {
+  position: absolute;
+  inset-block-start: 15px;
+  inset-inline-start: 15px;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  background: var(--red-50);
+  color: var(--red-700);
+}
+
+.training dt,
+.details dt {
+  color: var(--ink-500);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.training dd,
+.details dd {
+  margin: 0;
+  color: var(--ink-900);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.sections {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.section {
+  min-width: 0;
+  padding: clamp(14px, 3vw, 23px);
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-block-end: 14px;
+  font-size: 16px;
+}
+
+.sectionTitle svg {
+  flex: none;
+  color: var(--red-700);
+}
+
+.details {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 16px;
+  margin: 0;
+}
+
+.details dd,
+.skills {
+  font-size: 14px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+}
+
+.missing {
+  color: var(--ink-500);
+  font-weight: 400;
+}
+
+.city { text-transform: capitalize; }
+
+.attachments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.state {
+  justify-items: center;
+  gap: 10px;
+  padding-block: 40px;
+  color: var(--ink-700);
+  text-align: center;
+}
+
+.state svg { color: var(--red-700); }
+.state h1 { color: var(--ink-900); font-size: 20px; }
+
+@media (max-width: 720px) {
+  .training,
+  .sections {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .training { gap: 8px; }
+  .trainingItem { padding-block: 12px; }
+  .trainingIcon { inset-block-start: 50%; transform: translateY(-50%); }
 }

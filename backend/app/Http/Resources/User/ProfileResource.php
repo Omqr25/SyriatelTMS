@@ -15,7 +15,8 @@ class ProfileResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        $application = $this->trainee?->application;
+        $trainee = $this->trainee;
+        $application = $trainee->application;
 
         return [
             'personal_information' => [
@@ -29,6 +30,12 @@ class ProfileResource extends JsonResource
                 'phone_number' => $this->phone_number,
                 'city' => $application?->city,
                 'home_address' => $application?->home_address,
+            ],
+
+            'training_information' => [
+                'direct_supervisor' => $trainee->trainer?->user?->name,
+                'department' => $trainee->department?->name,
+                'training_program' => $application->trainingProgram?->name,
             ],
 
             'educational_information' => [

@@ -1,0 +1,87 @@
+.menu {
+  position: relative;
+}
+
+.trigger {
+  gap: 8px;
+  padding-inline: 5px 9px;
+}
+
+.avatar,
+.icon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  background: var(--red-50);
+  color: var(--red-700);
+}
+
+.avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+}
+
+.trigger[aria-expanded='true'] .chevron {
+  transform: rotate(180deg);
+}
+
+.panel {
+  position: absolute;
+  inset-block-start: calc(100% + 10px);
+  inset-inline-end: 0;
+  width: min(268px, calc(100vw - 24px));
+  padding: 6px;
+  border: 1px solid var(--ink-200);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  box-shadow: var(--shadow-md);
+}
+
+.link {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 9px;
+  border-radius: var(--radius-sm);
+  color: var(--ink-900);
+  text-decoration: none;
+}
+
+.link:hover,
+.link[aria-current='page'] {
+  background: var(--ink-100);
+}
+
+.link:focus-visible {
+  outline-offset: -2px;
+}
+
+.icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+}
+
+.link[aria-current='page'] .linkCopy strong {
+  color: var(--red-700);
+}
+
+.linkCopy {
+  display: grid;
+  gap: 2px;
+  line-height: 1.35;
+}
+
+.linkCopy strong { font-size: 14px; }
+.linkCopy > span { color: var(--ink-500); font-size: 12px; }
+
+@media (max-width: 580px) {
+  .trigger {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0;
+  }
+
+  .triggerLabel, .chevron { display: none; }
+}

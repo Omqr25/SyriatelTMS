@@ -1,97 +1,153 @@
-import Image from "../../../../components/ui/Image.jsx";
-import TitleField from "../../../../components/ui/Title_Field.jsx";
-import TextField from "../../../../components/ui/Text_Field.jsx";
-import BlocArea from "../../../../components/ui/Bloc_Area.jsx";
-import ApplicationAttachmentButton from "../../../../components/ui/ApplicationAttachmentButton";
-import styles from "./ProfilePage.module.css"
+import {
+  BookOpen, BriefcaseBusiness, Building2, FileText, GraduationCap, IdCard, UserRound,
+} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import useTraineeProfile from "../../../../hooks/TraineeHooks/useTraineeProfile.js";
+import ApplicationAttachmentButton from '../../../../components/ui/ApplicationAttachmentButton';
+import Button from '../../../../components/ui/Button';
+import Card from '../../../../components/ui/Card';
+import useTraineeProfile from '../../../../hooks/TraineeHooks/useTraineeProfile';
+import styles from './ProfilePage.module.css';
+
+const attachments = [
+  ['cv', 'cv'],
+  ['national_id', 'idAttachment'],
+  ['academic_qualification', 'academicCertification'],
+];
+
+function ProfileSection({ title, icon: Icon, id, children }) {
+  return (
+    <Card className={styles.section} aria-labelledby={id}>
+      <h2 id={id} className={styles.sectionTitle}>
+        <Icon size={19} aria-hidden="true" /> {title}
+      </h2>
+      {children}
+    </Card>
+  );
+}
+
+function DetailValue({ value, direction }) {
+  const { t } = useTranslation('trainee');
+  if (value === null || value === undefined || value === '') {
+    return <span className={styles.missing}>{t('profile.notProvided')}</span>;
+  }
+  return <bdi dir={direction}>{value}</bdi>;
+}
+
+function Details({ fields }) {
+  const { t } = useTranslation('trainee');
+
+  return (
+    <dl className={styles.details}>
+      {fields.map(([label, value, direction]) => (
+        <div key={label}>
+          <dt>{t(`profile.${label}`)}</dt>
+          <dd><DetailValue value={value} direction={direction} /></dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
 
 export default function ProfilePage() {
-    const {t}=useTranslation('trainee');
-    const { profile, loading, error } = useTraineeProfile();
-    if (loading) {
-        return <p>Loading profile...</p>;
-    }
+  const { t } = useTranslation('trainee');
+  const { profile, loading, error, retry } = useTraineeProfile();
 
-    if (error) {
-        return <p>Failed to load profile: {error}</p>;
-    }
-
-    if (!profile) {
-        return <p>Profile not found.</p>;
-    }
-    
-    const personal = profile.personal_information;
-    const contact = profile.contact_information;
-    const education = profile.educational_information;
-
+  if (loading || !profile) {
     return (
-        <main className={styles["page"]}>
-            <header className={styles["image-label"]}>
-                <Image />
-                <TitleField
-                    title={personal.name}
-                    subTitle={personal.national_id_number ? `#${personal.national_id_number}` : "—"}
-                />
-            </header>
-            <section className={styles["profile"]}>
-                <BlocArea title={t("profile.personal")}>
-                    <TextField lable={ t("profile.email")} value={contact.email ?? "—"} />
-                    <TextField lable={t("profile.phone")} value={contact.phone_number ?? "—"} />
-                    <TextField lable={t("profile.birthDate")} value={personal.birth_date ?? "—"} />
-                    <TextField lable={t("profile.city")} value={contact.city ?? "—"} />
-                    <TextField
-                        lable={t("profile.address")}
-                        value={contact.home_address ?? "—"}
-                    />
-                </BlocArea>
-                <BlocArea title={t("profile.education")}>
-                    <TextField
-                        lable={t("profile.university")}
-                        value={education.university ?? "—"}
-                    />
-                    <TextField
-                        lable={t("profile.field")}
-                        value={education.field_of_study ?? "—"}
-                    />
-                    <TextField
-                        lable={t("profile.academicMajor")}
-                        value={education.academic_major ?? "—"}
-                    />
-                    <TextField lable={t("profile.yearOfStudy")} value={education.year_of_study ?? "—"} />
-                    <TextField lable={t("profile.gpa")} value={education.gpa ?? "—"} />
-                </BlocArea>
-                <BlocArea title={t("profile.skills")}>
-                    <TextField
-                        lable={t("profile.technicalSkills")}
-                        value={
-                            Array.isArray(education.technical_skills)
-                                ? education.technical_skills.join(", ")
-                                : education.technical_skills ?? "—"
-                        }
-                    />
-                </BlocArea>
-                {/* <BlocArea title={t("profile.otherInformation")}>
-                    <TextField lable={t("profile.commitment")} value={t("profile.yes")} />
-                    <TextField lable={t("profile.previousTraining")} value={t("profile.no")} />
-                    <TextField
-                        lable={t("profile.howDidYouHearAboutUs")}
-                        value={t("profile.universityWorkshop")}
-                    />
-                </BlocArea> */}
-                <BlocArea title={t("profile.attachments")}>
-                    {[
-                        ["cv", "profile.cv"],
-                        ["national_id", "profile.idAttachment"],
-                        ["academic_qualification", "profile.academicCertification"],
-                    ].map(([type, label]) => (
-                        <ApplicationAttachmentButton key={type} applicationId={profile.application_id} attachmentType={type}>
-                            {t(label)}
-                        </ApplicationAttachmentButton>
-                    ))}
-                </BlocArea>
-            </section>
-        </main>
+      <Card className={`${styles.page} ${styles.state}`}>
+        <UserRound size={25} aria-hidden="true" />
+        {loading ? (
+          <p role="status">{t('profile.loading')}</p>
+        ) : (
+          <>
+            <div role="alert"><h1>{t('profile.unavailable')}</h1></div>
+            {error && <Button variant="secondary" onClick={retry}>{t('profile.retry')}</Button>}
+          </>
+        )}
+      </Card>
     );
+  }
+
+  const personal = profile.personal_information ?? {};
+  const contact = profile.contact_information ?? {};
+  const education = profile.educational_information ?? {};
+  const training = profile.training_information ?? {};
+  const initials = personal.name?.trim().split(/\s+/).slice(0, 2)
+    .map((word) => Array.from(word)[0]).join('').toLocaleUpperCase();
+  const skills = Array.isArray(education.technical_skills)
+    ? education.technical_skills.filter(Boolean).join(', ')
+    : education.technical_skills;
+  const assignment = [
+    ['trainingProgram', training.training_program, GraduationCap],
+    ['department', training.department, Building2],
+    ['directSupervisor', training.direct_supervisor, UserRound],
+  ];
+
+  return (
+    <div className={styles.page}>
+      <header className={styles.hero}>
+        <div className={styles.avatar} aria-hidden="true">
+          {initials || <UserRound size={27} />}
+        </div>
+        <div className={styles.identity}>
+          <span className={styles.role}>{t('common:role.TRAINEE')}</span>
+          <h1><bdi>{personal.name || t('profile.title')}</bdi></h1>
+          {contact.email && <p><bdi dir="ltr">{contact.email}</bdi></p>}
+        </div>
+      </header>
+
+      <section aria-labelledby="profile-training">
+        <h2 id="profile-training" className={styles.trainingTitle}>{t('profile.training')}</h2>
+        <dl className={styles.training}>
+          {assignment.map(([label, value, Icon]) => (
+            <div className={styles.trainingItem} key={label}>
+              <dt>
+                <span className={styles.trainingIcon}><Icon size={20} aria-hidden="true" /></span>
+                {t(`profile.${label}`)}
+              </dt>
+              <dd><DetailValue value={value} /></dd>
+            </div>
+          ))}
+        </dl>
+      </section>
+
+      <div className={styles.sections}>
+        <ProfileSection id="profile-personal" title={t('profile.personal')} icon={IdCard}>
+          <Details fields={[
+            ['phone', contact.phone_number, 'ltr'],
+            ['nationalId', personal.national_id_number, 'ltr'],
+            ['birthDate', personal.birth_date, 'ltr'],
+            ['city', contact.city && (
+              <span className={styles.city}>{t(`common:city.${contact.city}`, { defaultValue: contact.city })}</span>
+            )],
+            ['address', contact.home_address],
+          ]} />
+        </ProfileSection>
+
+        <ProfileSection id="profile-education" title={t('profile.education')} icon={BookOpen}>
+          <Details fields={[
+            ['university', education.university],
+            ['field', education.field_of_study],
+            ['academicMajor', education.academic_major],
+            ['yearOfStudy', education.year_of_study && t(`common:academicYear.${education.year_of_study}`, { defaultValue: education.year_of_study })],
+            ['gpa', education.gpa, 'ltr'],
+          ]} />
+        </ProfileSection>
+
+        <ProfileSection id="profile-skills" title={t('profile.technicalSkills')} icon={BriefcaseBusiness}>
+          <p className={styles.skills}><DetailValue value={skills} /></p>
+        </ProfileSection>
+
+        <ProfileSection id="profile-attachments" title={t('profile.attachments')} icon={FileText}>
+          <div className={styles.attachments}>
+            {attachments.map(([type, label]) => (
+              <ApplicationAttachmentButton key={type} applicationId={profile.application_id} attachmentType={type}>
+                {t(`profile.${label}`)}
+              </ApplicationAttachmentButton>
+            ))}
+          </div>
+        </ProfileSection>
+      </div>
+    </div>
+  );
 }
