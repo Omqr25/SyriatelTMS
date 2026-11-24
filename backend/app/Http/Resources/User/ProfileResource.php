@@ -17,6 +17,7 @@ class ProfileResource extends JsonResource
     {
         $trainee = $this->trainee;
         $application = $trainee->application;
+        $program = $application->trainingProgram;
 
         return [
             'personal_information' => [
@@ -35,7 +36,9 @@ class ProfileResource extends JsonResource
             'training_information' => [
                 'direct_supervisor' => $trainee->trainer?->user?->name,
                 'department' => $trainee->department?->name,
-                'training_program' => $application->trainingProgram?->name,
+                'training_program' => $program?->name,
+                'training_program_start_date' => $program?->start_date?->toDateString(),
+                'training_program_end_date' => $program?->end_date?->toDateString(),
             ],
 
             'educational_information' => [

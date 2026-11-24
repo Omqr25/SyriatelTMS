@@ -38,6 +38,24 @@ class TrainerController extends Controller
         return $this->success(TrainerResource::make($trainer));
     }
 
+    public function getProfile(Request $request)
+    {
+        $user = $request->user()->load('trainer.department');
+        $department = $user->trainer?->department;
+
+        return $this->success([
+            'personal_information' => ['name' => $user->name],
+            'contact_information' => [
+                'email' => $user->email,
+                'phone_number' => $user->phone_number,
+            ],
+            'work_information' => [
+                'department' => $department?->name,
+                'department_location' => $department?->location,
+            ],
+        ]);
+    }
+
     public function update(UpdateTrainerRequest $request, int $trainer_id) {
         $trainer = $this->trainerService->update($trainer_id, $request->validated());
         return $this->success(TrainerResource::make($trainer));

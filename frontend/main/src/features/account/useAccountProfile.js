@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { getTraineeProfile } from '../../Api/Trainee/profileApi';
+import { getAccountProfile } from './accountApi';
 
-export default function useTraineeProfile() {
+export default function useAccountProfile(endpoint) {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -10,7 +10,7 @@ export default function useTraineeProfile() {
   useEffect(() => {
     const controller = new AbortController();
 
-    getTraineeProfile({ signal: controller.signal })
+    getAccountProfile(endpoint, { signal: controller.signal })
       .then((data) => {
         if (!controller.signal.aborted) setProfile(data);
       })
@@ -22,7 +22,7 @@ export default function useTraineeProfile() {
       });
 
     return () => controller.abort();
-  }, [attempt]);
+  }, [endpoint, attempt]);
 
   function retry() {
     setLoading(true);

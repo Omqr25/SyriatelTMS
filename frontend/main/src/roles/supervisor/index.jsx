@@ -31,6 +31,8 @@ import VacationRequest from "./pages/VacationRequest";
 import AbsentPage from "./pages/AbsentPage";
 import AnnouncementsPage from "./pages/AnnouncementsPage";
 import NotificationsPage from "../../components/notification/NotificationsPage";
+import { accountRoutes } from "../../features/account/accountRoutes";
+import ProfilePage from "./pages/ProfilePage";
 
 /**
  * وحدة دور الموارد البشرية.
@@ -106,6 +108,8 @@ export const supervisorModule = {
 
     // { path: 'evaluations', icon: Star, labelKey: 'hr:nav.evaluations', Component: EvaluationsPage },
   ],
+
+  accountNav: accountRoutes(ProfilePage),
 
   extraRoutes: [
     {

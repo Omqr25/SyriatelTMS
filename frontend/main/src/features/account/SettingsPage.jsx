@@ -1,8 +1,8 @@
 import { CheckCircle2, Eye, EyeOff, ShieldCheck } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import Button from '../../../../components/ui/Button';
-import Card from '../../../../components/ui/Card';
-import usePasswordSettings from '../../../../hooks/TraineeHooks/settingsHooks';
+import Button from '../../components/ui/Button';
+import Card from '../../components/ui/Card';
+import usePasswordSettings from './usePasswordSettings';
 import styles from './SettingsPage.module.css';
 
 const passwordFields = [
@@ -12,7 +12,7 @@ const passwordFields = [
 ];
 
 export default function SettingsPage() {
-  const { t } = useTranslation('trainee');
+  const { t } = useTranslation('account');
   const { form, visible, errors, status, updateField, toggleVisibility, handleSubmit } = usePasswordSettings();
   const saving = status === 'saving';
 
@@ -72,7 +72,7 @@ export default function SettingsPage() {
 
         <div className={styles.actions}>
           <Button type="submit" loading={saving}>
-            {t(saving ? 'common.saving' : 'settings.saveChanges')}
+            {t(saving ? 'settings.saving' : 'settings.saveChanges')}
           </Button>
         </div>
       </form>

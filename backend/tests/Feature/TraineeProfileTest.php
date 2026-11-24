@@ -26,7 +26,13 @@ class TraineeProfileTest extends TestCase
         $supervisor = User::factory()->create(['name' => 'Rana Khalil']);
         $department = Department::factory()->create(['name' => 'Network Operations']);
         $trainer = Trainer::factory()->forUser($supervisor)->forDepartment($department)->create();
-        $program = TrainingProgram::factory()->create(['name' => 'Network Engineering Internship']);
+        $program = TrainingProgram::factory()->create([
+            'name' => 'Network Engineering Internship',
+            'application_start_date' => '2026-08-01',
+            'application_end_date' => '2026-08-31',
+            'start_date' => '2026-09-15',
+            'end_date' => '2026-12-15',
+        ]);
         $application = Application::factory()->create(['training_program_id' => $program->id]);
         Trainee::factory()->create([
             'user_id' => $traineeUser->id,
@@ -47,6 +53,8 @@ class TraineeProfileTest extends TestCase
                 'direct_supervisor' => $supervisor->name,
                 'department' => $department->name,
                 'training_program' => $program->name,
+                'training_program_start_date' => '2026-09-15',
+                'training_program_end_date' => '2026-12-15',
             ])
             ->assertJsonStructure(['data' => ['attachments' => ['cv', 'national_id', 'academic_qualification', 'personal_photo']]]);
     }

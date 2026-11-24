@@ -57,23 +57,23 @@
   font-size: 14px;
 }
 
-.trainingTitle {
+.highlightsTitle {
   margin-block-end: 10px;
   font-size: 17px;
 }
 
-.training,
+.highlights,
 .sections {
   display: grid;
   gap: 14px;
   margin: 0;
 }
 
-.training {
+.highlights {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-.trainingItem {
+.highlight {
   position: relative;
   padding: 15px;
   padding-inline-start: 63px;
@@ -83,7 +83,7 @@
   box-shadow: var(--shadow-sm);
 }
 
-.trainingIcon {
+.highlightIcon {
   position: absolute;
   inset-block-start: 15px;
   inset-inline-start: 15px;
@@ -96,15 +96,17 @@
   color: var(--red-700);
 }
 
-.training dt,
-.details dt {
+.highlight > dt,
+.details dt,
+.highlightDetails dt {
   color: var(--ink-500);
   font-size: 12.5px;
   font-weight: 600;
 }
 
-.training dd,
-.details dd {
+.highlight > dd,
+.details dd,
+.highlightDetails dd {
   margin: 0;
   color: var(--ink-900);
   font-weight: 700;
@@ -133,11 +135,25 @@
   color: var(--red-700);
 }
 
-.details {
+.details,
+.highlightDetails {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px 16px;
   margin: 0;
+}
+
+.highlightDetails {
+  grid-template-columns: repeat(auto-fit, minmax(min(82px, 100%), 1fr));
+  gap: 8px 12px;
+  margin-block-start: 10px;
+  padding-block-start: 9px;
+  border-block-start: 1px solid var(--ink-200);
+}
+
+.highlightDetails dd {
+  font-size: 13px;
+  font-weight: 600;
 }
 
 .details dd,
@@ -173,12 +189,12 @@
 .state h1 { color: var(--ink-900); font-size: 20px; }
 
 @media (max-width: 720px) {
-  .training,
+  .highlights,
   .sections {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .training { gap: 8px; }
-  .trainingItem { padding-block: 12px; }
-  .trainingIcon { inset-block-start: 50%; transform: translateY(-50%); }
+  .highlights { gap: 8px; }
+  .highlight { padding-block: 12px; }
+  .highlightIcon { inset-block-start: 12px; }
 }

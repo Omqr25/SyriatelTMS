@@ -189,6 +189,7 @@ Route::prefix('v1')->group(function () {
 
         Route::middleware('role:SUPERVISOR')->group(function () {
             Route::get('dashboard/trainer', [DashboardController::class, 'trainer']);
+            Route::get('supervisor/profile', [TrainerController::class, 'getProfile']);
             Route::prefix('application/trainer')->group(function () {
                 Route::get('assigned', [ApplicationController::class, 'trainerApplications']);
                 Route::get('interview', [ApplicationController::class, 'trainerInterviews']);

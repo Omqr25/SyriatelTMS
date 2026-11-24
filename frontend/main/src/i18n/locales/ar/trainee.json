@@ -1,19 +1,13 @@
 {   "profile":{
-            "title": "حسابي",
-            "menuLabel": "قائمة الحساب",
             "menuDescription": "المعلومات الشخصية وتفاصيل التدريب",
             "training": "تفاصيل التدريب",
             "trainingProgram": "برنامج التدريب الحالي",
-            "department": "القسم",
+            "programStartDate": "تاريخ البدء",
+            "programEndDate": "تاريخ الانتهاء",
             "directSupervisor": "المشرف المباشر",
             "nationalId": "الرقم الوطني",
-            "notProvided": "غير متاح",
-            "loading": "جارٍ تحميل بيانات حسابك…",
-            "unavailable": "تعذّر تحميل بيانات حسابك.",
-            "retry": "إعادة المحاولة",
             "personal": "المعلومات الشخصية",
             "email": "البريد الإلكتروني:",
-            "phone": "رقم الهاتف",
             "birthDate": "تاريخ الميلاد",
             "city": "المدينة",
             "address": "العنوان",
@@ -81,31 +75,6 @@
                 "completed_tasks_count":"عدد المهام المنجزة",
                 "assigned_tasks_count":"عدد المهام المسندة"
         },
-  "settings": {
-    "menuDescription": "غيّر كلمة المرور الخاصة بك",
-    "title": "الإعدادات",
-    "account": "الحساب",
-    "changePassword": "تغيير كلمة المرور",
-    "passwordDescription": "أدخل كلمة المرور الحالية لتعيين كلمة مرور جديدة.",
-    "currentPassword": "كلمة المرور الحالية",
-    "newPassword": "كلمة المرور الجديدة",
-    "confirmPassword": "تأكيد كلمة المرور الجديدة",
-    "hidePassword": "إخفاء {{field}}",
-    "showPassword": "إظهار {{field}}",
-    "passwordHint": "اختر كلمة مرور مختلفة تتكوّن من 8 أحرف على الأقل.",
-    "saveChanges": "تحديث كلمة المرور",
-    "success": "تم تغيير كلمة المرور بنجاح.",
-    "failure": "تعذر تغيير كلمة المرور. يرجى المحاولة مرة أخرى.",
-    "validation": {
-      "currentIncorrect": "كلمة المرور الحالية غير صحيحة.",
-      "currentRequired": "كلمة المرور الحالية مطلوبة.",
-      "newRequired": "كلمة المرور الجديدة مطلوبة.",
-      "minLength": "يجب أن تتكون كلمة المرور من 8 أحرف على الأقل.",
-      "samePassword": "يجب أن تختلف كلمة المرور الجديدة عن كلمة المرور الحالية.",
-      "confirmRequired": "يرجى تأكيد كلمة المرور الجديدة.",
-      "passwordMismatch": "كلمتا المرور غير متطابقتين."
-    }
-  },
   "common": {
     "cancel": "إلغاء",
     "saving": "جارٍ الحفظ..."

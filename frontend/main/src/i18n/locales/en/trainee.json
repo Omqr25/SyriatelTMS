@@ -1,19 +1,13 @@
 {   "profile":{
-                "title": "My account",
-                "menuLabel": "Account menu",
                 "menuDescription": "Profile and training details",
                 "training": "Training details",
                 "trainingProgram": "Current training program",
-                "department": "Department",
+                "programStartDate": "Start date",
+                "programEndDate": "End date",
                 "directSupervisor": "Direct supervisor",
                 "nationalId": "National ID",
-                "notProvided": "Not available",
-                "loading": "Loading your account…",
-                "unavailable": "Your account details could not be loaded.",
-                "retry": "Try again",
                 "personal": "Personal information",
                 "email": "Email:",
-                "phone": "Phone number",
                 "birthDate": "Date of birth",
                 "city": "City",
                 "address": "Address",
@@ -84,31 +78,6 @@
                 "assigned_tasks_count":"Assigned Tasks Count"
 
         },
-  "settings": {
-    "menuDescription": "Change your password",
-    "title": "Settings",
-    "account": "Account",
-    "changePassword": "Change password",
-    "passwordDescription": "Enter your current password to set a new one.",
-    "currentPassword": "Current password",
-    "newPassword": "New password",
-    "confirmPassword": "Confirm new password",
-    "hidePassword": "Hide {{field}}",
-    "showPassword": "Show {{field}}",
-    "passwordHint": "Use at least 8 characters and choose a different password.",
-    "saveChanges": "Update password",
-    "success": "Your password has been changed successfully.",
-    "failure": "Unable to change your password. Please try again.",
-    "validation": {
-      "currentIncorrect": "Your current password is incorrect.",
-      "currentRequired": "Current password is required.",
-      "newRequired": "New password is required.",
-      "minLength": "Password must contain at least 8 characters.",
-      "samePassword": "New password must differ from current password.",
-      "confirmRequired": "Please confirm your new password.",
-      "passwordMismatch": "Passwords do not match."
-    }
-  },
   "common": {
     "cancel": "Cancel",
     "saving": "Saving..."

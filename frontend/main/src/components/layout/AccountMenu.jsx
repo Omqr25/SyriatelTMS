@@ -5,7 +5,7 @@ import { NavLink, useLocation } from 'react-router-dom';
 import styles from './AccountMenu.module.css';
 
 export default function AccountMenu({ basePath, items }) {
-  const { t } = useTranslation('trainee');
+  const { t } = useTranslation('account');
   const { pathname } = useLocation();
   const [open, setOpen] = useState(false);
   const panelId = useId();

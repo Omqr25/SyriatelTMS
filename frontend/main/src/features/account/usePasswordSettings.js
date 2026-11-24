@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { changePassword } from '../../Api/Trainee/settings';
+import { changePassword } from './accountApi';
 
 const emptyForm = { currentPassword: '', newPassword: '', confirmPassword: '' };
 

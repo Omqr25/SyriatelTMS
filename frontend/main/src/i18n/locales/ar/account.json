@@ -1,0 +1,41 @@
+{
+  "profile": {
+    "title": "حسابي",
+    "menuLabel": "قائمة الحساب",
+    "menuDescription": "بيانات الملف الشخصي",
+    "department": "القسم",
+    "phone": "رقم الهاتف",
+    "notProvided": "غير متاح",
+    "loading": "جارٍ تحميل بيانات حسابك…",
+    "unavailable": "تعذّر تحميل بيانات حسابك.",
+    "retry": "إعادة المحاولة",
+    "workDetails": "بيانات العمل",
+    "departmentLocation": "موقع القسم"
+  },
+  "settings": {
+    "menuDescription": "غيّر كلمة المرور الخاصة بك",
+    "title": "الإعدادات",
+    "account": "الحساب",
+    "changePassword": "تغيير كلمة المرور",
+    "passwordDescription": "أدخل كلمة المرور الحالية لتعيين كلمة مرور جديدة.",
+    "currentPassword": "كلمة المرور الحالية",
+    "newPassword": "كلمة المرور الجديدة",
+    "confirmPassword": "تأكيد كلمة المرور الجديدة",
+    "hidePassword": "إخفاء {{field}}",
+    "showPassword": "إظهار {{field}}",
+    "passwordHint": "اختر كلمة مرور مختلفة تتكوّن من 8 أحرف على الأقل.",
+    "saveChanges": "تحديث كلمة المرور",
+    "success": "تم تغيير كلمة المرور بنجاح.",
+    "failure": "تعذر تغيير كلمة المرور. يرجى المحاولة مرة أخرى.",
+    "validation": {
+      "currentIncorrect": "كلمة المرور الحالية غير صحيحة.",
+      "currentRequired": "كلمة المرور الحالية مطلوبة.",
+      "newRequired": "كلمة المرور الجديدة مطلوبة.",
+      "minLength": "يجب أن تتكون كلمة المرور من 8 أحرف على الأقل.",
+      "samePassword": "يجب أن تختلف كلمة المرور الجديدة عن كلمة المرور الحالية.",
+      "confirmRequired": "يرجى تأكيد كلمة المرور الجديدة.",
+      "passwordMismatch": "كلمتا المرور غير متطابقتين."
+    },
+    "saving": "جارٍ الحفظ..."
+  }
+}
