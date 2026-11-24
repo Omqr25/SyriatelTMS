@@ -1,0 +1,200 @@
+.page {
+  display: grid;
+  gap: 22px;
+  width: 100%;
+  max-width: 1120px;
+  margin-inline: auto;
+}
+
+.hero {
+  display: flex;
+  align-items: center;
+  gap: clamp(14px, 3vw, 24px);
+  padding: clamp(20px, 4vw, 36px);
+  border: 1px solid var(--red-100);
+  border-radius: var(--radius-lg);
+  background: radial-gradient(ellipse at 15% 0%, var(--red-50), transparent 68%), var(--surface);
+}
+
+:global([dir='rtl']) .hero {
+  background: radial-gradient(ellipse at 85% 0%, var(--red-50), transparent 68%), var(--surface);
+}
+
+.avatar {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: clamp(54px, 8vw, 80px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--red-600);
+  color: #fff;
+  box-shadow: 0 0 0 5px var(--surface);
+  font-size: clamp(20px, 3vw, 30px);
+  font-weight: 800;
+  line-height: 1;
+}
+
+.identity {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.role {
+  color: var(--red-700);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.identity h1 {
+  margin-block: 2px 3px;
+  font-size: clamp(24px, 4vw, 36px);
+  line-height: 1.2;
+}
+
+.identity p {
+  color: var(--ink-700);
+  font-size: 14px;
+}
+
+.highlightsTitle {
+  margin-block-end: 10px;
+  font-size: 17px;
+}
+
+.highlights,
+.sections {
+  display: grid;
+  gap: 14px;
+  margin: 0;
+}
+
+.highlights {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.highlight {
+  position: relative;
+  padding: 15px;
+  padding-inline-start: 63px;
+  border: 1px solid var(--ink-200);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.highlightIcon {
+  position: absolute;
+  inset-block-start: 15px;
+  inset-inline-start: 15px;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  background: var(--red-50);
+  color: var(--red-700);
+}
+
+.highlight > dt,
+.details dt,
+.highlightDetails dt {
+  color: var(--ink-500);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.highlight > dd,
+.details dd,
+.highlightDetails dd {
+  margin: 0;
+  color: var(--ink-900);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.sections {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.section {
+  min-width: 0;
+  padding: clamp(14px, 3vw, 23px);
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-block-end: 14px;
+  font-size: 16px;
+}
+
+.sectionTitle svg {
+  flex: none;
+  color: var(--red-700);
+}
+
+.details,
+.highlightDetails {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 16px;
+  margin: 0;
+}
+
+.highlightDetails {
+  grid-template-columns: repeat(auto-fit, minmax(min(82px, 100%), 1fr));
+  gap: 8px 12px;
+  margin-block-start: 10px;
+  padding-block-start: 9px;
+  border-block-start: 1px solid var(--ink-200);
+}
+
+.highlightDetails dd {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.details dd,
+.skills {
+  font-size: 14px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+}
+
+.missing {
+  color: var(--ink-500);
+  font-weight: 400;
+}
+
+.city { text-transform: capitalize; }
+
+.attachments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.state {
+  justify-items: center;
+  gap: 10px;
+  padding-block: 40px;
+  color: var(--ink-700);
+  text-align: center;
+}
+
+.state svg { color: var(--red-700); }
+.state h1 { color: var(--ink-900); font-size: 20px; }
+
+@media (max-width: 720px) {
+  .highlights,
+  .sections {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .highlights { gap: 8px; }
+  .highlight { padding-block: 12px; }
+  .highlightIcon { inset-block-start: 12px; }
+}

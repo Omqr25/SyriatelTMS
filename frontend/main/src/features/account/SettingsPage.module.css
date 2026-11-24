@@ -1,0 +1,136 @@
+.page {
+  width: 100%;
+  max-width: 620px;
+  margin-inline: auto;
+  padding: clamp(16px, 4vw, 32px);
+  border-radius: var(--radius-lg);
+}
+
+.heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding-block-end: 20px;
+  border-block-end: 1px solid var(--ink-200);
+}
+
+.icon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: var(--radius-md);
+  background: var(--red-50);
+  color: var(--red-700);
+}
+
+.heading h1 {
+  font-size: clamp(21px, 3vw, 26px);
+  line-height: 1.25;
+}
+
+.heading p {
+  margin-block-start: 4px;
+  color: var(--ink-500);
+  font-size: 14px;
+}
+
+.form {
+  display: grid;
+  gap: 17px;
+  margin-block-start: 20px;
+}
+
+.field {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.field label {
+  color: var(--ink-900);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.inputWrapper {
+  display: flex;
+  align-items: center;
+  min-height: 46px;
+  padding-inline-end: 2px;
+  border: 1px solid var(--ink-300);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+
+.inputWrapper:focus-within {
+  border-color: var(--red-700);
+  box-shadow: 0 0 0 3px var(--red-100);
+}
+
+.inputWrapper.invalid { border-color: var(--red-700); }
+
+.inputWrapper input {
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 0;
+  background: transparent;
+  outline: none;
+  font-size: 16px;
+}
+
+.visibilityButton {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 44px;
+  height: 42px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--ink-500);
+}
+
+.visibilityButton:hover { color: var(--ink-900); }
+.visibilityButton:focus-visible { outline-offset: -3px; }
+.visibilityButton:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.hint,
+.error {
+  font-size: 13px;
+}
+
+.hint { color: var(--ink-500); }
+.error { color: var(--red-700); }
+
+.success {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--green-50);
+  color: var(--green-700);
+  font-size: 14px;
+}
+
+.success svg { flex: none; }
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-block-start: 18px;
+  border-block-start: 1px solid var(--ink-200);
+}
+
+.actions button {
+  min-height: 44px;
+}
+
+@media (max-width: 480px) {
+  .actions button { width: 100%; }
+}

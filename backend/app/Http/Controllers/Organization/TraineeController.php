@@ -48,7 +48,7 @@ class TraineeController extends Controller
     public function getProfile(Request $request)
     {
         $user = $request->user();
-        $user->load(['trainee.application']);
+        $user->load(['trainee.application.trainingProgram', 'trainee.department', 'trainee.trainer.user']);
         if (!$user->trainee || !$user->trainee->application) {
             throw new ErrorException(__('trainee.not_found'));
         }
