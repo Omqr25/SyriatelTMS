@@ -1,6 +1,6 @@
 import { useId, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Archive, ArchiveRestore, CalendarDays, CircleAlert, Pencil, Plus, School, Trash2 } from "lucide-react";
+import { Archive, ArchiveRestore, CalendarDays, CircleAlert, Download, Pencil, Plus, School, Trash2 } from "lucide-react";
 import { toast } from "react-toastify";
 import Badge from "../../../components/ui/Badge";
 import Button from "../../../components/ui/Button";
@@ -11,6 +11,7 @@ import form from "../../../components/ui/Form.module.css";
 import Loading from "../../../components/ui/Loading";
 import Modal from "../../../components/ui/Modal";
 import PageHeader from "../../../components/ui/PageHeader";
+import ApplicantExportModal from "../components/ApplicantExportModal";
 import ApplicationFormEditor from "../components/ApplicationFormEditor";
 import useRegistration from "../../../hooks/HrHooks/useRegistration";
 import styles from "./Registration.module.css";
@@ -215,6 +216,7 @@ export default function Registration() {
   const { t } = useTranslation("hr");
   const { programs, canManage, canArchive, loading, error, reload, save, remove, setArchived } = useRegistration();
   const [editor, setEditor] = useState(null);
+  const [exportProgram, setExportProgram] = useState(null);
   const [formProgram, setFormProgram] = useState(null);
   const [action, setAction] = useState(null);
   const [query, setQuery] = useState("");
@@ -292,6 +294,11 @@ export default function Registration() {
                 <p className={styles.value} dir="ltr">{formatDate(program[key])}</p>
               </div>
             ))}
+            <div className={styles.flex}>
+              <Button size="sm" variant="secondary" icon={Download} onClick={() => setExportProgram(program)}>
+                {t("applicantExports.open")}
+              </Button>
+            </div>
             {canManage && (
               <>
                 <div className={styles.flex}>
@@ -334,6 +341,7 @@ export default function Registration() {
           }}
         />
       )}
+      {exportProgram && <ApplicantExportModal key={exportProgram.id} program={exportProgram} onClose={() => setExportProgram(null)} />}
       {action && (
         <Modal title={t(`registration.${action.type}`)} onClose={() => !pending.current && setAction(null)}>
           <p>{t(`registration.confirmAction.${action.type}`, { name: action.program.name })}</p>

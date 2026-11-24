@@ -44,6 +44,16 @@ return [
             'after_commit' => false,
         ],
 
+        'applicant_exports' => [
+            'driver' => 'database',
+            // Keep the dispatch transaction and queue insertion on the same database.
+            'connection' => null,
+            'table' => 'applicant_export_jobs',
+            'queue' => 'applicant-exports',
+            'retry_after' => max(1, (int) env('APPLICANT_EXPORT_TIMEOUT', 900)) + 90,
+            'after_commit' => false,
+        ],
+
         'beanstalkd' => [
             'driver' => 'beanstalkd',
             'host' => env('BEANSTALKD_QUEUE_HOST', 'localhost'),
