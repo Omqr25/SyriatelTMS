@@ -1,4 +1,5 @@
 import { HrCertificatesPage } from '../../features/certificates/CertificatesPage';
+import { accountRoutes } from '../../features/account/accountRoutes';
 import {
   Building2, CalendarCheck, ClipboardList, FileText, GraduationCap,
   Images, LayoutDashboard, ListChecks, Megaphone, UserCog, Users,Star,BookLock ,BellRing
@@ -18,6 +19,7 @@ import TraineesPage from './pages/TraineesPage';
  import Registration from './pages/Registration';
 import EvaluationsPage from './pages/EvaluationsPage';
 import NotificationsPage from '../../components/notification/NotificationsPage';
+import ProfilePage from './pages/ProfilePage';
 
 /**
  * وحدة دور الموارد البشرية.
@@ -46,6 +48,7 @@ export const hrModule = {
 
     { path: 'certificates', icon: FileText, labelKey: 'certificates:title', Component: HrCertificatesPage },
   ],
+  accountNav: accountRoutes(ProfilePage),
 };
 
 

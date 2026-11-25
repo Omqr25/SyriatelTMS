@@ -117,6 +117,7 @@ Route::prefix('v1')->group(function () {
 
 
         Route::middleware('role:HR')->group(function () {
+            Route::get('hr/profile', [AuthController::class, 'hrProfile']);
             Route::prefix('training_program/{program}/applicant-exports')
                 ->where(['program' => '[0-9]+', 'snapshot' => '[0-9A-HJKMNP-TV-Z]{26}'])
                 ->middleware(UseRequestLocale::class)
