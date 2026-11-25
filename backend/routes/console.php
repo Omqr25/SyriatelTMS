@@ -1,12 +1,34 @@
 <?php
 
+use App\Jobs\TestQueueJob;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schedule;
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
+if (app()->environment('local')) {
+    Artisan::command('tms:test-email {recipient}', function (string $recipient) {
+        if (! filter_var($recipient, FILTER_VALIDATE_EMAIL)) {
+            $this->error('Enter a valid recipient email address.');
+
+            return \Symfony\Component\Console\Command\Command::INVALID;
+        }
+
+        Mail::raw('This is a test email from Syriatel TMS.', function ($message) use ($recipient) {
+            $message->to($recipient)->subject('Syriatel TMS Email Test');
+        });
+        $this->info('Test email submitted to the configured mail transport.');
+    })->purpose('Test the configured mail transport from a local environment');
+
+    Artisan::command('tms:test-queue', function () {
+        TestQueueJob::dispatch();
+        $this->info('Test job dispatched to the configured queue.');
+    })->purpose('Dispatch a test job from a local environment');
+}
+
 Artisan::command('notifications:deliver {--limit=25}', function (\App\Services\Notification\InboxPushDelivery $delivery) {
     $remaining = $delivery->recover(max(1, min(100, (int) $this->option('limit'))));
     $this->info("Due notification deliveries remaining: $remaining");
@@ -24,6 +46,3 @@ Schedule::command('training-programs:update-status')
     ->everyMinute();
 Schedule::command('app:update-overdue-tasks')
     ->everyMinute();
-//Schedule::command('test:scheduler')
-//    ->everyMinute()
-//    ->withoutOverlapping();

@@ -20,9 +20,7 @@ use App\Http\Controllers\Training\EnglishScoreImportController;
 use App\Http\Controllers\Training\TrainingProgramController;
 use App\Http\Middleware\EnsureApiSessionIsCurrent;
 use App\Http\Middleware\UseRequestLocale;
-use App\Jobs\TestQueueJob;
 use App\Http\Resources\Dashboard\HrDashboardResource;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/debug-device-token', [
@@ -33,28 +31,6 @@ Route::post('/debug-device-token', [
 Route::get('/health-check', function () {
     return response()->json([
         'status' => 'ok',
-    ]);
-});
-
-Route::get('/test-email', function () {
-    Mail::raw('This is a test email from Syriatel TMS.', function ($message) {
-        $message->to('msqr2623@gmail.com')
-            ->subject('Syriatel TMS Email Test');
-    });
-
-    return response()->json([
-        'code' => 200,
-        'message' => 'Email sent successfully.',
-        'data' => null,
-    ]);
-});
-
-Route::get('/test-queue', function () {
-    TestQueueJob::dispatch();
-
-    return response()->json([
-        'message' => 'Queue job dispatched',
-        'time' => now()->toDateTimeString(),
     ]);
 });
 
