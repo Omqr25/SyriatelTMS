@@ -126,27 +126,27 @@ export const createReEvaluationApi = async (id, body) => {
   return response.data;
 };
 
-export const getVacationRequestsApi = async () => {
-  const response = await api.get("vacation_request/listForTrainer");
-  // console.log(response.data)
+export const getVacationRequestsApi = async (page = 1) => {
+  const response = await api.get("vacation_request/listForTrainer", { params: { page } });
   return response.data;
 };
 
 export const AcceptOrRejectVacationRequestApi = async (id, decision) => {
   const response = await api.patch(`vacation_request/decide/${id}`, {
     status: decision,
-  });
-  // console.log(response.data)
+  }, { headers: { "Accept-Language": document.documentElement.lang } });
   return response.data;
 };
 
-export const getAllAbsentApi = async () => {
-  const response = await api.get("absence/findAll");
+export const getAllAbsentApi = async (page = 1) => {
+  const response = await api.get("absence/findAll", { params: { page } });
   return response.data;
 };
 
 export const addAbsentApi = async (id, reason) => {
-  const response = await api.post(`absence/recordAbsence/${id}`, { reason });
+  const response = await api.post(`absence/recordAbsence/${id}`, { reason }, {
+    headers: { "Accept-Language": document.documentElement.lang },
+  });
   return response.data;
 };
 

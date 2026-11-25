@@ -23,8 +23,8 @@ class UpdateVacationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'start_date' => ['sometimes', 'required', 'date', 'after:today'],
-            'end_date'   => ['sometimes', 'required', 'date', 'after:start_date'],
+            'start_date' => ['sometimes', 'required', 'date_format:Y-m-d'],
+            'end_date'   => ['sometimes', 'required', 'date_format:Y-m-d'],
             'reason'     => ['sometimes', 'required', 'string', 'max:2000'],
         ];
     }

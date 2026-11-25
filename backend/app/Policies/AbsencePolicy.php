@@ -2,7 +2,6 @@
 
 namespace App\Policies;
 
-use App\Enums\UserRole;
 use App\Models\Absence;
 use App\Models\Trainee;
 use App\Models\User;
@@ -13,7 +12,7 @@ class AbsencePolicy
 
     public function record(User $user, Trainee $trainee): Response
     {
-        if (!$user->trainer() || $trainee->trainer->id != $user->trainer?->id)
+        if (! $user->trainer || $trainee->trainer_id !== $user->trainer->id)
         {
             return Response::deny(__('absence.not_your_trainee'));
         }

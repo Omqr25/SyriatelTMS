@@ -3,6 +3,8 @@ import { useTranslation } from "react-i18next";
 import Card from "../../../components/ui/Card";
 import { Input } from "../../../components/ui/Field";
 import Table from "../../../components/ui/Table";
+import Pagination from "../../../components/ui/Pagination";
+import useAttendanceList from "../../../hooks/useAttendanceList";
 
 import StatusBadge from "../components/StatusBadge";
 import styles from "./Pages.module.css";
@@ -14,45 +16,17 @@ export default function AttendancePage() {
   const { t } = useTranslation("hr");
  
   const [search, setSearch] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [searchLoading, setSearchLoading] = useState(false);
-  const [absent, SetAbsent] = useState([]);
-
-
-  const searchAbsent = async () => {
-    setSearchLoading(true);
-    try {
-      const data = await getAbsentAndSearchApi(search);
-      SetAbsent(data.data);
-      console.log("data search:", data.data);
-    } catch (error) {
-      console.log(error);
-      const message =
-        error.response?.data?.message || error.message || "Add Absent Error";
-      toast.error(Array.isArray(message) ? message.join("، ") : message);
-    } finally {
-      setSearchLoading(false);
-    }
-  };
-
-  const getAbsent = async () => {
-    setLoading(true);
-    try {
-      const data = await getAbsentAndSearchApi();
-      SetAbsent(data.data);
-    } catch (error) {
-      console.log(error);
-      const message =
-        error.response?.data?.message || error.message || "Add Absent Error";
-      toast.error(Array.isArray(message) ? message.join("، ") : message);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [appliedSearch, setAppliedSearch] = useState("");
+  const { load, loading, rows, paging } = useAttendanceList(getAbsentAndSearchApi);
 
   useEffect(() => {
-    getAbsent();
-  }, []);
+    load();
+  }, [load]);
+
+  const searchAbsent = async () => {
+    const name = search.trim();
+    if (await load(1, name)) setAppliedSearch(name);
+  };
 
   const columns = [
     {
@@ -75,9 +49,7 @@ export default function AttendancePage() {
     },
   ];
 
-  return loading ? (
-    <Loading />
-  ) : (
+  return (
     <>
       <Card className={`${styles.searchCard} flexCenter gap8`}>
         <Input
@@ -86,15 +58,16 @@ export default function AttendancePage() {
           onChange={(e) => setSearch(e.target.value)}
         />
 
-        <Button onClick={searchAbsent} loading={searchLoading}>
+        <Button onClick={searchAbsent} disabled={loading}>
           {t("action.search", { ns: "common" })}
         </Button>
       </Card>
-      <Table
-        columns={columns}
-        rows={absent}
-        emptyText={t("attendance.empty")}
-      />
+      {loading ? <Loading /> : (
+        <>
+          <Table columns={columns} rows={rows} emptyText={t("attendance.empty")} />
+          <Pagination {...paging} onPageChange={(page) => load(page, appliedSearch)} />
+        </>
+      )}
     </>
   );
 }

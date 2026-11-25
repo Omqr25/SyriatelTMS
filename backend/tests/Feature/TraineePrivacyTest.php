@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\ApplicationStatus;
 use App\Models\Application;
 use App\Models\Department;
 use App\Models\Role;
@@ -35,7 +36,10 @@ class TraineePrivacyTest extends TestCase
         $department = Department::factory()->create();
         $this->assigned = Trainer::factory()->forUser($this->userWithRole('SUPERVISOR'))->forDepartment($department)->create();
         $this->unassigned = Trainer::factory()->forUser($this->userWithRole('SUPERVISOR'))->forDepartment($department)->create();
-        $program = TrainingProgram::factory()->create();
+        $program = TrainingProgram::factory()->create([
+            'start_date' => today()->subDay(),
+            'end_date' => today()->addWeek(),
+        ]);
 
         $this->trainee = $this->enroll($this->assigned, $program);
         $this->otherTrainee = $this->enroll($this->unassigned, $program);
@@ -47,6 +51,8 @@ class TraineePrivacyTest extends TestCase
             'trainee_id' => $this->trainee->id,
             'trainer_id' => $this->assigned->id,
             'reason' => 'Private test reason',
+            'start_date' => today()->addDay(),
+            'end_date' => today()->addDay(),
         ]);
         $url = "/api/v1/vacation_request/find/{$leave->id}";
         $this->getJson($url)->assertUnauthorized();
@@ -94,7 +100,7 @@ class TraineePrivacyTest extends TestCase
 
     private function enroll(Trainer $trainer, TrainingProgram $program): Trainee
     {
-        $application = Application::factory()->forProgram($program)->create();
+        $application = Application::factory()->forProgram($program)->create(['status' => ApplicationStatus::ACTIVE]);
 
         return Trainee::factory()->create([
             'user_id' => $this->userWithRole('TRAINEE')->id,

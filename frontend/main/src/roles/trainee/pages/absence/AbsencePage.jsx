@@ -3,16 +3,19 @@ import Loading from "../../../../components/ui/Loading";
 import { useTranslation } from "react-i18next";
 import Table from "../../../../components/ui/Table";
 
-import styles from "./AbsencePage.module.css";
-import AbsenceHooks from  "../../../../hooks/TraineeHooks/absenceHooks.js"
-import { useEffect, } from "react";
+import Pagination from "../../../../components/ui/Pagination";
+import { getAllAbsentApi } from "../../../../Api/SupervisorApi/supervisorApi";
+import useAttendanceList from "../../../../hooks/useAttendanceList";
+import { useEffect } from "react";
 
 export default function AbsencePage(){
     const { t } = useTranslation("hr");
-    const {absenceList, loadingAction, getAbsence}=AbsenceHooks();
-    useEffect(()=>{
-getAbsence()
-    },[])
+    const { load, loading, rows, paging } = useAttendanceList(getAllAbsentApi);
+
+    useEffect(() => {
+      load();
+    }, [load]);
+
    const columns = [
        
        { key: "date", header: t("attendance.absenceDate") },
@@ -28,15 +31,16 @@ getAbsence()
        },
      ];
    
-     return loadingAction ? (
+     return loading ? (
        <Loading />
      ) : (
        <>
          <Table
            columns={columns}
-           rows={absenceList}
+           rows={rows}
            emptyText={t("attendance.empty")}
          />
+         <Pagination {...paging} onPageChange={load} />
        </>
      );
 }

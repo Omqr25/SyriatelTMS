@@ -1,6 +1,7 @@
 import { getVacationsRequests, requestVacation, canceltVacation, updateVacation } from "../../Api/Trainee/vacationApi.js"
 import { useState, useRef } from "react";
 import { toast } from "react-toastify";
+import useAttendanceList from "../useAttendanceList";
 import { useTranslation } from "react-i18next";
 export default function VacationHooks() {
     const vacationId = useRef(null);
@@ -12,24 +13,10 @@ export default function VacationHooks() {
     const { t } = useTranslation("trainee");
     const [sendingVacationRequest, setSendingVacationRequest] = useState(false)
     const [updatingVacationRequest, setUpdatingVacationRequest] = useState(false)
-    const [vacationsList, setVacationsList] = useState([])
+    const { rows: vacationsList, extraData, paging, loading: loadingAction, load: getVacationsList } = useAttendanceList(getVacationsRequests);
     const [vacationState, setAddVacation] = useState(false)
     const [cancelVacationState, setCancelVacationState] = useState(false)
     const [loadingCancelVacationState, setLoadingCancelVacationState] = useState(false)
-    const [loadingAction, setLoadingAction] = useState(false)
-    const getVacatoinsList = async () => {
-        try {
-            setLoadingAction(true)
-            const response = await getVacationsRequests()
-            const data = response.data;
-            setVacationsList(Array.isArray(data) ? data : [])
-
-        } catch (error) {
-            toast.error(error.message)
-        } finally {
-            setLoadingAction(false)
-        }
-    }
     const openCancelVacation = (id) => {
         setCancelVacationState(true)
         vacationId.current = id
@@ -39,8 +26,8 @@ export default function VacationHooks() {
         vacationId.current = vacationData.id
         setVacationRequest({
             reason: vacationData.reason,
-            start_date: vacationData.start_date.split(" ")[0],
-            end_date: vacationData.end_date.split(" ")[0],
+            start_date: vacationData.start_date,
+            end_date: vacationData.end_date,
         })
         setAddVacation(true);
     }
@@ -64,9 +51,10 @@ export default function VacationHooks() {
             const response = await canceltVacation(vacationId.current)
             toast.success(response.message)
             setCancelVacationState(false)
-            await getVacatoinsList()
+            await getVacationsList(paging.currentPage)
         } catch (error) {
-            toast.error(error.message)
+            toast.error(error.response?.data?.message || error.message);
+            await getVacationsList(paging.currentPage);
         } finally {
             setLoadingCancelVacationState(false)
         }
@@ -86,10 +74,11 @@ export default function VacationHooks() {
             const response = await updateVacation(vacationId.current, vacationRequest)
             toast.success(response.message)
             setAddVacation(false)
-            await getVacatoinsList();
+            await getVacationsList(paging.currentPage);
 
         } catch (error) {
-            toast.error(error.message)
+            toast.error(error.response?.data?.message || error.message);
+            await getVacationsList(paging.currentPage);
         } finally {
             setUpdatingVacationRequest(false)
         }
@@ -111,9 +100,10 @@ export default function VacationHooks() {
             toast.success(response.message);
             setAddVacation(false);
 
-            await getVacatoinsList();
+            await getVacationsList();
         } catch (error) {
-            toast.error(error.message);
+            toast.error(error.response?.data?.message || error.message);
+            await getVacationsList(paging.currentPage);;
         } finally {
             setSendingVacationRequest(false);
         }
@@ -129,7 +119,9 @@ export default function VacationHooks() {
         cancelVacationState,
         loadingCancelVacationState,
         loadingAction,
-        getVacatoinsList,
+        getVacationsList,
+        extraData,
+        paging,
         openCancelVacation,
         openUpdateVacation,
         openAddVacation, 

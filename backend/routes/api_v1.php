@@ -87,7 +87,7 @@ Route::prefix('v1')->group(function () {
             Route::get('{certificate}/download', [\App\Http\Controllers\Certificate\CertificateController::class, 'download']);
         });
 
-        Route::prefix('absence')->group(function () {
+        Route::prefix('absence')->middleware(UseRequestLocale::class)->group(function () {
             Route::get('findAll', [AbsenceController::class, 'findAll']);
         });
 
@@ -213,12 +213,12 @@ Route::prefix('v1')->group(function () {
                 Route::patch('reevaluation_requests/{request_id}/decision', [EvaluationController::class, 'decide']);
                 Route::get('myEvaluations', [EvaluationController::class, 'myEvaluations']);
             });
-            Route::prefix('vacation_request')->group(function () {
+            Route::prefix('vacation_request')->middleware(UseRequestLocale::class)->group(function () {
                 Route::patch('decide/{request_id}',[VacationRequestController::class, 'decide']);
                 Route::get('listForTrainer', [VacationRequestController::class, 'listForTrainer']);
             });
 
-            Route::prefix('absence')->group(function () {
+            Route::prefix('absence')->middleware(UseRequestLocale::class)->group(function () {
                 Route::post('recordAbsence/{trainee_id}', [AbsenceController::class, 'recordAbsence']);
             });
             Route::prefix('announcement')->group(function () {
@@ -263,7 +263,7 @@ Route::prefix('v1')->group(function () {
             });
              Route::get('myProgram', [ProgramController::class, 'myProgram']);
 
-            Route::prefix('vacation_request')->group(function () {
+            Route::prefix('vacation_request')->middleware(UseRequestLocale::class)->group(function () {
                 Route::post('/',[VacationRequestController::class, 'store']);
                 Route::delete('/{request_id}',[VacationRequestController::class, 'cancel']);
                 Route::get('listForTrainee', [VacationRequestController::class, 'listForTrainee']);
@@ -287,7 +287,7 @@ Route::prefix('v1')->group(function () {
                 ->middleware('role:HR,SUPERVISOR')->whereNumber('application_id');
         });
 
-        Route::prefix('vacation_request')->group(function () {
+        Route::prefix('vacation_request')->middleware(UseRequestLocale::class)->group(function () {
             Route::get('find/{request_id}',[VacationRequestController::class, 'find']);
         });
 

@@ -8,6 +8,7 @@ use App\Enums\VacationRequestStatus;
 use App\Helpers\ApiCode;
 use App\Models\User;
 use App\Models\VacationRequest;
+use App\Services\Attendance\AttendanceEnrollment;
 use Illuminate\Auth\Access\Response;
 
 class VacationRequestPolicy
@@ -19,7 +20,7 @@ class VacationRequestPolicy
             return Response::deny(__('vacation_request.not_trainer'), ApiCode::FORBIDDEN);
         }
 
-        if ($vacation_request->trainer_id !== $user->trainer?->id) {
+        if ($vacation_request->trainer_id !== $user->trainer->id) {
             return Response::deny(__('vacation_request.not_your_request'), ApiCode::FORBIDDEN);
         }
 
@@ -27,7 +28,7 @@ class VacationRequestPolicy
             return Response::deny(__('vacation_request.not_pending_decide'), ApiCode::FORBIDDEN);
         }
 
-        return Response::allow();
+        return $this->enrollmentAccess($vacation_request);
     }
 
 
@@ -45,14 +46,15 @@ class VacationRequestPolicy
 
     public function view(User $user, VacationRequest $vacation_request): Response
     {
-        if ($vacation_request->trainee_id === $user->trainee?->id) {
+        if ($user->trainee && $vacation_request->trainee_id === $user->trainee->id) {
             return Response::allow();
         }
 
         $roles = $user->roles->pluck('role');
         if ($roles->containsStrict(UserRole::TRAINING_TEAM)
             || ($roles->containsStrict(UserRole::TRAINER)
-                && $vacation_request->trainer_id === $user->trainer?->id)) {
+                && $user->trainer
+                && $vacation_request->trainer_id === $user->trainer->id)) {
             return Response::allow();
         }
 
@@ -64,7 +66,7 @@ class VacationRequestPolicy
      */
     public function create(User $user): Response
     {
-        if (! $user->trainee()->exists()) {
+        if (! $user->trainee) {
             return Response::deny(__('trainee.not_a_trainee', ['id' => $user->id]), ApiCode::FORBIDDEN);
         }
 
@@ -80,7 +82,7 @@ class VacationRequestPolicy
      */
     public function update(User $user, VacationRequest $vacation_request): Response
     {
-        if ($vacation_request->trainee_id !== $user->trainee?->id) {
+        if (! $user->trainee || $vacation_request->trainee_id !== $user->trainee->id) {
             return Response::deny(__('vacation_request.unauthorized_update'), ApiCode::FORBIDDEN);
         }
 
@@ -88,7 +90,7 @@ class VacationRequestPolicy
             return Response::deny(__('vacation_request.not_pending_update'), ApiCode::FORBIDDEN);
         }
 
-        return Response::allow();
+        return $this->editAccess($vacation_request);
     }
 
     /**
@@ -104,9 +106,25 @@ class VacationRequestPolicy
             return Response::deny(__('vacation_request.not_pending_delete'), ApiCode::FORBIDDEN);
         }
 
-        return Response::allow();
+        return $this->editAccess($vacation_request);
     }
 
+
+    private function enrollmentAccess(VacationRequest $leave): Response
+    {
+        return AttendanceEnrollment::isOpen($leave->trainee, today())
+            ? Response::allow()
+            : Response::deny(__('attendance.inactive_enrollment'), ApiCode::FORBIDDEN);
+    }
+
+    private function editAccess(VacationRequest $leave): Response
+    {
+        if (! $leave->start_date || $leave->start_date->toDateString() <= today()->toDateString()) {
+            return Response::deny(__('attendance.leave_already_started'), ApiCode::FORBIDDEN);
+        }
+
+        return $this->enrollmentAccess($leave);
+    }
 
     /**
      * Determine whether the user can restore the model.

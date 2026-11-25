@@ -1,5 +1,6 @@
 import Card from "../../../../components/ui/Card.jsx";
-import Badge from "../../../../components/ui/Badge.jsx";
+import StatusBadge from "../../../hr/components/StatusBadge.jsx";
+import Pagination from "../../../../components/ui/Pagination";
 import Button from "../../../../components/ui/Button.jsx"
 import Modal from "../../../../components/ui/Modal.jsx"
 import styles from "./VacationPage.module.css";
@@ -13,19 +14,12 @@ import VacationHooks from "../../../../hooks/TraineeHooks/vacationHooks.js";
 
 export default function VacationPage() {
 
-  const getBadgeTone = (state) => {
-  switch (state) {
-    case "accepted":
-      return "green";
-    case "pending":
-      return "amber";
-    case "rejected":
-      return "red";
-    default:
-      return "amber";
-  }
-};
-  const { t } = useTranslation("trainee");
+  const { t, i18n } = useTranslation("trainee");
+  const submittedDate = new Intl.DateTimeFormat(i18n.language, {
+    dateStyle: "short",
+    timeStyle: "short",
+    timeZone: "Asia/Damascus",
+  });
     const {
         vacationId,
         vacationRequest,
@@ -36,7 +30,9 @@ export default function VacationPage() {
         cancelVacationState,
         loadingCancelVacationState,
         loadingAction,
-        getVacatoinsList,
+        getVacationsList,
+        extraData,
+        paging,
         openCancelVacation,
         openUpdateVacation,
         openAddVacation,
@@ -48,21 +44,9 @@ export default function VacationPage() {
         setVacationRequest
     } = VacationHooks()
 
-  useEffect(()=>{
-    getVacatoinsList()
-  },[])
-
-  
-
-  const getToday = () => {
-  const date = new Date();
-  date.setDate(date.getDate()+1)
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-
-  return `${year}-${month}-${day}`;
-};
+  useEffect(() => {
+    getVacationsList();
+  }, [getVacationsList]);
 
     const sendActionBasedOnData = (e) => {
       e.preventDefault();
@@ -73,10 +57,6 @@ export default function VacationPage() {
       }
     }
 
-  const showCancelVacation = (status,startDate)=>{
-    const currentDate = getToday()
-    return (status === "pending" && currentDate < startDate)
-  }
   const cancelVacationModel = <Modal
                   title={t("vacation.areYouSure")}
                   onClose={()=>setCancelVacationState(false)}
@@ -113,15 +93,15 @@ export default function VacationPage() {
                 <div className={styles.vacationDate}>
                     <Field key={"startDate"}
                         label={t("vacation.startDate")}
-                        children={<Input type={"date"} min={getToday()}
+                        children={<Input type="date" required min={extraData?.earliest_leave_date} max={extraData?.latest_leave_date}
                         value={vacationRequest.start_date} 
-                        onChange={(e)=>setVacationRequest((pre)=>({...pre,"start_date":e.target.value.split(" ")[0]}))} />}/>
+                        onChange={(e)=>setVacationRequest((pre)=>({...pre,"start_date":e.target.value}))} />}/>
                     <Field key={"endDate"}
                         label={t("vacation.endDate")} 
                         children={
-                        <Input type={"date"} min={getToday()}
+                        <Input type="date" required min={vacationRequest.start_date || extraData?.earliest_leave_date} max={extraData?.latest_leave_date}
                         value={vacationRequest.end_date}
-                        onChange={(e)=>setVacationRequest((pre)=>({...pre,"end_date":e.target.value.split(" ")[0]}))}/>}/>
+                        onChange={(e)=>setVacationRequest((pre)=>({...pre,"end_date":e.target.value}))}/>}/>
                 </div>
                   <br/>
                   <Button 
@@ -139,14 +119,14 @@ export default function VacationPage() {
     <section className={styles.page}>
       <header>
         <span className={styles.count}>
-          {vacationsList.length} {t("vacation.requests")}
+          {paging.total} {t("vacation.requests")}
         </span>
       </header>
       <div className={styles.list}>
         {vacationsList.map((vacation) => (
           <Card
             key={vacation.id }
-            className={`${styles.card} ${styles[vacation.state]}`}
+            className={`${styles.card} ${styles[vacation.status] ?? ""}`}
           >
             <div className={styles.cardHeader}>
               <div className={styles.reasonGroup}>
@@ -154,9 +134,7 @@ export default function VacationPage() {
                   {vacation.reason}
                 </h3>
               </div>
-              <Badge tone={getBadgeTone(vacation.state)}>
-                {t(`vacation.${vacation.status}`)}
-              </Badge>
+              <StatusBadge kind="vacation" status={vacation.status} />
             </div>
 
             <div className={styles.dateSection}>
@@ -187,30 +165,36 @@ export default function VacationPage() {
             <div className={styles.footer}>
               <span className={styles.meta}>
                 <CalendarDays size={15} />
-                {t("vacation.submitted")} {vacation.submitted_at}
+                {t("vacation.submitted")} {vacation.submitted_at && submittedDate.format(new Date(vacation.submitted_at))}
               </span>
-              {showCancelVacation(vacation.status,vacation.start_date)&&<div
-              className={styles.container}>
-                <Button 
+              {(vacation.can_edit || vacation.can_cancel) && <div className={styles.container}>
+                {vacation.can_cancel && <Button
                         variant="soft"
                         className={styles.sendRequest}
                         loading={sendingVacationRequest}
                         disabled={sendingVacationRequest}
                         children={t("vacation.cancelVacation")}
                         onClick={()=>openCancelVacation(vacation.id)}
-                  />
-                  <Button 
+                  />}
+                  {vacation.can_edit && <Button
                         variant="secondary"
                         className={styles.sendRequest}
                         loading={sendingVacationRequest}
                         disabled={sendingVacationRequest}
                         children={t("vacation.update")}
                         onClick={()=>openUpdateVacation(vacation)}
-                  /></div>}
+                  />}</div>}
             </div>
           </Card>
         ))}
-        <Button className={styles.addReqeust} children={t("vacation.addRequest")} onClick={openAddVacation}/>
+        <Pagination {...paging} onPageChange={getVacationsList} />
+        <Button
+          className={styles.addReqeust}
+          disabled={!extraData?.can_request}
+          onClick={openAddVacation}
+        >
+          {t("vacation.addRequest")}
+        </Button>
         
       </div>
         {vacationState && addVacationFormComponent}
