@@ -11,6 +11,7 @@ use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\ResetPasswordRequest;
 use App\Http\Resources\User\UserResource;
 use App\Services\Auth\AuthService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class AuthController extends Controller
@@ -31,6 +32,19 @@ class AuthController extends Controller
     {
         $this->authService->changePassword($request->validated());
         return $this->success(__('auth.newPassword'));
+    }
+
+    public function hrProfile(Request $request): JsonResponse
+    {
+        $user = $request->user('api');
+
+        return $this->success([
+            'personal_information' => ['name' => $user->name],
+            'contact_information' => [
+                'email' => $user->email,
+                'phone_number' => $user->phone_number,
+            ],
+        ])->header('Cache-Control', 'private, no-store');
     }
 
     public function forgotPassword(ForgotPasswordRequest $request)
