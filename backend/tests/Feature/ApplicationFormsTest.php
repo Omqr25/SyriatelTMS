@@ -200,7 +200,7 @@ class ApplicationFormsTest extends TestCase
         $this->assertDatabaseHas('application_forms', ['id' => $form['id']]);
     }
 
-    public function test_answers_follow_the_current_supervisor_assignment(): void
+    public function test_applicant_details_answers_and_attachments_follow_the_current_review_assignment(): void
     {
         $program = $this->program();
         $form = $this->publishedForm($program, [
@@ -221,36 +221,64 @@ class ApplicationFormsTest extends TestCase
         $firstTrainer = Trainer::factory()->forUser($firstSupervisor)->forDepartment($department)->create();
         $secondSupervisor = $this->login('SUPERVISOR');
         $secondTrainer = Trainer::factory()->forUser($secondSupervisor)->forDepartment($department)->create();
-        $history = self::APPLY."/$id/answers";
+        $details = self::APPLY."/$id";
+        $history = $details.'/answers';
+        $attachment = $details.'/attachments/cv?format=json';
+        $reviewUrls = [$details, $history, $attachment];
         $assignedRequests = self::APPLY.'/trainer/assigned';
-        $this->getJson($history)->assertForbidden();
+        foreach ($reviewUrls as $url) {
+            $this->getJson($url)->assertForbidden();
+        }
 
         $hr = $this->login();
+        $this->getJson($details)->assertOk()->assertJsonPath('data.email', 'applicant@example.net');
+        $this->getJson($history)->assertOk();
+        $this->getJson($attachment)->assertOk();
         $this->getJson(self::APPLY."/$id/assign/{$firstTrainer->id}")->assertOk();
         $this->actingAs($firstSupervisor, 'api');
         $this->getJson($assignedRequests)->assertOk()->assertJsonPath('data.0.id', $id);
+        $this->getJson($details)->assertOk()->assertJsonPath('data.email', 'applicant@example.net');
         $this->getJson($history)->assertOk()
             ->assertJsonPath('data.answers.0.prompt', 'Preferred topic')
             ->assertJsonPath('data.answers.0.options.0.label', 'Networks');
+        $this->getJson($attachment)->assertOk();
 
-        $this->actingAs($secondSupervisor, 'api')->getJson($history)->assertForbidden();
+        $this->actingAs($secondSupervisor, 'api');
+        foreach ($reviewUrls as $url) {
+            $this->getJson($url)->assertForbidden();
+        }
         $this->login('TRAINEE');
-        $this->getJson($history)->assertForbidden();
+        foreach ($reviewUrls as $url) {
+            $this->getJson($url)->assertForbidden();
+        }
 
         $this->actingAs($firstSupervisor, 'api');
-        $this->getJson(self::APPLY."/trainer/$id/rejected")->assertOk();
-        $this->getJson($history)->assertForbidden();
+        $this->getJson(self::APPLY."/trainer/$id/rejected")->assertOk()
+            ->assertJsonPath('data.status', 'pending')
+            ->assertJsonMissingPath('data.email');
+        foreach ($reviewUrls as $url) {
+            $this->getJson($url)->assertForbidden();
+        }
 
         $this->actingAs($hr, 'api');
         $this->getJson(self::APPLY."/$id/assign/{$secondTrainer->id}")->assertOk();
 
         $this->actingAs($firstSupervisor, 'api');
         $this->getJson($assignedRequests)->assertOk()->assertJsonPath('data', []);
-        $this->getJson($history)->assertForbidden();
+        foreach ($reviewUrls as $url) {
+            $this->getJson($url)->assertForbidden();
+        }
+        $this->getJson(self::APPLY."/trainer/$id/accepted")->assertForbidden();
 
         $this->actingAs($secondSupervisor, 'api');
         $this->getJson($assignedRequests)->assertOk()->assertJsonPath('data.0.id', $id);
+        $this->getJson($details)->assertOk()->assertJsonPath('data.email', 'applicant@example.net');
         $this->getJson($history)->assertOk()->assertJsonPath('data.answers.0.options.0.label', 'Networks');
+        $this->getJson($attachment)->assertOk();
+        $this->getJson(self::APPLY."/trainer/$id/accepted")->assertOk()->assertJsonPath('data.status', 'qualified');
+        foreach ($reviewUrls as $url) {
+            $this->getJson($url)->assertForbidden();
+        }
 
         $legacy = Application::factory()->forProgram($program)->create(['status' => 'pending']);
         $this->actingAs($hr, 'api')->getJson(self::APPLY."/{$legacy->id}/assign/{$secondTrainer->id}")->assertOk();

@@ -80,22 +80,26 @@ class TraineePrivacyTest extends TestCase
             ->assertOk()->assertJsonPath('data.reason', 'Changed');
     }
 
-    public function test_contact_details_are_scoped_on_trainee_and_linked_application_endpoints(): void
+    public function test_trainee_contact_permissions_do_not_grant_access_to_the_original_application(): void
     {
         $traineeUrl = "/api/v1/trainee/{$this->trainee->id}";
         $applicationUrl = "/api/v1/application/{$this->trainee->application_id}";
         foreach ([$this->assigned->user, $this->hr] as $user) {
             $this->actingAs($user, 'api')->getJson($traineeUrl)->assertOk()
                 ->assertJsonPath('data.email', $this->trainee->user->email);
-            $this->getJson($applicationUrl)->assertOk()->assertJsonPath('data.email', $this->trainee->application->email);
         }
+        $this->getJson($applicationUrl)->assertOk()->assertJsonPath('data.email', $this->trainee->application->email);
+        $this->actingAs($this->assigned->user, 'api')->getJson($applicationUrl)->assertForbidden();
 
         foreach ([$this->unassigned->user, $this->otherTrainee->user] as $user) {
             $this->actingAs($user, 'api')->getJson($traineeUrl)->assertForbidden();
             $this->getJson($applicationUrl)->assertForbidden();
         }
 
-        $this->actingAs($this->trainee->user, 'api')->getJson($applicationUrl)->assertOk();
+        $this->actingAs($this->trainee->user, 'api')->getJson($applicationUrl)->assertForbidden();
+        $this->getJson('/api/v1/profile')->assertOk()
+            ->assertJsonPath('data.contact_information.email', $this->trainee->user->email)
+            ->assertJsonPath('data.application_id', $this->trainee->application_id);
     }
 
     private function enroll(Trainer $trainer, TrainingProgram $program): Trainee
