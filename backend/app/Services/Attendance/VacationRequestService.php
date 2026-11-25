@@ -3,7 +3,6 @@
 namespace App\Services\Attendance;
 
 use App\Enums\VacationRequestStatus;
-use App\Exceptions\ErrorException;
 use App\Models\User;
 use App\Models\VacationRequest;
 use App\Services\Notification\InboxPublisher;
@@ -24,14 +23,18 @@ class VacationRequestService
     public function listForTrainee(Request $request)
     {
         $trainee = $request->user('api')->trainee;
-        return VacationRequest::where('trainee_id', $trainee->id)->latest()
+        abort_unless($trainee, 403);
+
+        return VacationRequest::where('trainee_id', $trainee->id)->with('trainee.user')->latest()
             ->get();
     }
 
     public function listForTrainer(Request $request)
     {
         $trainer = $request->user('api')->trainer;
-        return VacationRequest::where('trainer_id', $trainer->id)->latest()
+        abort_unless($trainer, 403);
+
+        return VacationRequest::where('trainer_id', $trainer->id)->with('trainee.user')->latest()
             ->get() ;
     }
 
@@ -61,11 +64,7 @@ class VacationRequestService
 
     public function find(int $request_id)
     {
-        $vacation_request=VacationRequest::find($request_id);
-        if (! $vacation_request)
-        {
-            throw new ErrorException(__('vacation_request.not_found'));
-        }
+        $vacation_request = VacationRequest::findOrFail($request_id);
         Gate::forUser(auth('api')->user())->authorize('view', $vacation_request);
         return $vacation_request;
     }
@@ -87,7 +86,7 @@ class VacationRequestService
     public function decide(int $request_id, string $status)
     {
         return DB::transaction(function () use ($request_id, $status) {
-            $vacation_request = VacationRequest::lockForUpdate()->find($request_id) ?? $this->find($request_id);
+            $vacation_request = VacationRequest::lockForUpdate()->findOrFail($request_id);
             Gate::forUser(auth('api')->user())->authorize('decide', $vacation_request);
             $vacation_request->update(['status' => $status]);
             $vacation_request->refresh();

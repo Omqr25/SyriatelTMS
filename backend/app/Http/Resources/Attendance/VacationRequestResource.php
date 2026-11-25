@@ -2,8 +2,6 @@
 
 namespace App\Http\Resources\Attendance;
 
-use App\Http\Resources\User\TraineeResource;
-use App\Http\Resources\User\TrainerResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -18,7 +16,10 @@ class VacationRequestResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'trainee' =>  TraineeResource::make($this->trainee),
+            'trainee' => [
+                'id' => $this->trainee_id,
+                'name' => $this->trainee->user->name,
+            ],
             'start_date' => $this->start_date?->format('Y-m-d H:i:s'),
             'end_date'=> $this->end_date?->format('Y-m-d H:i:s'),
             'reason' => $this->reason,

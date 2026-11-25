@@ -2,7 +2,6 @@
 
 namespace App\Policies;
 
-use App\Enums\EvaluationRequestStatus;
 use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Enums\VacationRequestStatus;
@@ -46,22 +45,19 @@ class VacationRequestPolicy
 
     public function view(User $user, VacationRequest $vacation_request): Response
     {
-        if ($user->trainee && $vacation_request->trainee_id === $user->trainee?->id)
-        {
-            return Response::allow();
-        }
-        if ($user->trainer && $vacation_request->trainer_id === $user->trainer?->id)
-        {
+        if ($vacation_request->trainee_id === $user->trainee?->id) {
             return Response::allow();
         }
 
-        if ($user->roles()->where('role', UserRole::TRAINING_TEAM)) {
+        $roles = $user->roles->pluck('role');
+        if ($roles->containsStrict(UserRole::TRAINING_TEAM)
+            || ($roles->containsStrict(UserRole::TRAINER)
+                && $vacation_request->trainer_id === $user->trainer?->id)) {
             return Response::allow();
         }
 
         return Response::deny(__('vacation_request.unauthorized_view'), ApiCode::FORBIDDEN);
     }
-
 
     /**
      * Determine whether the user can create models.
@@ -84,7 +80,7 @@ class VacationRequestPolicy
      */
     public function update(User $user, VacationRequest $vacation_request): Response
     {
-        if (($vacation_request->trainer_id !== $user->trainer?->id) &&(! $user->trainee || $vacation_request->trainee_id !== $user->trainee?->id)) {
+        if ($vacation_request->trainee_id !== $user->trainee?->id) {
             return Response::deny(__('vacation_request.unauthorized_update'), ApiCode::FORBIDDEN);
         }
 
@@ -101,7 +97,7 @@ class VacationRequestPolicy
     public function delete(User $user, VacationRequest $vacation_request): Response
     {
         if (! $user->trainee || $vacation_request->trainee_id !== $user->trainee->id) {
-            return Response::deny(__('vacation_request.unauthorized_delete'), APiCode::FORBIDDEN);
+            return Response::deny(__('vacation_request.unauthorized_delete'), ApiCode::FORBIDDEN);
         }
 
         if ($vacation_request->status !== VacationRequestStatus::PENDING) {

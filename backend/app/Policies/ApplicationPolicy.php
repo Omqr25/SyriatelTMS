@@ -60,7 +60,20 @@ class ApplicationPolicy
      */
     public function view(User $user, Application $application): bool
     {
-        return false;
+        $roles = $user->roles->pluck('role');
+        if ($roles->containsStrict(UserRole::TRAINING_TEAM) || $user->trainee?->application_id === $application->id) {
+            return true;
+        }
+
+        if (! $roles->containsStrict(UserRole::TRAINER) || ! $user->trainer) {
+            return false;
+        }
+
+        $trainerId = $application->trainee
+            ? $application->trainee->trainer_id
+            : $application->latestAssignment?->trainer_id;
+
+        return $trainerId === $user->trainer->id;
     }
 
     /**
