@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Enums\ApplicationStatus;
 use App\Enums\TraineeStatus;
+use App\Enums\TrainingProgramStatus;
 use App\Enums\UserRole;
 use App\Jobs\DeliverInboxPush;
 use App\Models\Absence;
@@ -36,6 +37,56 @@ class AttendanceHardeningTest extends TestCase
             ->getJson("/api/v1/vacation_request/find/{$leave->id}")->assertForbidden();
         $this->actingAs($this->attendanceUser(UserRole::TRAINING_TEAM), 'api')
             ->getJson("/api/v1/vacation_request/find/{$leave->id}")->assertOk();
+    }
+
+    public function test_absence_picker_uses_the_assigned_trainees_actual_training_period(): void
+    {
+        $eligible = $this->attendanceTrainee();
+        $registrationOpen = $this->attendanceTrainee();
+        $unassigned = $this->attendanceTrainee();
+        $unassigned->application->trainingProgram->forceFill(['status' => TrainingProgramStatus::CLOSED])->save();
+        $eligible->application->trainingProgram->forceFill([
+            'status' => TrainingProgramStatus::CLOSED,
+            'start_date' => today(),
+            'end_date' => today(),
+        ])->save();
+        $registrationOpen->update(['trainer_id' => $eligible->trainer_id]);
+        $registrationOpen->application->trainingProgram->update([
+            'start_date' => today()->addDay(),
+        ]);
+        $url = '/api/v1/absence/eligible-trainees';
+
+        $this->actingAs($eligible->user, 'api')->getJson($url)->assertForbidden();
+        $this->actingAs($eligible->trainer->user, 'api')->getJson($url)
+            ->assertOk()->assertJsonPath('data', [['id' => $eligible->id, 'name' => $eligible->user->name]]);
+        $this->getJson('/api/v1/trainee/trainer')->assertOk()
+            ->assertJsonPath('data.0.id', $registrationOpen->id);
+        $this->postJson("/api/v1/absence/recordAbsence/{$eligible->id}")->assertOk();
+
+        $eligible->application->update(['status' => ApplicationStatus::COMPLETED]);
+        $this->getJson($url)->assertOk()->assertJsonPath('data', []);
+    }
+
+    public function test_approval_rechecks_both_program_bounds_and_allows_past_leave(): void
+    {
+        $trainee = $this->attendanceTrainee();
+        $program = $trainee->application->trainingProgram;
+        $past = $this->attendanceLeave($trainee, ['start_date' => '2026-11-24', 'end_date' => '2026-11-24']);
+        $pending = $this->attendanceLeave($trainee);
+        $this->actingAs($trainee->trainer->user, 'api');
+
+        $program->update(['start_date' => '2026-11-25', 'end_date' => '2026-11-28']);
+        $this->patchJson("/api/v1/vacation_request/decide/{$past->id}", ['status' => 'accepted'])
+            ->assertUnprocessable()->assertJsonValidationErrors('start_date');
+        $this->patchJson("/api/v1/vacation_request/decide/{$pending->id}", ['status' => 'accepted'])
+            ->assertUnprocessable()->assertJsonValidationErrors('end_date');
+        $this->assertSame('pending', $pending->fresh()->status->value);
+        $this->assertDatabaseMissing('notifications', ['event_key' => "vacation_request_decided:{$pending->id}:accepted"]);
+        $this->patchJson("/api/v1/vacation_request/decide/{$pending->id}", ['status' => 'rejected'])->assertOk();
+
+        $program->update(['start_date' => '2026-11-24']);
+        $this->patchJson("/api/v1/vacation_request/decide/{$past->id}", ['status' => 'accepted'])
+            ->assertOk()->assertJsonPath('data.status', 'accepted');
     }
 
     public function test_only_the_assigned_supervisor_can_record_once_per_day_even_after_reassignment(): void

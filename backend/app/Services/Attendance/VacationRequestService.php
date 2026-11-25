@@ -110,6 +110,14 @@ class VacationRequestService
 
         return DB::transaction(function () use ($requestId, $traineeId, $status, $title, $body) {
             $leave = $this->lockForMutation($requestId, $traineeId, 'decide');
+            if ($status === VacationRequestStatus::ACCEPTED) {
+                $this->validateDates(
+                    $leave->start_date?->toDateString(),
+                    $leave->end_date?->toDateString(),
+                    $leave->trainee->application->trainingProgram,
+                    requireFutureStart: false,
+                );
+            }
             $leave->update(['status' => $status]);
             // Legacy non-terminal decisions may already occupy the old event key for this request.
             $this->inbox->publish(
@@ -139,13 +147,16 @@ class VacationRequestService
         return $leave;
     }
 
-    private function validateDates(?string $start, ?string $end, TrainingProgram $program): void
+    private function validateDates(?string $start, ?string $end, TrainingProgram $program, bool $requireFutureStart = true): void
     {
         $errors = [];
-        if ($start === null || $start <= today()->toDateString() || $start < $program->start_date->toDateString()) {
-            $errors['start_date'] = __('attendance.invalid_leave_start');
+        if ($start === null || $start < $program->start_date->toDateString()
+            || ($requireFutureStart && $start <= today()->toDateString())) {
+            $errors['start_date'] = $requireFutureStart
+                ? __('attendance.invalid_leave_start')
+                : __('attendance.leave_start_outside_program');
         }
-        if ($end === null || $end < $start || $end > $program->end_date->toDateString()) {
+        if ($end === null || ($start !== null && $end < $start) || $end > $program->end_date->toDateString()) {
             $errors['end_date'] = __('attendance.invalid_leave_end');
         }
 
