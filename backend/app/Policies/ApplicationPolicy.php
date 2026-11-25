@@ -9,26 +9,21 @@ use Illuminate\Auth\Access\Response;
 
 class ApplicationPolicy
 {
-    /**
-     * Determine whether the user can view any models.
-     */
-
-    public function acceptOrReject(User $user, Application $application): Response {
-
+    public function acceptOrReject(User $user, Application $application): Response
+    {
         $trainer = $user->trainer;
-        if (!$trainer) {
+        if (! $trainer) {
             return Response::deny(__('application.trainer_profile_required'));
         }
 
-        $isAssigned = $application->assigns()->where('trainer_id', $trainer->id)->exists();
-        if (!$isAssigned) {
+        if ($application->latestAssignment?->trainer_id !== $trainer->id) {
             return Response::deny(__('application.application_not_assigned_to_trainer'));
         }
 
         return Response::allow();
     }
 
-    public function viewAnswers(User $user, Application $application): bool
+    public function view(User $user, Application $application): bool
     {
         $roles = $user->roles()->pluck('role');
         if ($roles->containsStrict(UserRole::TRAINING_TEAM)) {
@@ -47,33 +42,12 @@ class ApplicationPolicy
     public function downloadAttachment(User $user, Application $application): bool
     {
         return $user->trainee?->application_id === $application->id
-            || $this->viewAnswers($user, $application);
+            || $this->view($user, $application);
     }
 
     public function viewAny(User $user): bool
     {
         return false;
-    }
-
-    /**
-     * Determine whether the user can view the model.
-     */
-    public function view(User $user, Application $application): bool
-    {
-        $roles = $user->roles->pluck('role');
-        if ($roles->containsStrict(UserRole::TRAINING_TEAM) || $user->trainee?->application_id === $application->id) {
-            return true;
-        }
-
-        if (! $roles->containsStrict(UserRole::TRAINER) || ! $user->trainer) {
-            return false;
-        }
-
-        $trainerId = $application->trainee
-            ? $application->trainee->trainer_id
-            : $application->latestAssignment?->trainer_id;
-
-        return $trainerId === $user->trainer->id;
     }
 
     /**

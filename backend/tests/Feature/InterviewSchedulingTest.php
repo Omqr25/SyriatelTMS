@@ -86,6 +86,30 @@ class InterviewSchedulingTest extends TestCase
         $this->assertDatabaseCount('notification_deliveries', 0);
     }
 
+    public function test_interview_list_and_result_only_include_an_applicant_summary(): void
+    {
+        $trainer = $this->trainer();
+        $trainer->user->roles()->attach(Role::firstOrCreate(['role' => 'SUPERVISOR']));
+        $application = $this->application($trainer);
+        $this->postJson("/api/v1/application/{$application->id}/interview", [
+            'trainer_id' => $trainer->id,
+            'time' => now()->addDay()->setTime(10, 0)->toDateTimeString(),
+            'location' => 'HQ meeting room',
+        ])->assertOk();
+        $interview = $application->interviews()->firstOrFail();
+        $summary = ['id' => $application->id, 'full_name' => $application->full_name, 'status' => 'for interview'];
+
+        $this->actingAs($trainer->user, 'api');
+        $this->getJson('/api/v1/application/trainer/interview')->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.application', $summary)
+            ->assertJsonPath('data.0.location', 'HQ meeting room');
+        $this->getJson("/api/v1/application/{$application->id}")->assertForbidden();
+        $this->patchJson("/api/v1/application/trainer/{$interview->id}/interview/result", [
+            'evaluation' => 90,
+        ])->assertOk()->assertJsonPath('data.application', array_replace($summary, ['status' => 'interviewed']));
+    }
+
     public function test_different_supervisors_can_have_the_same_appointment_time(): void
     {
         $trainer = $this->trainer();

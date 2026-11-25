@@ -14,6 +14,7 @@ use App\Http\Requests\Training\StoreInterviewRequest;
 use App\Http\Resources\Training\AllApplicationResource;
 use App\Http\Resources\Training\ApplicationAnswerResource;
 use App\Http\Resources\Training\ApplicationResource;
+use App\Http\Resources\Training\ApplicationSummaryResource;
 use App\Http\Resources\Training\AssignedApplicationResource;
 use App\Http\Resources\Training\InterviewApplicationResource;
 use App\Http\Resources\Training\InterviewResource;
@@ -59,7 +60,7 @@ class ApplicationController extends Controller
     public function answers(int $application_id)
     {
         $application = Application::findOrFail($application_id);
-        $this->authorize('viewAnswers', $application);
+        $this->authorize('view', $application);
         $application->load('answers.question', 'answers.options');
 
         return $this->success([
@@ -105,8 +106,9 @@ class ApplicationController extends Controller
 
     public function trainerAcceptOrRejectApplicant(int $application_id, ApplicationStatus $type)
     {
-        $application=$this->applicationService->trainerAcceptOrRejectApplicant($application_id,$type);
-        return $this->success(ApplicationResource::make($application));
+        $application = $this->applicationService->trainerAcceptOrRejectApplicant($application_id, $type);
+
+        return $this->success(ApplicationSummaryResource::make($application));
     }
 
     public function scheduleInterview($application_id, StoreInterviewRequest $request)

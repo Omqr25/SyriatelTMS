@@ -338,9 +338,8 @@ class ApplicationService
                         ? ApplicationStatus::QUALIFIED
                         : ApplicationStatus::PENDING,
             ]);
-            $application->fresh();
 
-            return $application->load(self::RESOURCE_RELATIONS);
+            return $application;
         });
     }
 

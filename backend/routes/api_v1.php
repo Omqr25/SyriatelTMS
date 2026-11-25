@@ -280,11 +280,12 @@ Route::prefix('v1')->group(function () {
         });
 
         Route::prefix('application')->group(function () {
-            Route::get('{application_id}', [ApplicationController::class, 'find']);
             Route::get('{application_id}/attachments/{type}', [ApplicationController::class, 'downloadAttachment'])
                 ->name('applications.attachments.download')->whereNumber('application_id');
-            Route::get('{application_id}/answers', [ApplicationController::class, 'answers'])
-                ->middleware('role:HR,SUPERVISOR')->whereNumber('application_id');
+            Route::middleware('role:HR,SUPERVISOR')->group(function () {
+                Route::get('{application_id}', [ApplicationController::class, 'find'])->whereNumber('application_id');
+                Route::get('{application_id}/answers', [ApplicationController::class, 'answers'])->whereNumber('application_id');
+            });
         });
 
         Route::prefix('vacation_request')->middleware(UseRequestLocale::class)->group(function () {
