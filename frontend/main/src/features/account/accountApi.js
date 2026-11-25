@@ -5,7 +5,9 @@ export async function getAccountProfile(endpoint, config) {
   return data?.data === undefined ? data : data.data;
 }
 
-export async function changePassword(body) {
-  const response = await api.post('auth/changePassword', body);
+export async function changePassword(body, token) {
+  const response = await api.post('auth/changePassword', body, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
   return response.data;
 }

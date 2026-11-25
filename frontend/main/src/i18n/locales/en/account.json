@@ -26,7 +26,7 @@
     "showPassword": "Show {{field}}",
     "passwordHint": "Use at least 8 characters and choose a different password.",
     "saveChanges": "Update password",
-    "success": "Your password has been changed successfully.",
+    "success": "Password changed. Sign in again with your new password.",
     "failure": "Unable to change your password. Please try again.",
     "validation": {
       "currentIncorrect": "Your current password is incorrect.",

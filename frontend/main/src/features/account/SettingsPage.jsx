@@ -1,4 +1,4 @@
-import { CheckCircle2, Eye, EyeOff, ShieldCheck } from 'lucide-react';
+import { Eye, EyeOff, ShieldCheck } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
@@ -64,12 +64,6 @@ export default function SettingsPage() {
         })}
 
         {status === 'failure' && <p role="alert" className={styles.error}>{t('settings.failure')}</p>}
-        {status === 'success' && (
-          <p role="status" className={styles.success}>
-            <CheckCircle2 size={18} aria-hidden="true" /> {t('settings.success')}
-          </p>
-        )}
-
         <div className={styles.actions}>
           <Button type="submit" loading={saving}>
             {t(saving ? 'settings.saving' : 'settings.saveChanges')}

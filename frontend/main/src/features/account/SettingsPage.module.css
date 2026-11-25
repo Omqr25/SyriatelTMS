@@ -107,19 +107,6 @@
 .hint { color: var(--ink-500); }
 .error { color: var(--red-700); }
 
-.success {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 12px;
-  border-radius: var(--radius-sm);
-  background: var(--green-50);
-  color: var(--green-700);
-  font-size: 14px;
-}
-
-.success svg { flex: none; }
-
 .actions {
   display: flex;
   justify-content: flex-end;
