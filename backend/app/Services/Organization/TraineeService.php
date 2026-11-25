@@ -59,15 +59,11 @@ class TraineeService
 //        );
     }
 
-    public function find(int $trainee_id)
+    public function find(int $trainee_id): Trainee
     {
-        $trainee= Trainee::find($trainee_id);
-        if (!$trainee) {
-            throw new ErrorException(__('trainee.not_found'));
-        }
-        return $trainee;
-
+        return Trainee::findOrFail($trainee_id);
     }
+
     public function fireTrainee(int $trainee_id, array $data,$actor)
     {
         return DB::transaction(function () use ($trainee_id, $data , $actor) {

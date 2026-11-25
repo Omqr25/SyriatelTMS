@@ -187,9 +187,10 @@ class ApplicationFormsTest extends TestCase
             ->assertJsonPath('data.answers.0.prompt', $number['prompt'])
             ->assertJsonPath('data.answers.2.options.0.label', 'Two')
             ->assertJsonPath('data.answers.3.options.1.label', 'Gamma');
+        $this->getJson(self::APPLY."/{$application->id}")->assertOk()->assertJsonMissingPath('data.answers');
         $this->login('SUPERVISOR');
         $this->getJson($history)->assertForbidden();
-        $this->getJson(self::APPLY."/{$application->id}")->assertOk()->assertJsonMissingPath('data.answers');
+        $this->getJson(self::APPLY."/{$application->id}")->assertForbidden();
         $this->submit($program, $data)->assertUnprocessable()->assertJsonValidationErrors(['national_id_number', 'email']);
 
         $this->login();

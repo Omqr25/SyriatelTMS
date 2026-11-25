@@ -52,6 +52,7 @@ class ApplicationController extends Controller
     public function find( int $application_id )
     {
         $application = $this->applicationService->find($application_id);
+        $this->authorize('view', $application);
         return $this->success(ApplicationResource::make($application));
     }
 

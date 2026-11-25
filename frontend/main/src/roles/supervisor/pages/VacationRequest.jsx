@@ -39,7 +39,6 @@ export default function VacationRequest() {
 
   };
  
-  console.log(VacationRequests)
   useEffect(() => {
     getVacationRequests();
   }, []);

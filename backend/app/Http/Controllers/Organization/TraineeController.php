@@ -12,7 +12,7 @@ use App\Http\Resources\User\ProfileResource;
 use App\Http\Resources\User\TraineeResource;
 use App\Services\Organization\TraineeService;
 use Illuminate\Http\Request;
-use function CuyZ\Valinor\Compiler\this;
+use Illuminate\Support\Facades\Gate;
 
 class TraineeController extends Controller
 {
@@ -42,6 +42,7 @@ class TraineeController extends Controller
      public function find(int $trainee_id)
      {
          $trainee = $this->traineeService->find($trainee_id);
+         Gate::authorize('viewContact', $trainee);
          return $this->success(TraineeResource::make($trainee));
      }
 
