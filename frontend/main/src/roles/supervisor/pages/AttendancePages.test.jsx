@@ -5,9 +5,10 @@ import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import i18n from "../../../i18n";
 import { getAbsentAndSearchApi } from "../../../Api/HrApi/hrApi";
 import { getVacationsRequests, canceltVacation, updateVacation } from "../../../Api/Trainee/vacationApi";
-import { AcceptOrRejectVacationRequestApi, getVacationRequestsApi } from "../../../Api/SupervisorApi/supervisorApi";
+import { AcceptOrRejectVacationRequestApi, getAllAbsentApi, getEligibleAbsenceTrainees, getVacationRequestsApi } from "../../../Api/SupervisorApi/supervisorApi";
 import AttendancePage from "../../hr/pages/AttendancePage";
 import VacationPage from "../../trainee/pages/vacation/VacationPage";
+import AbsentPage from "./AbsentPage";
 import VacationRequest from "./VacationRequest";
 
 vi.mock("../../../Api/HrApi/hrApi", () => ({ getAbsentAndSearchApi: vi.fn() }));
@@ -16,6 +17,7 @@ vi.mock("../../../Api/Trainee/vacationApi", () => ({
 }));
 vi.mock("../../../Api/SupervisorApi/supervisorApi", () => ({
   AcceptOrRejectVacationRequestApi: vi.fn(), getVacationRequestsApi: vi.fn(),
+  getAllAbsentApi: vi.fn(), getEligibleAbsenceTrainees: vi.fn(),
 }));
 vi.mock("react-toastify", () => ({ toast: { success: vi.fn(), error: vi.fn(), warn: vi.fn() } }));
 
@@ -135,4 +137,16 @@ test("paginates HR attendance with the applied search, independent of edits to t
   await screen.findByText("Next filtered result");
 
   expect(getAbsentAndSearchApi.mock.calls).toEqual([[1], [1, "First"], [2, "First"]]);
+});
+
+test("loads the attendance-specific trainee picker when opening the absence form", async () => {
+  getAllAbsentApi.mockResolvedValue(page([]));
+  getEligibleAbsenceTrainees.mockResolvedValue({ data: [{ id: 42, name: "Training Trainee" }] });
+
+  render(<AbsentPage />);
+  fireEvent.click(await screen.findByRole("button", { name: i18n.t("attendance.add", { ns: "hr" }) }));
+
+  const option = await screen.findByRole("option", { name: /Training Trainee/ });
+  expect(option.value).toBe("42");
+  expect(getEligibleAbsenceTrainees).toHaveBeenCalledTimes(1);
 });

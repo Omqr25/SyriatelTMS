@@ -219,6 +219,7 @@ Route::prefix('v1')->group(function () {
             });
 
             Route::prefix('absence')->middleware(UseRequestLocale::class)->group(function () {
+                Route::get('eligible-trainees', [AbsenceController::class, 'eligibleTrainees']);
                 Route::post('recordAbsence/{trainee_id}', [AbsenceController::class, 'recordAbsence']);
             });
             Route::prefix('announcement')->group(function () {

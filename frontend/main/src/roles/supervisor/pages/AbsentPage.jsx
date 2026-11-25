@@ -12,15 +12,28 @@ import useAttendanceList from "../../../hooks/useAttendanceList";
 import styles from "./Pages.module.css";
 import Loading from "../../../components/ui/Loading";
 import { toast } from "react-toastify";
-import useAssigned from "../../../hooks/SupervisorHooks/useassigned";
-import { addAbsentApi, getAllAbsentApi } from "../../../Api/SupervisorApi/supervisorApi";
+import { addAbsentApi, getAllAbsentApi, getEligibleAbsenceTrainees } from "../../../Api/SupervisorApi/supervisorApi";
 export default function AbsentPage() {
   const { t } = useTranslation("hr");
 
   const [showAdd, setShowAdd] = useState(false);
   const [addLoading, setAddLoading] = useState(false);
-  const { getMyTrainees, myTrainees } = useAssigned();
+  const [candidates, setCandidates] = useState([]);
+  const [loadingCandidates, setLoadingCandidates] = useState(false);
   const { load, loading, rows, paging } = useAttendanceList(getAllAbsentApi);
+  const openAdd = async () => {
+    setLoadingCandidates(true);
+    try {
+      const { data } = await getEligibleAbsenceTrainees();
+      setCandidates(data);
+      setShowAdd(true);
+    } catch (error) {
+      toast.error(error.response?.data?.message || error.message);
+    } finally {
+      setLoadingCandidates(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setAddLoading(true);
@@ -62,8 +75,7 @@ export default function AbsentPage() {
 
   useEffect(() => {
     load();
-    getMyTrainees();
-  }, [load, getMyTrainees]);
+  }, [load]);
 
   return loading ? (
     <Loading />
@@ -72,7 +84,7 @@ export default function AbsentPage() {
       <PageHeader
         title={t("attendance.attendanceRegister")}
         action={
-          <Button icon={Plus} onClick={() => setShowAdd(true)}>
+          <Button icon={Plus} onClick={openAdd} loading={loadingCandidates} disabled={loadingCandidates}>
             {t("attendance.add")}
           </Button>
         }
@@ -88,7 +100,7 @@ export default function AbsentPage() {
           <form className={form.form} onSubmit={handleSubmit}>
             <Field label={t("attendance.trainee")}>
               <Select name="traineeId" required>
-                {myTrainees?.map((tr) => (
+                {candidates.map((tr) => (
                   <option key={tr.id} value={tr.id}>
                     --{tr.name}--
                   </option>
@@ -100,7 +112,7 @@ export default function AbsentPage() {
               <Input name="reason" required />
             </Field>
 
-            <Button type="submit" loading={addLoading}>
+            <Button type="submit" loading={addLoading} disabled={candidates.length === 0}>
               {t("action.add", { ns: "common" })}
             </Button>
           </form>

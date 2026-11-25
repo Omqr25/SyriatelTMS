@@ -125,12 +125,50 @@ class AttendanceMysqlConcurrencyTest extends TestCase
         Absence::factory()->create($attributes);
     }
 
+    public function test_approval_waits_for_reschedule_and_validates_the_committed_program_dates(): void
+    {
+        $trainee = $this->attendanceTrainee();
+        $program = $trainee->application->trainingProgram;
+        $leave = $this->attendanceLeave($trainee);
+
+        $this->assertSame([422], $this->raceWithLock('training_programs', function () use ($program) {
+            $program->newQuery()->whereKey($program->id)->lockForUpdate()->firstOrFail()
+                ->update(['end_date' => '2026-11-28']);
+        }, [$trainee->trainer->user_id, 'PATCH', "/api/v1/vacation_request/decide/{$leave->id}", ['status' => 'accepted']]));
+
+        $this->assertSame('pending', $leave->fresh()->status->value);
+        $this->assertDatabaseMissing('notifications', ['event_key' => "vacation_request_decided:{$leave->id}:accepted"]);
+    }
+
+    public function test_dismissal_blocks_waiting_attendance_and_leave_writes(): void
+    {
+        $trainee = $this->attendanceTrainee();
+        $leave = $this->attendanceLeave($trainee);
+        $hr = $this->attendanceUser(\App\Enums\UserRole::TRAINING_TEAM);
+
+        $this->assertSame([403, 403], $this->raceWithLock('trainees', function () use ($trainee, $hr) {
+            app(\App\Services\Organization\TraineeService::class)
+                ->fireTrainee($trainee->id, ['reason' => 'Test dismissal'], $hr);
+        },
+            [$trainee->trainer->user_id, 'POST', "/api/v1/absence/recordAbsence/{$trainee->id}", []],
+            [$trainee->trainer->user_id, 'PATCH', "/api/v1/vacation_request/decide/{$leave->id}", ['status' => 'accepted']],
+        ));
+
+        $this->assertSame('pending', $leave->fresh()->status->value);
+        $this->assertDatabaseMissing('absences', ['trainee_id' => $trainee->id]);
+    }
+
     private function race(Trainee $trainee, array ...$requests): array
+    {
+        return $this->raceWithLock('trainees', fn () => Trainee::lockForUpdate()->findOrFail($trainee->id), ...$requests);
+    }
+
+    private function raceWithLock(string $table, \Closure $lock, array ...$requests): array
     {
         $workers = [];
         try {
             DB::beginTransaction();
-            Trainee::lockForUpdate()->findOrFail($trainee->id);
+            $lock();
             foreach ($requests as [$user, $method, $uri, $body]) {
                 $worker = new Process([PHP_BINARY, base_path('tests/Support/attendance-request.php'),
                     $user, $method, $uri, json_encode($body, JSON_THROW_ON_ERROR)], base_path(), timeout: 20);
@@ -150,7 +188,7 @@ class AttendanceMysqlConcurrencyTest extends TestCase
                      FROM performance_schema.data_lock_waits waits
                      JOIN performance_schema.data_locks locks ON locks.ENGINE_LOCK_ID = waits.REQUESTING_ENGINE_LOCK_ID
                      WHERE locks.OBJECT_SCHEMA = ? AND locks.OBJECT_NAME = ?',
-                    [DB::getDatabaseName(), 'trainees'],
+                    [DB::getDatabaseName(), $table],
                 )->total;
                 if ($waiters === count($requests)) {
                     break;
@@ -158,7 +196,7 @@ class AttendanceMysqlConcurrencyTest extends TestCase
                 usleep(25_000);
             } while (microtime(true) < $deadline);
 
-            $this->assertSame(count($requests), $waiters, 'Both workers must reach the database lock before release.');
+            $this->assertSame(count($requests), $waiters, 'All workers must reach the database lock before release.');
             DB::commit();
 
             $statuses = [];

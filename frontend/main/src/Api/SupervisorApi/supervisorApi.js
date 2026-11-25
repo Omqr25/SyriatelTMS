@@ -143,6 +143,11 @@ export const getAllAbsentApi = async (page = 1) => {
   return response.data;
 };
 
+export const getEligibleAbsenceTrainees = async () => {
+  const response = await api.get("absence/eligible-trainees");
+  return response.data;
+};
+
 export const addAbsentApi = async (id, reason) => {
   const response = await api.post(`absence/recordAbsence/${id}`, { reason }, {
     headers: { "Accept-Language": document.documentElement.lang },

@@ -2,15 +2,19 @@
 
 namespace App\Services\Attendance;
 
+use App\Enums\ApplicationStatus;
+use App\Enums\TraineeStatus;
 use App\Enums\UserRole;
 use App\Enums\VacationRequestStatus;
 use App\Exceptions\ErrorException;
 use App\Helpers\ApiCode;
 use App\Models\Absence;
+use App\Models\Trainee;
 use App\Models\User;
 use App\Models\VacationRequest;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
@@ -37,6 +41,35 @@ class AbsenceService
         return $query->paginate(25)->withQueryString();
     }
 
+    public function eligibleTrainees(User $user)
+    {
+        $trainer = $user->trainer;
+        abort_unless($trainer, 403);
+
+        $today = today();
+        if (! $this->isWorkingDay($today)) {
+            return collect();
+        }
+
+        return Trainee::query()
+            ->where('trainer_id', $trainer->id)
+            ->where('status', TraineeStatus::ACTIVE)
+            ->whereHas('application', fn ($application) => $application
+                ->where('status', ApplicationStatus::ACTIVE)
+                ->whereHas('trainingProgram', fn ($program) => $program
+                    ->whereDate('start_date', '<=', $today)
+                    ->whereDate('end_date', '>=', $today)))
+            ->with('user:id,name')
+            ->orderBy('id')
+            ->get(['id', 'user_id'])
+            ->map(fn (Trainee $trainee) => ['id' => $trainee->id, 'name' => $trainee->user->name]);
+    }
+
+    private function isWorkingDay(Carbon $day): bool
+    {
+        return ! $day->isFriday() && ! $day->isSaturday();
+    }
+
     public function recordAbsence(int $traineeId, ?string $reason, User $user): Absence
     {
         try {
@@ -47,7 +80,7 @@ class AbsenceService
                 $today = today();
                 abort_unless(AttendanceEnrollment::isOpen($trainee, $today), 403, __('attendance.inactive_enrollment'));
                 $program = $trainee->application->trainingProgram;
-                abort_if($today->lt($program->start_date) || $today->isFriday() || $today->isSaturday(),
+                abort_if($today->lt($program->start_date) || ! $this->isWorkingDay($today),
                     422, __('attendance.invalid_absence_day'));
 
                 $leave = VacationRequest::where('trainee_id', $traineeId)

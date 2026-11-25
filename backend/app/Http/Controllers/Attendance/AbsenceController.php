@@ -16,6 +16,11 @@ class AbsenceController extends Controller
         protected AbsenceService $absenceService
     ) {}
 
+    public function eligibleTrainees(Request $request)
+    {
+        return $this->success($this->absenceService->eligibleTrainees($request->user('api')));
+    }
+
     public function findAll(Request $request)
     {
         $absences = $this->absenceService->allAbsences($request);
