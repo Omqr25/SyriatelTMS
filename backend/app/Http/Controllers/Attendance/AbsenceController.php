@@ -19,7 +19,7 @@ class AbsenceController extends Controller
     public function findAll(Request $request)
     {
         $absences = $this->absenceService->allAbsences($request);
-        return $this->success(AbsenceResource::collection($absences));
+        return $this->successWithPagination(AbsenceResource::collection($absences));
     }
 
 

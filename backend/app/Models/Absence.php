@@ -51,7 +51,7 @@ class Absence extends Model
             });
         });
 
-        $date = $filters['date'] ?? now();
+        $date = $filters['date'] ?? today()->toDateString();
 
         $query->whereDate('date', $date);
 

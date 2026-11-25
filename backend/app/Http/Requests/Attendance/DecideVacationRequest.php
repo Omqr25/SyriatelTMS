@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\Attendance;
 
-use App\Enums\EvaluationRequestStatus;
 use App\Enums\VacationRequestStatus;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -26,7 +25,12 @@ class DecideVacationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'status' => ['required', Rule::in(VacationRequestStatus::cases())],
+            'status' => ['required', Rule::in([VacationRequestStatus::ACCEPTED->value, VacationRequestStatus::REJECTED->value])],
         ];
+    }
+
+    public function messages(): array
+    {
+        return ['status.in' => __('attendance.invalid_decision')];
     }
 }

@@ -1,28 +1,17 @@
 import api from "../axios";
 
-export const getVacationsRequests = async () => {
-    const response = await api.get("vacation_request/listForTrainee");
-    console.log(response.data)
-    return response.data
-}
+const requestLocale = () => ({
+  headers: { "Accept-Language": document.documentElement.lang },
+});
 
-export const requestVacation = async (body) => {
-    console.log(body)
-    const response = await api.post("vacation_request", body);
-    console.log(response.data)
-    return response.data
-}
+export const getVacationsRequests = async (page = 1) =>
+  (await api.get("vacation_request/listForTrainee", { params: { page } })).data;
 
-export const updateVacation = async (vacationId, body) => {
-    console.log(`vacation_request/update/${vacationId}`, body)
-    const response = await api.put(`vacation_request/update/${vacationId}`, body);
-    console.log(response.data)
-    return response.data
-}
+export const requestVacation = async (body) =>
+  (await api.post("vacation_request", body, requestLocale())).data;
 
-export const canceltVacation = async (vacatoinId) => {
-    console.log(`vacation_request/${vacatoinId}`)
-    const response = await api.delete(`vacation_request/${vacatoinId}`);
-    console.log(response.data)
-    return response.data
-}
+export const updateVacation = async (vacationId, body) =>
+  (await api.put(`vacation_request/update/${vacationId}`, body, requestLocale())).data;
+
+export const canceltVacation = async (vacationId) =>
+  (await api.delete(`vacation_request/${vacationId}`, requestLocale())).data;

@@ -6,42 +6,35 @@ import styles from "./Pages.module.css";
 import Button from "../../../components/ui/Button";
 import Loading from "../../../components/ui/Loading";
 import { useEffect, useState } from "react";
-import useAssigned from "../../../hooks/SupervisorHooks/useassigned";
+import useAttendanceList from "../../../hooks/useAttendanceList";
+import Pagination from "../../../components/ui/Pagination";
 import { Check, X } from "lucide-react";
-import { AcceptOrRejectVacationRequestApi } from "../../../Api/SupervisorApi/supervisorApi";
+import { AcceptOrRejectVacationRequestApi, getVacationRequestsApi } from "../../../Api/SupervisorApi/supervisorApi";
 import { toast } from "react-toastify";
 import StatusBadge from "../../hr/components/StatusBadge";
 export default function VacationRequest() {
-  const { t } = useTranslation("hr");
+  const { t } = useTranslation(["hr", "trainee"]);
+  const { load, loading, rows, paging } = useAttendanceList(getVacationRequestsApi);
+  const [decision, setDecision] = useState(null);
 
-  const { loading, loadingAction, getVacationRequests, VacationRequests } =
-    useAssigned();
+  const decide = async (id, status) => {
+    setDecision({ id, status });
 
-  const [traineeId, setTraineeId] = useState("");
-
-  const handelCreateEvaluation = async(id,decision) => {
-    setTraineeId(`${id}-${decision}`);
-    
     try {
-        const data =await AcceptOrRejectVacationRequestApi(id,decision);
-        toast.success(data.message)
-        await getVacationRequests(true)
+      const data = await AcceptOrRejectVacationRequestApi(id, status);
+      toast.success(data.message);
     } catch (error) {
-
-      const message =
-        error.response?.data?.message || error.message || "error in interview";
-      toast.error(Array.isArray(message) ? message.join("، ") : message);
-    }finally{
-        setTraineeId(" ");
+      toast.error(error.response?.data?.message || error.message);
+    } finally {
+      await load(paging.currentPage);
+      setDecision(null);
     }
-      
-    
-
   };
- 
+
   useEffect(() => {
-    getVacationRequests();
-  }, []);
+    load();
+  }, [load]);
+
   const columns = [
     {
       key: "name",
@@ -51,11 +44,11 @@ export default function VacationRequest() {
       ),
     },
 
-        {
+    {
       key: "status",
-     header: t("label.status", { ns: "common" }),
+      header: t("label.status", { ns: "common" }),
       render: (tr) => (
-        <StatusBadge kind="applicant" status={tr.status} />
+        <StatusBadge kind="vacation" status={tr.status} />
       ),
     },
 
@@ -79,21 +72,25 @@ export default function VacationRequest() {
     {
       key: "action",
       header: t("label.actions", { ns: "common" }),
-      render: (tr) => tr.status =="pending" ? (
+      render: (tr) => tr.can_decide ? (
         <div className="flexCenter gap8">
           <Button
             variant="success"
             icon={Check}
             size="sm"
-            onClick={() => handelCreateEvaluation(tr.id,"accepted")}
-            loading ={traineeId==`${tr.id}-accepted`}
+            onClick={() => decide(tr.id, "accepted")}
+            aria-label={t("vacation.approve", { ns: "trainee" })}
+            disabled={decision !== null}
+            loading={decision?.id === tr.id && decision.status === "accepted"}
           ></Button>
 
           <Button
             icon={X}
             size="sm"
-            onClick={() => handelCreateEvaluation(tr.id,"rejected")}
-            loading ={traineeId==`${tr.id}-rejected`}
+            onClick={() => decide(tr.id, "rejected")}
+            aria-label={t("vacation.reject", { ns: "trainee" })}
+            disabled={decision !== null}
+            loading={decision?.id === tr.id && decision.status === "rejected"}
           ></Button>
         </div>
       ) : "----",
@@ -106,9 +103,10 @@ export default function VacationRequest() {
     <>
       <Table
         columns={columns}
-        rows={VacationRequests}
+        rows={rows}
         emptyText={t("trainees.empty")}
       />
+      <Pagination {...paging} onPageChange={load} />
     </>
   );
 }

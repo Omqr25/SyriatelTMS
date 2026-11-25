@@ -9,8 +9,6 @@ import {
   getTaskApi,
   getReevaluationRequestsApi,
   createReEvaluationApi,
-  getVacationRequestsApi,
-  getAllAbsentApi
 } from "../../Api/SupervisorApi/supervisorApi";
 import { toast } from "react-toastify";
 
@@ -23,8 +21,6 @@ export default function useAssigned() {
   const [program, setProgram] = useState("");
   const [task, setTask] = useState("");
   const [ReevaluationRequests, setReevaluationRequests] = useState([])
-  const [VacationRequests, setVacationRequests] = useState([])
-  const [absent, setAbsent] = useState([])
 
   const TrainerAcceptOrRejectApplication = useCallback(
     async (applicationId, type) => {
@@ -55,7 +51,6 @@ export default function useAssigned() {
       const data = await getMyTraineesApi();
       setMyTrainees(data.data);
     } catch (error) {
-      console.log(error);
       setError(error);
     } finally {
       setLoading(false);
@@ -173,46 +168,6 @@ export default function useAssigned() {
   }, []);
 
 
-  const getVacationRequests = useCallback(async (silent = false) => {
-    if (!silent) {
-      setLoading(true);
-    }
-    try {
-      const data = await getVacationRequestsApi();
-      setVacationRequests(data.data);
-    } catch (error) {
-      console.log(error);
-      setError(error);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-
-  const getAllAbsent = useCallback(async (silent = false) => {
-    if (!silent) {
-      setLoading(true);
-    }
-    try {
-      const data = await getAllAbsentApi();
-      setAbsent(data.data);
-    } catch (error) {
-      console.log(error);
-      const message =
-        error.response?.data?.message ||
-        error.message ||
-        "Add Absent Error";
-      toast.error(Array.isArray(message) ? message.join("، ") : message);
-      setError(error);
-
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-
-
-
   return {
     // loading
     loading,
@@ -228,8 +183,6 @@ export default function useAssigned() {
     createEvaluation,
     getReevaluationRequests,
     createReEvaluation,
-    getVacationRequests,
-    getAllAbsent,
     // error
     error,
 
@@ -239,7 +192,5 @@ export default function useAssigned() {
     program,
     task,
     ReevaluationRequests,
-    VacationRequests,
-    absent,
   };
 }

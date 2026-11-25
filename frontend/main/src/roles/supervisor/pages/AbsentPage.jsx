@@ -7,25 +7,24 @@ import form from "../../../components/ui/Form.module.css";
 import Modal from "../../../components/ui/Modal";
 import PageHeader from "../../../components/ui/PageHeader";
 import Table from "../../../components/ui/Table";
+import Pagination from "../../../components/ui/Pagination";
+import useAttendanceList from "../../../hooks/useAttendanceList";
 import styles from "./Pages.module.css";
 import Loading from "../../../components/ui/Loading";
 import { toast } from "react-toastify";
 import useAssigned from "../../../hooks/SupervisorHooks/useassigned";
-import { addAbsentApi } from "../../../Api/SupervisorApi/supervisorApi";
+import { addAbsentApi, getAllAbsentApi } from "../../../Api/SupervisorApi/supervisorApi";
 export default function AbsentPage() {
   const { t } = useTranslation("hr");
 
   const [showAdd, setShowAdd] = useState(false);
   const [addLoading, setAddLoading] = useState(false);
-  const { loading, getMyTrainees, myTrainees, getAllAbsent, absent } =
-    useAssigned();
-
-  //   console.log("absent", absent)
+  const { getMyTrainees, myTrainees } = useAssigned();
+  const { load, loading, rows, paging } = useAttendanceList(getAllAbsentApi);
   const handleSubmit = async (e) => {
     e.preventDefault();
     setAddLoading(true);
     const formData = new FormData(e.currentTarget);
-    console.log(formData.get("traineeId"));
 
     try {
       const data = await addAbsentApi(
@@ -33,7 +32,7 @@ export default function AbsentPage() {
         formData.get("reason"),
       );
       toast.success(data.message);
-      await getAllAbsent(true);
+      await load();
       setShowAdd(false);
     } catch (error) {
       const message =
@@ -62,9 +61,9 @@ export default function AbsentPage() {
   ];
 
   useEffect(() => {
-    getAllAbsent();
+    load();
     getMyTrainees();
-  }, []);
+  }, [load, getMyTrainees]);
 
   return loading ? (
     <Loading />
@@ -78,7 +77,8 @@ export default function AbsentPage() {
           </Button>
         }
       />
-      <Table columns={columns} rows={absent} />
+      <Table columns={columns} rows={rows} />
+      <Pagination {...paging} onPageChange={load} />
 
       {showAdd && (
         <Modal

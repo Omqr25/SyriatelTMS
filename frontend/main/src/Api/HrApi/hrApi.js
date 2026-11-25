@@ -13,16 +13,10 @@ export const getAllEvaluationApi = async () => {
 };
 
 
-export const getAbsentAndSearchApi = async (name=null) => {
-  const response = await api.get("absence/findAll",{params:{
-      name:name ||null,
-      date :  name == null? null :new Date().toISOString().split('T')[0]
-
-  }});
-  console.log(response.data)
+export const getAbsentAndSearchApi = async (page = 1, name) => {
+  const response = await api.get("absence/findAll", { params: { page, name } });
   return response.data;
 };
-
 
 export const getAllAnnouncementsApi = async () => {
   const response = await api.get("announcement/getSentByMe");
