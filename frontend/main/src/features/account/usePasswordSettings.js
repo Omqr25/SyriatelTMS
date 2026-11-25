@@ -1,4 +1,8 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { toast } from 'react-toastify';
+import { ACCESS_TOKEN_KEY } from '../../Api/axios';
+import { useAuth } from '../../context/AuthContext';
 import { changePassword } from './accountApi';
 
 const emptyForm = { currentPassword: '', newPassword: '', confirmPassword: '' };
@@ -19,6 +23,8 @@ function validate({ currentPassword, newPassword, confirmPassword }) {
 }
 
 export default function usePasswordSettings() {
+  const { t } = useTranslation('account');
+  const { token, logout } = useAuth();
   const [form, setForm] = useState(emptyForm);
   const [visible, setVisible] = useState({});
   const [errors, setErrors] = useState({});
@@ -36,7 +42,7 @@ export default function usePasswordSettings() {
 
   async function handleSubmit(event) {
     event.preventDefault();
-    if (status === 'saving') return;
+    if (status === 'saving' || !token || localStorage.getItem(ACCESS_TOKEN_KEY) !== token) return;
 
     const validationErrors = validate(form);
     setErrors(validationErrors);
@@ -51,10 +57,7 @@ export default function usePasswordSettings() {
         current_password: form.currentPassword,
         new_password: form.newPassword,
         new_password_confirmation: form.confirmPassword,
-      });
-      setForm(emptyForm);
-      setVisible({});
-      setStatus('success');
+      }, token);
     } catch (error) {
       if (error.response?.data?.errors?.current_password) {
         setErrors({ currentPassword: 'settings.validation.currentIncorrect' });
@@ -62,7 +65,18 @@ export default function usePasswordSettings() {
       } else {
         setStatus('failure');
       }
+      return;
     }
+
+    setForm(emptyForm);
+    setVisible({});
+    if (localStorage.getItem(ACCESS_TOKEN_KEY) !== token) {
+      setStatus('idle');
+      return;
+    }
+
+    toast.success(t('settings.success'));
+    void logout();
   }
 
   return { form, visible, errors, status, updateField, toggleVisibility, handleSubmit };
