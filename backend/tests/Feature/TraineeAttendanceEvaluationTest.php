@@ -2,8 +2,9 @@
 
 namespace Tests\Feature;
 
-use App\Models\{User, Trainee, Trainer, Department, Application, TrainingProgram, Evaluation, Absence, ReevaluationRequest};
+use App\Enums\UserRole;
 use App\Http\Middleware\EnsureUserHasRole;
+use App\Models\{User, Trainee, Trainer, Department, Application, TrainingProgram, Evaluation, Absence, ReevaluationRequest, Role};
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
@@ -31,6 +32,7 @@ class TraineeAttendanceEvaluationTest extends TestCase
     {
         $trainee = $this->trainee();
         $other = $this->trainee();
+        $trainee->user->roles()->attach(Role::firstOrCreate(['role' => UserRole::TRAINEE]));
         foreach (['2026-11-01', '2026-11-03'] as $date) {
             Absence::factory()->create(['trainee_id' => $trainee->id, 'trainer_id' => $trainee->trainer_id, 'date' => $date]);
         }

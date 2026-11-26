@@ -23,13 +23,14 @@ class AbsenceService
     public function allAbsences(Request $request)
     {
         $user = $request->user();
+        $roles = $user->roles()->pluck('role');
         $query = Absence::with('trainee.user')->orderByDesc('date')->orderByDesc('id');
 
-        if ($user->trainer) {
+        if ($roles->containsStrict(UserRole::TRAINER) && $user->trainer) {
             $query->where('trainer_id', $user->trainer->id);
-        } elseif ($user->trainee) {
+        } elseif ($roles->containsStrict(UserRole::TRAINEE) && $user->trainee) {
             $query->where('trainee_id', $user->trainee->id);
-        } elseif ($user->roles()->where('role', UserRole::TRAINING_TEAM)->exists()) {
+        } elseif ($roles->containsStrict(UserRole::TRAINING_TEAM)) {
             $query->filter($request->validate([
                 'name' => ['nullable', 'string', 'max:255'],
                 'date' => ['nullable', 'date_format:Y-m-d'],
