@@ -1,3 +1,4 @@
+import { HrAttendancePage } from "../../features/attendance/AttendancePage";
 import { HrCertificatesPage } from '../../features/certificates/CertificatesPage';
 import { accountRoutes } from '../../features/account/accountRoutes';
 import {
@@ -8,7 +9,6 @@ import AnnouncementsPage from './pages/AnnouncementsPage';
 import ApplicantsPage from './pages/ApplicantsPage';
 import EnglishScoreImportsPage from './pages/EnglishScoreImportsPage';
 import AssignedRequestsPage from './pages/AssignedRequestsPage';
-import AttendancePage from './pages/AttendancePage';
 import DashboardPage from './pages/DashboardPage';
 import DepartmentsPage from './pages/DepartmentsPage';
 import GalleryPage from './pages/GalleryPage';
@@ -37,7 +37,7 @@ export const hrModule = {
     { path: 'trainees', icon: GraduationCap, labelKey: 'hr:nav.trainees', Component: TraineesPage },
     { path: 'departments', icon: Building2, labelKey: 'hr:nav.departments', Component: DepartmentsPage },
     { path: 'supervisors', icon: UserCog, labelKey: 'hr:nav.supervisors', Component: SupervisorsPage },
-    { path: 'attendance', icon: ClipboardList, labelKey: 'hr:nav.attendance', Component: AttendancePage },
+    { path: 'attendance', icon: ClipboardList, labelKey: 'attendance:title', Component: HrAttendancePage },
     { path: 'announcements', icon: Megaphone, labelKey: 'hr:nav.announcements', Component: AnnouncementsPage },
     { path: 'gallery', icon: Images, labelKey: 'gallery:title', Component: GalleryPage },
     { path: 'reports', icon: FileText, labelKey: 'hr:nav.reports', Component: ReportsPage },

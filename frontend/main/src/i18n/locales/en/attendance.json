@@ -1,0 +1,84 @@
+{
+  "title": "Absence & Leave",
+  "recordTitle": "Trainee Record",
+  "back": "Back to list",
+  "search": "Search by name, email, or trainee ID",
+  "loadError": "Records could not be loaded.",
+  "retry": "Try again",
+  "saved": "Changes saved.",
+  "saveError": "Changes could not be saved.",
+  "loading": "Loading…",
+  "selectTrainee": "Select a trainee",
+  "noEligibleTrainees": "No trainees are eligible for absence registration today.",
+  "tabs": {
+    "absence": "Absences",
+    "leave": "Leave Requests",
+    "records": "Trainee Records",
+    "approved": "Approved Leaves",
+    "myAbsences": "My Absences",
+    "myLeave": "My Leave Requests"
+  },
+  "field": {
+    "name": "Trainee name",
+    "date": "Absence date",
+    "reason": "Reason",
+    "classification": "Classification",
+    "status": "Status",
+    "start_date": "Start date",
+    "end_date": "End date",
+    "submitted_at": "Submitted",
+    "actions": "Actions",
+    "total_absences": "Total recorded absences",
+    "excused_absences": "Excused absences",
+    "unexcused_absences": "Unexcused absences",
+    "id": "Trainee ID",
+    "email": "Email address",
+    "program_id": "Training program",
+    "department": "Department",
+    "supervisor_id": "Supervisor"
+  },
+  "filter": {
+    "program_id": "All training programs",
+    "supervisor_id": "All supervisors",
+    "date": "Filter by date",
+    "classification": "All classifications",
+    "status": "All statuses",
+    "recorded": "All trainees",
+    "recordedOption": {
+      "with": "With recorded absences",
+      "without": "Without recorded absences",
+      "unexcused": "With unexcused absences"
+    }
+  },
+  "status": {
+    "excused": "Excused",
+    "unexcused": "Unexcused",
+    "pending": "Pending",
+    "accepted": "Accepted",
+    "rejected": "Rejected",
+    "cancelled": "Cancelled",
+    "expired": "Expired"
+  },
+  "action": {
+    "viewRecord": "View record",
+    "recordAbsence": "Record absence",
+    "editAbsence": "Edit reason",
+    "deleteAbsence": "Delete absence",
+    "requestLeave": "Request leave",
+    "editLeave": "Edit request",
+    "cancelLeave": "Cancel request",
+    "cancelApproved": "Cancel approved leave",
+    "approve": "Accept",
+    "reject": "Reject"
+  },
+  "confirmation": {
+    "deleteAbsence": "Delete this absence from the trainee’s records?",
+    "cancelLeave": "Cancel this leave request?",
+    "cancelApproved": "Cancel this approved leave? Absences covered only by this leave will become unexcused."
+  },
+  "empty": {
+    "absence": "No recorded absences found.",
+    "leave": "No leave requests found.",
+    "records": "No trainees found."
+  }
+}

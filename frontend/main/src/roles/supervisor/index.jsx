@@ -1,3 +1,5 @@
+import { Navigate } from "react-router-dom";
+import { SupervisorAttendancePage } from "../../features/attendance/AttendancePage";
 import {
   Building2,
   CalendarCheck,
@@ -12,7 +14,6 @@ import {
   Star,
   BookLock,
   CalendarArrowDown,
-  Send,
   CalendarX,
   BellRing,
 } from "lucide-react";
@@ -27,8 +28,6 @@ import ProgramsPage from "./pages/ProgramsPage";
 import MilestoneWorkspace from "./pages/MilestoneWorkspace";
 import TaskDetailsPage from "./pages/TaskDetailsPage";
 import Revaluation from "./pages/Revaluation";
-import VacationRequest from "./pages/VacationRequest";
-import AbsentPage from "./pages/AbsentPage";
 import AnnouncementsPage from "./pages/AnnouncementsPage";
 import NotificationsPage from "../../components/notification/NotificationsPage";
 import { accountRoutes } from "../../features/account/accountRoutes";
@@ -81,16 +80,10 @@ export const supervisorModule = {
       Component: Revaluation,
     },
     {
-      path: "vacation-request",
-      icon: Send,
-      labelKey: "hr:nav.vacationRequest",
-      Component: VacationRequest,
-    },
-    {
-      path: "absent",
+      path: "attendance",
       icon: CalendarX,
-      labelKey: "hr:nav.attendance",
-      Component: AbsentPage,
+      labelKey: "attendance:title",
+      Component: SupervisorAttendancePage,
     },
     {
       path: "announcements",
@@ -112,6 +105,8 @@ export const supervisorModule = {
   accountNav: accountRoutes(ProfilePage),
 
   extraRoutes: [
+    { path: "absent", Component: () => <Navigate to="/supervisor/attendance" replace /> },
+    { path: "vacation-request", Component: () => <Navigate to="/supervisor/attendance?tab=leave" replace /> },
     {
       path: "program/details/:programId",
       Component: ProgramsPage,

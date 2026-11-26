@@ -8,4 +8,5 @@ enum VacationRequestStatus : string
     case ACCEPTED = 'accepted';
     case REJECTED = 'rejected';
     case CANCELLED = 'cancelled';
+    case EXPIRED = 'expired';
 }

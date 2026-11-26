@@ -15,6 +15,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
 use Tests\Support\AttendanceFixtures;
+use Tests\Support\IsolatedTestDatabase;
 use Tests\TestCase;
 
 class AttendanceHardeningTest extends TestCase
@@ -36,7 +37,9 @@ class AttendanceHardeningTest extends TestCase
         $this->actingAs($this->attendanceUser(UserRole::TRAINER), 'api')
             ->getJson("/api/v1/vacation_request/find/{$leave->id}")->assertForbidden();
         $this->actingAs($this->attendanceUser(UserRole::TRAINING_TEAM), 'api')
-            ->getJson("/api/v1/vacation_request/find/{$leave->id}")->assertOk();
+            ->getJson("/api/v1/vacation_request/find/{$leave->id}")->assertNotFound();
+        $leave->update(['status' => 'accepted']);
+        $this->getJson("/api/v1/vacation_request/find/{$leave->id}")->assertOk();
     }
 
     public function test_absence_picker_uses_the_assigned_trainees_actual_training_period(): void
@@ -61,7 +64,7 @@ class AttendanceHardeningTest extends TestCase
             ->assertOk()->assertJsonPath('data', [['id' => $eligible->id, 'name' => $eligible->user->name]]);
         $this->getJson('/api/v1/trainee/trainer')->assertOk()
             ->assertJsonPath('data.0.id', $registrationOpen->id);
-        $this->postJson("/api/v1/absence/recordAbsence/{$eligible->id}")->assertOk();
+        $this->postJson("/api/v1/absence/recordAbsence/{$eligible->id}", ['reason' => 'Absent today'])->assertOk();
 
         $eligible->application->update(['status' => ApplicationStatus::COMPLETED]);
         $this->getJson($url)->assertOk()->assertJsonPath('data', []);
@@ -95,12 +98,12 @@ class AttendanceHardeningTest extends TestCase
         $other = $this->attendanceTrainee()->trainer;
         $url = "/api/v1/absence/recordAbsence/{$trainee->id}";
 
-        $this->actingAs($other->user, 'api')->postJson($url)->assertForbidden();
-        $this->actingAs($trainee->trainer->user, 'api')->postJson($url)->assertOk();
-        $this->postJson($url)->assertStatus(400);
+        $this->actingAs($other->user, 'api')->postJson($url, ['reason' => 'Absent today'])->assertForbidden();
+        $this->actingAs($trainee->trainer->user, 'api')->postJson($url, ['reason' => 'Absent today'])->assertOk();
+        $this->postJson($url, ['reason' => 'Absent today'])->assertStatus(400);
 
         $trainee->update(['trainer_id' => $other->id]);
-        $this->actingAs($other->user, 'api')->postJson($url)->assertStatus(400);
+        $this->actingAs($other->user, 'api')->postJson($url, ['reason' => 'Absent today'])->assertStatus(400);
         $this->assertDatabaseCount('absences', 1);
     }
 
@@ -112,17 +115,17 @@ class AttendanceHardeningTest extends TestCase
 
         foreach (['2026-11-21' => 422, '2026-11-27' => 422, '2026-11-28' => 422, '2026-12-16' => 403] as $date => $code) {
             $this->travelTo(Carbon::parse("$date 09:00", 'Asia/Damascus'));
-            $this->postJson($url, [], ['Accept-Language' => 'ar'])->assertStatus($code);
+            $this->postJson($url, ['reason' => 'Absent today'], ['Accept-Language' => 'ar'])->assertStatus($code);
         }
         $this->assertDatabaseEmpty('absences');
         $this->travelTo(Carbon::parse('2026-11-27 09:00', 'Asia/Damascus'));
-        $this->postJson($url, [], ['Accept-Language' => 'ar'])->assertUnprocessable()
+        $this->postJson($url, ['reason' => 'Absent today'], ['Accept-Language' => 'ar'])->assertUnprocessable()
             ->assertJsonPath('message', 'يمكن تسجيل الغياب في أيام العمل خلال فترة التدريب فقط. الجمعة والسبت عطلة.');
 
         $this->travelTo(Carbon::parse('2026-11-21 21:30:00', 'UTC'));
-        $this->postJson($url)->assertOk()->assertJsonPath('data.date', '22-11-2026');
+        $this->postJson($url, ['reason' => 'Absent today'])->assertOk()->assertJsonPath('data.date', '22-11-2026');
         $this->travelTo(Carbon::parse('2026-12-15 10:00', 'Asia/Damascus'));
-        $this->postJson($url)->assertOk()->assertJsonPath('data.date', '15-12-2026');
+        $this->postJson($url, ['reason' => 'Absent today'])->assertOk()->assertJsonPath('data.date', '15-12-2026');
     }
 
     public function test_inactive_and_ended_enrollments_reject_attendance_and_leave_writes(): void
@@ -140,7 +143,7 @@ class AttendanceHardeningTest extends TestCase
             $trainee->application->trainingProgram->update(['end_date' => $programEnd]);
 
             $this->actingAs($trainee->trainer->user, 'api')
-                ->postJson("/api/v1/absence/recordAbsence/{$trainee->id}")->assertForbidden();
+                ->postJson("/api/v1/absence/recordAbsence/{$trainee->id}", ['reason' => 'Absent today'])->assertForbidden();
             $this->patchJson("/api/v1/vacation_request/decide/{$leave->id}", ['status' => 'accepted'])->assertForbidden();
             $this->actingAs($trainee->user, 'api')->getJson('/api/v1/vacation_request/listForTrainee')
                 ->assertOk()->assertJsonPath('data.0.can_edit', false)->assertJsonPath('extraData.can_request', false);
@@ -160,7 +163,7 @@ class AttendanceHardeningTest extends TestCase
         $data = ['start_date' => '2026-11-26', 'end_date' => '2026-11-26', 'reason' => 'Appointment'];
         $url = '/api/v1/vacation_request';
 
-        $this->postJson($url, ['start_date' => '2026-11-25'] + $data)->assertJsonValidationErrors('start_date');
+        $this->postJson($url, ['start_date' => '2026-11-24'] + $data)->assertJsonValidationErrors('start_date');
         $this->postJson($url, ['end_date' => '2026-12-16'] + $data)->assertJsonValidationErrors('end_date');
         $this->postJson($url, ['end_date' => '2026-11-25'] + $data)->assertJsonValidationErrors('end_date');
         $this->postJson($url, ['start_date' => '2026-11-26T00:00:00+00:00'] + $data)->assertJsonValidationErrors('start_date');
@@ -184,25 +187,25 @@ class AttendanceHardeningTest extends TestCase
         $trainee->application->trainingProgram->update(['end_date' => '2026-11-26']);
         $this->putJson($update, ['reason' => 'Date moved'])->assertJsonValidationErrors('end_date');
         $this->deleteJson("{$url}/{$leaveId}")->assertOk();
-        $this->assertDatabaseMissing('vacation_requests', ['id' => $leaveId]);
+        $this->assertDatabaseHas('vacation_requests', ['id' => $leaveId, 'status' => 'cancelled']);
     }
 
-    public function test_owner_edit_and_cancellation_cutoff_is_damascus_midnight(): void
+    public function test_pending_leave_remains_editable_and_cancellable_on_the_start_date_in_damascus(): void
     {
         $trainee = $this->attendanceTrainee();
         $leave = $this->attendanceLeave($trainee, ['start_date' => '2026-11-26 12:30:00']);
         $this->actingAs($trainee->user, 'api');
         $this->travelTo(Carbon::parse('2026-11-25 20:59:00', 'UTC'));
         $this->getJson('/api/v1/vacation_request/listForTrainee')->assertOk()
-            ->assertJsonPath('extraData.earliest_leave_date', '2026-11-26')->assertJsonPath('data.0.can_cancel', true);
+            ->assertJsonPath('extraData.earliest_leave_date', '2026-11-25')->assertJsonPath('data.0.can_cancel', true);
 
         $this->travelTo(Carbon::parse('2026-11-25 21:00:00', 'UTC'));
         $this->getJson('/api/v1/vacation_request/listForTrainee')->assertOk()
-            ->assertJsonPath('extraData.earliest_leave_date', '2026-11-27')
-            ->assertJsonPath('data.0.can_cancel', false)->assertJsonPath('data.0.can_edit', false);
+            ->assertJsonPath('extraData.earliest_leave_date', '2026-11-26')
+            ->assertJsonPath('data.0.can_cancel', true)->assertJsonPath('data.0.can_edit', true);
         $this->putJson("/api/v1/vacation_request/update/{$leave->id}", ['reason' => 'Change'])
-            ->assertForbidden();
-        $this->deleteJson("/api/v1/vacation_request/{$leave->id}")->assertForbidden();
+            ->assertOk()->assertJsonPath('data.reason', 'Change');
+        $this->deleteJson("/api/v1/vacation_request/{$leave->id}")->assertOk()->assertJsonPath('data.status', 'cancelled');
     }
 
     public function test_only_terminal_decisions_generate_one_matching_inbox_event_and_outbox_entry(): void
@@ -258,13 +261,12 @@ class AttendanceHardeningTest extends TestCase
         $this->assertDatabaseHas('notification_deliveries', ['notified_id' => $recipient->id]);
     }
 
-    public function test_absence_keeps_existing_approved_leave_association(): void
+    public function test_existing_accepted_leave_excuses_new_absences_regardless_of_time_of_day(): void
     {
         $trainee = $this->attendanceTrainee();
         $leave = $this->attendanceLeave($trainee, ['status' => 'accepted', 'start_date' => '2026-11-25 12:00:00']);
-        $this->actingAs($trainee->trainer->user, 'api')->postJson("/api/v1/absence/recordAbsence/{$trainee->id}")
-            ->assertOk()->assertJsonPath('data.status', 'absent');
-        $this->assertDatabaseHas('absences', ['request_id' => $leave->id, 'trainee_id' => $trainee->id]);
+        $this->actingAs($trainee->trainer->user, 'api')->postJson("/api/v1/absence/recordAbsence/{$trainee->id}", ['reason' => 'Absent today'])
+            ->assertOk()->assertJsonPath('data.status', 'absent')->assertJsonPath('data.classification', 'excused');
     }
 
     public function test_role_scoped_lists_are_paginated_stably_without_per_row_queries(): void
@@ -341,6 +343,7 @@ class AttendanceHardeningTest extends TestCase
         }
         $trainee = $this->attendanceTrainee();
         $migration = require database_path('migrations/2026_11_25_000001_enforce_unique_daily_absences.php');
+        IsolatedTestDatabase::verify($this->app);
         $migration->down();
         $attributes = [
             'date' => '2026-11-25', 'trainee_id' => $trainee->id, 'trainer_id' => $trainee->trainer_id,

@@ -1,0 +1,178 @@
+--- a/backend/app/Enums/VacationRequestStatus.php
++++ b/backend/app/Enums/VacationRequestStatus.php
+@@ -8,4 +8,5 @@
+     case ACCEPTED = 'accepted';
+     case REJECTED = 'rejected';
+     case CANCELLED = 'cancelled';
++    case EXPIRED = 'expired';
+ }
+--- a/backend/app/Models/Absence.php
++++ b/backend/app/Models/Absence.php
+@@ -7,7 +7,7 @@
+
+ class Absence extends Model
+ {
+-    use HasFactory;
++    use HasFactory, \Illuminate\Database\Eloquent\SoftDeletes;
+
+     protected $fillable = [
+         'trainee_id',
+--- a/backend/app/Services/Attendance/AbsenceService.php
++++ b/backend/app/Services/Attendance/AbsenceService.php
+@@ -27,7 +27,7 @@
+         $query = Absence::with('trainee.user')->orderByDesc('date')->orderByDesc('id');
+
+         if ($roles->containsStrict(UserRole::TRAINER) && $user->trainer) {
+-            $query->where('trainer_id', $user->trainer->id);
++            $query->whereHas('trainee', fn ($query) => $query->where('trainees.trainer_id', $user->trainer->id));
+         } elseif ($roles->containsStrict(UserRole::TRAINEE) && $user->trainee) {
+             $query->where('trainee_id', $user->trainee->id);
+         } elseif ($roles->containsStrict(UserRole::TRAINING_TEAM)) {
+--- a/backend/app/Services/Attendance/VacationRequestService.php
++++ b/backend/app/Services/Attendance/VacationRequestService.php
+@@ -3,6 +3,7 @@
+ namespace App\Services\Attendance;
+
+ use App\Enums\VacationRequestStatus;
++use App\Enums\UserRole;
+ use App\Models\TrainingProgram;
+ use App\Models\User;
+ use App\Models\VacationRequest;
+@@ -23,7 +24,9 @@
+         $trainee = $request->user('api')->trainee;
+         abort_unless($trainee, 403);
+
+-        return VacationRequest::where('trainee_id', $trainee->id)->with(self::RELATIONS)
++        return VacationRequest::where('trainee_id', $trainee->id)
++            ->when($request->user('api')->roles->pluck('role')->containsStrict(UserRole::TRAINING_TEAM),
++                fn ($query) => $query->where('status', VacationRequestStatus::ACCEPTED))->with(self::RELATIONS)
+             ->latest()->orderByDesc('id')->paginate(25)->withQueryString();
+     }
+
+@@ -32,7 +35,9 @@
+         $trainer = $request->user('api')->trainer;
+         abort_unless($trainer, 403);
+
+-        return VacationRequest::where('trainer_id', $trainer->id)->with(self::RELATIONS)
++        return VacationRequest::whereHas('trainee', fn ($query) => $query->where('trainees.trainer_id', $trainer->id))
++            ->when($request->user('api')->roles->pluck('role')->containsStrict(UserRole::TRAINING_TEAM),
++                fn ($query) => $query->where('status', VacationRequestStatus::ACCEPTED))->with(self::RELATIONS)
+             ->latest()->orderByDesc('id')->paginate(25)->withQueryString();
+     }
+
+--- a/backend/app/Policies/VacationRequestPolicy.php
++++ b/backend/app/Policies/VacationRequestPolicy.php
+@@ -46,15 +46,15 @@
+
+     public function view(User $user, VacationRequest $vacation_request): Response
+     {
+-        if ($user->trainee && $vacation_request->trainee_id === $user->trainee->id) {
+-            return Response::allow();
++        $roles = $user->roles->pluck('role');
++        if ($roles->containsStrict(UserRole::TRAINING_TEAM)) {
++            return $vacation_request->status === VacationRequestStatus::ACCEPTED
++                ? Response::allow()
++                : Response::denyAsNotFound();
+         }
+-
+-        $roles = $user->roles->pluck('role');
+-        if ($roles->containsStrict(UserRole::TRAINING_TEAM)
+-            || ($roles->containsStrict(UserRole::TRAINER)
+-                && $user->trainer
+-                && $vacation_request->trainer_id === $user->trainer->id)) {
++        if (($roles->containsStrict(UserRole::TRAINEE) && $user->trainee && $vacation_request->trainee_id === $user->trainee->id)
++            || ($roles->containsStrict(UserRole::TRAINER) && $user->trainer
++                && $vacation_request->trainee->trainer_id === $user->trainer->id)) {
+             return Response::allow();
+         }
+
+--- a/backend/routes/api_v1.php
++++ b/backend/routes/api_v1.php
+@@ -214,13 +214,11 @@
+                 Route::get('myEvaluations', [EvaluationController::class, 'myEvaluations']);
+             });
+             Route::prefix('vacation_request')->middleware(UseRequestLocale::class)->group(function () {
+-                Route::patch('decide/{request_id}',[VacationRequestController::class, 'decide']);
+                 Route::get('listForTrainer', [VacationRequestController::class, 'listForTrainer']);
+             });
+
+             Route::prefix('absence')->middleware(UseRequestLocale::class)->group(function () {
+                 Route::get('eligible-trainees', [AbsenceController::class, 'eligibleTrainees']);
+-                Route::post('recordAbsence/{trainee_id}', [AbsenceController::class, 'recordAbsence']);
+             });
+             Route::prefix('announcement')->group(function () {
+                 Route::post('trainerSendAnnouncement', [AnnoncementController::class, 'trainerSendAnnouncement']);
+@@ -265,10 +263,7 @@
+              Route::get('myProgram', [ProgramController::class, 'myProgram']);
+
+             Route::prefix('vacation_request')->middleware(UseRequestLocale::class)->group(function () {
+-                Route::post('/',[VacationRequestController::class, 'store']);
+-                Route::delete('/{request_id}',[VacationRequestController::class, 'cancel']);
+                 Route::get('listForTrainee', [VacationRequestController::class, 'listForTrainee']);
+-                Route::put('update/{request_id}', [VacationRequestController::class, 'update']);
+
+             });
+
+--- a/frontend/main/src/i18n/locales/en/trainee.json
++++ b/frontend/main/src/i18n/locales/en/trainee.json
+@@ -57,6 +57,7 @@
+         "pending": "Pending",
+         "accepted": "Accepted",
+         "rejected": "Rejected",
++        "expired": "Expired",
+         "cancelled": "Cancelled",
+         "requiredFields": "Enter a reason, start date, and end date.",
+         "approve": "Approve leave request",
+--- a/frontend/main/src/i18n/locales/ar/trainee.json
++++ b/frontend/main/src/i18n/locales/ar/trainee.json
+@@ -55,6 +55,7 @@
+         "pending": "قيد الانتظار",
+         "accepted": "مقبول",
+         "rejected": "مرفوض",
++        "expired": "منتهي",
+         "cancelled": "ملغى",
+         "requiredFields": "أدخل سبب الإجازة وتاريخ بدايتها ونهايتها.",
+         "approve": "قبول طلب الإجازة",
+--- /dev/null
++++ b/backend/database/migrations/2026_11_26_000001_extend_absences_and_index_leave_periods.php
+@@ -0,0 +1,40 @@
++<?php
++
++use Illuminate\Database\Migrations\Migration;
++use Illuminate\Database\Schema\Blueprint;
++use Illuminate\Support\Facades\DB;
++use Illuminate\Support\Facades\Schema;
++
++return new class extends Migration
++{
++    public function up(): void
++    {
++        Schema::table('absences', function (Blueprint $table) {
++            $table->softDeletes();
++        });
++
++        Schema::table('vacation_requests', function (Blueprint $table) {
++            $table->index(['status', 'trainee_id', 'start_date', 'end_date'], 'leave_status_trainee_period');
++        });
++    }
++
++    public function down(): void
++    {
++        // Removing this column would make deleted records visible and bookable again.
++        if (DB::table('absences')->whereNotNull('deleted_at')->exists()) {
++            throw new RuntimeException('Retain or archive soft-deleted absences before rolling back.');
++        }
++
++        if (DB::table('vacation_requests')->where('status', 'expired')->exists()) {
++            throw new RuntimeException('Keep the attendance compatibility schema while expired leave records exist.');
++        }
++
++        Schema::table('vacation_requests', function (Blueprint $table) {
++            $table->dropIndex('leave_status_trainee_period');
++        });
++
++        Schema::table('absences', function (Blueprint $table) {
++            $table->dropSoftDeletes();
++        });
++    }
++};

@@ -1,0 +1,84 @@
+{
+  "title": "الغياب والإجازات",
+  "recordTitle": "سجل المتدرب",
+  "back": "العودة إلى القائمة",
+  "search": "البحث بالاسم أو البريد الإلكتروني أو معرّف المتدرب",
+  "loadError": "تعذّر تحميل السجلات.",
+  "retry": "إعادة المحاولة",
+  "saved": "تم حفظ التغييرات.",
+  "saveError": "تعذّر حفظ التغييرات.",
+  "loading": "جارٍ التحميل…",
+  "selectTrainee": "اختر متدربًا",
+  "noEligibleTrainees": "لا يوجد متدربون يمكن تسجيل غيابهم اليوم.",
+  "tabs": {
+    "absence": "الغياب",
+    "leave": "طلبات الإجازة",
+    "records": "سجلات المتدربين",
+    "approved": "الإجازات المقبولة",
+    "myAbsences": "سجل غيابي",
+    "myLeave": "طلبات إجازتي"
+  },
+  "field": {
+    "name": "اسم المتدرب",
+    "date": "تاريخ الغياب",
+    "reason": "السبب",
+    "classification": "التصنيف",
+    "status": "الحالة",
+    "start_date": "تاريخ البداية",
+    "end_date": "تاريخ النهاية",
+    "submitted_at": "تاريخ التقديم",
+    "actions": "الإجراءات",
+    "total_absences": "إجمالي الغياب المسجّل",
+    "excused_absences": "غياب مبرّر",
+    "unexcused_absences": "غياب غير مبرّر",
+    "id": "معرّف المتدرب",
+    "email": "البريد الإلكتروني",
+    "program_id": "البرنامج التدريبي",
+    "department": "القسم",
+    "supervisor_id": "المشرف"
+  },
+  "filter": {
+    "program_id": "جميع البرامج التدريبية",
+    "supervisor_id": "جميع المشرفين",
+    "date": "التصفية حسب التاريخ",
+    "classification": "جميع التصنيفات",
+    "status": "جميع الحالات",
+    "recorded": "جميع المتدربين",
+    "recordedOption": {
+      "with": "لديهم غياب مسجّل",
+      "without": "ليس لديهم غياب مسجّل",
+      "unexcused": "لديهم غياب غير مبرّر"
+    }
+  },
+  "status": {
+    "excused": "مبرّر",
+    "unexcused": "غير مبرّر",
+    "pending": "قيد الانتظار",
+    "accepted": "مقبول",
+    "rejected": "مرفوض",
+    "cancelled": "ملغى",
+    "expired": "منتهي"
+  },
+  "action": {
+    "viewRecord": "عرض السجل",
+    "recordAbsence": "تسجيل غياب",
+    "editAbsence": "تعديل السبب",
+    "deleteAbsence": "حذف الغياب",
+    "requestLeave": "طلب إجازة",
+    "editLeave": "تعديل الطلب",
+    "cancelLeave": "إلغاء الطلب",
+    "cancelApproved": "إلغاء الإجازة المقبولة",
+    "approve": "قبول",
+    "reject": "رفض"
+  },
+  "confirmation": {
+    "deleteAbsence": "هل تريد حذف الغياب من سجل المتدرب؟",
+    "cancelLeave": "هل تريد إلغاء طلب الإجازة؟",
+    "cancelApproved": "هل تريد إلغاء هذه الإجازة المقبولة؟ سيصبح الغياب المغطى بهذه الإجازة فقط غير مبرّر."
+  },
+  "empty": {
+    "absence": "لا توجد سجلات غياب مطابقة.",
+    "leave": "لا توجد طلبات إجازة مطابقة.",
+    "records": "لا يوجد متدربون مطابقون."
+  }
+}

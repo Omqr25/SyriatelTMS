@@ -13,11 +13,6 @@ export const getAllEvaluationApi = async () => {
 };
 
 
-export const getAbsentAndSearchApi = async (page = 1, name) => {
-  const response = await api.get("absence/findAll", { params: { page, name } });
-  return response.data;
-};
-
 export const getAllAnnouncementsApi = async () => {
   const response = await api.get("announcement/getSentByMe");
   return response.data;
