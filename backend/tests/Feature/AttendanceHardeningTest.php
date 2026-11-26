@@ -309,6 +309,31 @@ class AttendanceHardeningTest extends TestCase
         $this->getJson('/api/v1/absence/findAll?date=2026-11-24')->assertOk()->assertJsonPath('meta.total', 1);
     }
 
+    public function test_retained_profiles_do_not_grant_absence_history_after_role_revocation(): void
+    {
+        $trainee = $this->attendanceTrainee();
+        $absence = Absence::factory()->create([
+            'trainee_id' => $trainee->id,
+            'trainer_id' => $trainee->trainer_id,
+            'date' => today(),
+            'reason' => 'Private absence reason',
+        ]);
+
+        foreach ([$trainee->trainer->user, $trainee->user] as $user) {
+            $this->actingAs($user, 'api');
+            $this->getJson('/api/v1/absence/findAll')->assertOk()
+                ->assertJsonPath('data.0.id', $absence->id)
+                ->assertJsonPath('data.0.reason', 'Private absence reason');
+
+            $user->roles()->detach();
+
+            $this->getJson('/api/v1/absence/findAll')->assertOk()
+                ->assertJsonPath('data', [])
+                ->assertJsonPath('meta.total', 0)
+                ->assertJsonMissing(['reason' => 'Private absence reason']);
+        }
+    }
+
     public function test_daily_unique_migration_preserves_legacy_records_without_permitting_new_duplicates(): void
     {
         if (DB::getDriverName() !== 'sqlite') {
