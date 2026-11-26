@@ -9,6 +9,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabaseState;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Tests\Support\IsolatedTestDatabase;
 use Tests\TestCase;
 
 class TrainingProgramMigrationTest extends TestCase
@@ -38,6 +39,7 @@ class TrainingProgramMigrationTest extends TestCase
         config(['jwt.secret' => str_repeat('test-secret-', 8)]);
         $this->travelTo(Carbon::parse('2030-01-01'));
         $migration = require database_path('migrations/2026_11_18_000004_add_training_program_management.php');
+        IsolatedTestDatabase::verify($this->app);
         $migration->down();
         $legacy = fn ($overrides) => DB::table('training_programs')->insertGetId(array_replace(
             self::FIELDS + ['description' => '', 'status' => 'Closed'], $overrides

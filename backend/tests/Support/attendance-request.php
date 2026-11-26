@@ -4,7 +4,7 @@ use App\Models\User;
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\DB;
+use Tests\Support\IsolatedTestDatabase;
 use Illuminate\Support\Facades\Queue;
 
 require __DIR__.'/../../vendor/autoload.php';
@@ -19,8 +19,8 @@ $app->instance('request', $request);
 $kernel = $app->make(Kernel::class);
 $kernel->bootstrap();
 
-if (! $app->environment('testing') || ! env('RUN_MYSQL_ATTENDANCE_CONCURRENCY')
-    || DB::getDriverName() !== 'mysql' || ! str_ends_with(DB::getDatabaseName(), '_test')) {
+IsolatedTestDatabase::verify($app);
+if (! env('RUN_MYSQL_ATTENDANCE_CONCURRENCY')) {
     exit(1);
 }
 

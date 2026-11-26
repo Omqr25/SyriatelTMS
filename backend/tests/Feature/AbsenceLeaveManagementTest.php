@@ -179,4 +179,28 @@ class AbsenceLeaveManagementTest extends TestCase
             ->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('data.0.id', $zero->id);
         $this->getJson('/api/v1/attendance/trainees?sort=not_allowed')->assertJsonValidationErrors('sort');
     }
+
+    public function test_reassignment_transfers_historical_absence_and_leave_access(): void
+    {
+        $trainee = $this->attendanceTrainee();
+        $former = $trainee->trainer->user;
+        $incoming = $this->attendanceTrainee()->trainer;
+        $absence = Absence::factory()->create(['trainee_id' => $trainee->id, 'trainer_id' => $trainee->trainer_id]);
+        $leave = $this->attendanceLeave($trainee, ['status' => 'expired']);
+        $trainee->update(['trainer_id' => $incoming->id]);
+
+        $lists = [
+            '/api/v1/absence/findAll' => $absence->id,
+            '/api/v1/attendance/absences' => $absence->id,
+            '/api/v1/vacation_request/listForTrainer' => $leave->id,
+        ];
+        foreach ($lists as $url => $id) {
+            $this->actingAs($former, 'api')->getJson($url)->assertOk()->assertJsonCount(0, 'data');
+            $this->actingAs($incoming->user, 'api')->getJson($url)->assertOk()->assertJsonPath('data.0.id', $id);
+        }
+
+        $url = "/api/v1/vacation_request/find/{$leave->id}";
+        $this->actingAs($former, 'api')->getJson($url)->assertForbidden();
+        $this->actingAs($incoming->user, 'api')->getJson($url)->assertOk()->assertJsonPath('data.status', 'expired');
+    }
 }

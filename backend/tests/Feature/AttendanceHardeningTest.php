@@ -15,6 +15,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
 use Tests\Support\AttendanceFixtures;
+use Tests\Support\IsolatedTestDatabase;
 use Tests\TestCase;
 
 class AttendanceHardeningTest extends TestCase
@@ -342,6 +343,7 @@ class AttendanceHardeningTest extends TestCase
         }
         $trainee = $this->attendanceTrainee();
         $migration = require database_path('migrations/2026_11_25_000001_enforce_unique_daily_absences.php');
+        IsolatedTestDatabase::verify($this->app);
         $migration->down();
         $attributes = [
             'date' => '2026-11-25', 'trainee_id' => $trainee->id, 'trainer_id' => $trainee->trainer_id,

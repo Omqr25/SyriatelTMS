@@ -9,6 +9,7 @@ use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\Process\Process;
 use Tests\Support\AttendanceFixtures;
+use Tests\Support\IsolatedTestDatabase;
 use Tests\TestCase;
 
 // Run with RUN_MYSQL_ATTENDANCE_CONCURRENCY=1 against a disposable, migrated MySQL 8 test database.
@@ -107,6 +108,7 @@ class AttendanceMysqlConcurrencyTest extends TestCase
     {
         $trainee = $this->attendanceTrainee();
         $migration = require database_path('migrations/2026_11_25_000001_enforce_unique_daily_absences.php');
+        IsolatedTestDatabase::verify($this->app);
         $migration->down();
         $attributes = ['date' => '2026-11-25', 'trainee_id' => $trainee->id, 'trainer_id' => $trainee->trainer_id];
         try {
