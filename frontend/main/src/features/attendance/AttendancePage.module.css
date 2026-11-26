@@ -1,0 +1,76 @@
+.page,
+.panel,
+.results {
+  display: grid;
+  min-width: 0;
+  gap: 12px;
+}
+
+.tabs,
+.toolbar,
+.dialogActions,
+.error {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.tabs {
+  padding-block-end: 10px;
+  border-block-end: 1px solid var(--ink-200);
+}
+
+.tabs button[aria-selected="true"] {
+  box-shadow: inset 0 -2px var(--red-600);
+}
+
+.toolbar > section {
+  flex: 1 1 20rem;
+}
+
+.counts,
+.identification,
+.dates {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr));
+  gap: 12px;
+  margin: 0;
+}
+
+.identification {
+  padding-block: 12px;
+  border-block-end: 1px solid var(--ink-200);
+  margin-block-end: 12px;
+}
+
+.counts dt,
+.identification dt {
+  color: var(--ink-600);
+  font-size: 13px;
+}
+
+.counts dd,
+.identification dd {
+  margin: 4px 0 0;
+  color: var(--ink-900);
+  overflow-wrap: anywhere;
+}
+
+.counts dd {
+  font-weight: 700;
+}
+
+.heading {
+  margin-block: 8px 0;
+}
+
+.dialogActions {
+  justify-content: flex-end;
+}
+
+@media (max-width: 520px) {
+  .tabs button {
+    flex: 1 1 auto;
+  }
+}

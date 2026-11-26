@@ -9,6 +9,7 @@ use App\Http\Requests\Attendance\DecideVacationRequest;
 use App\Http\Requests\Attendance\StoreVacationRequest;
 use App\Http\Requests\Attendance\UpdateVacationRequest;
 use App\Http\Resources\Attendance\VacationRequestResource;
+use App\Services\Attendance\AttendanceAccess;
 use App\Services\Attendance\AttendanceEnrollment;
 use App\Services\Attendance\VacationRequestService;
 use Illuminate\Http\Request;
@@ -32,8 +33,8 @@ class VacationRequestController extends Controller
         $trainee = $request->user('api')->trainee;
         $program = $trainee->application?->trainingProgram;
         $today = today();
-        $tomorrow = $today->copy()->addDay()->toDateString();
-        $earliest = max($tomorrow, $program?->start_date?->toDateString() ?? $tomorrow);
+        $date = $today->toDateString();
+        $earliest = max($date, $program?->start_date?->toDateString() ?? $date);
         $latest = $program?->end_date?->toDateString();
 
         return $this->successWithPagination(VacationRequestResource::collection($requests), [
@@ -41,6 +42,13 @@ class VacationRequestController extends Controller
             'latest_leave_date' => $latest,
             'can_request' => AttendanceEnrollment::isOpen($trainee, $today) && $earliest <= $latest && $trainee->trainer_id !== null,
         ]);
+    }
+
+    public function approved(Request $request)
+    {
+        abort_unless(AttendanceAccess::isHr($request->user('api')), 403);
+
+        return $this->successWithPagination(VacationRequestResource::collection($this->vacationRequestService->list($request)));
     }
 
     public function store(StoreVacationRequest $request)
@@ -66,8 +74,14 @@ class VacationRequestController extends Controller
 
     public function cancel(int $request_id)
     {
-        $this->vacationRequestService->cancel($request_id);
-        return $this->success();
+        return $this->success(VacationRequestResource::make($this->vacationRequestService->cancel($request_id, VacationRequestStatus::PENDING)));
+    }
+
+    public function cancelApproved(int $request_id)
+    {
+        return $this->success(VacationRequestResource::make(
+            $this->vacationRequestService->cancel($request_id, VacationRequestStatus::ACCEPTED),
+        ));
     }
 
     public function decide(int $request_id ,DecideVacationRequest $request)

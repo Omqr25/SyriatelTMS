@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Enums\ApplicationStatus;
 use App\Enums\TrainingProgramStatus;
+use App\Enums\VacationRequestStatus;
 use App\Jobs\CompleteTraineesJob;
 use App\Models\TrainingProgram;
 use App\Services\Training\TrainingProgramService;
@@ -29,7 +30,12 @@ class UpdateTrainingProgramStatuses extends Command
         })->select('id')->eachById(fn ($p) => $programs->refreshRegistration($p->id));
 
         TrainingProgram::whereDate('end_date', '<', $today)
-            ->whereHas('applications', fn ($q) => $q->where('status', ApplicationStatus::ACTIVE)->whereHas('trainee'))
+            ->where(function ($q) {
+                $q->whereHas('applications', fn ($applications) => $applications
+                    ->where('status', ApplicationStatus::ACTIVE)->whereHas('trainee'))
+                    ->orWhereHas('applications.trainee.vacationRequests',
+                        fn ($leaves) => $leaves->where('status', VacationRequestStatus::PENDING));
+            })
             ->eachById(fn ($p) => (new CompleteTraineesJob($p))->handle());
 
         return self::SUCCESS;

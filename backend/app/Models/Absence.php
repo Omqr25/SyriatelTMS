@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Absence extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'trainee_id',
@@ -42,19 +44,17 @@ class Absence extends Model
         );
     }
 
-    public function scopeFilter($query,array $filters)
+    public function scopeWithClassification(Builder $query): Builder
     {
+        return $query->addSelect('absences.*')->addSelect([
+            'is_excused' => VacationRequest::coveringAbsence()->selectRaw('1')->limit(1),
+        ]);
+    }
 
-        $query->when($filters['name'] ?? false, function ($query) use ($filters) {
-            $query->whereHas('trainee.user', function ($query) use ($filters) {
-                $query->where('name', 'like', '%' . $filters['name'] . '%');
-            });
-        });
+    public function scopeClassification(Builder $query, bool $excused): Builder
+    {
+        $coverage = VacationRequest::coveringAbsence()->selectRaw('1')->toBase();
 
-        $date = $filters['date'] ?? today()->toDateString();
-
-        $query->whereDate('date', $date);
-
-        return $query;
+        return $excused ? $query->whereExists($coverage) : $query->whereNotExists($coverage);
     }
 }

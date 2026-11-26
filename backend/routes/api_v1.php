@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Announcemnts\AnnoncementController;
 use App\Http\Controllers\Attendance\AbsenceController;
+use App\Http\Controllers\Attendance\AttendanceRecordsController;
 use App\Http\Controllers\Attendance\VacationRequestController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Gallery\GalleryController;
@@ -85,6 +86,16 @@ Route::prefix('v1')->group(function () {
             Route::post('trainees/{trainee}', [\App\Http\Controllers\Certificate\CertificateController::class, 'store'])->middleware('role:HR');
             Route::get('{certificate}/preview', [\App\Http\Controllers\Certificate\CertificateController::class, 'preview']);
             Route::get('{certificate}/download', [\App\Http\Controllers\Certificate\CertificateController::class, 'download']);
+        });
+
+        Route::prefix('attendance')->middleware(UseRequestLocale::class)->group(function () {
+            Route::get('absences', [AbsenceController::class, 'index'])->middleware('role:HR,SUPERVISOR,TRAINEE');
+            Route::get('leaves', [VacationRequestController::class, 'approved'])->middleware('role:HR');
+            Route::middleware('role:HR,SUPERVISOR')->group(function () {
+                Route::get('options', [AttendanceRecordsController::class, 'options']);
+                Route::get('trainees', [AttendanceRecordsController::class, 'index']);
+                Route::get('trainees/{trainee}', [AttendanceRecordsController::class, 'show'])->whereNumber('trainee');
+            });
         });
 
         Route::prefix('absence')->middleware(UseRequestLocale::class)->group(function () {
@@ -216,11 +227,14 @@ Route::prefix('v1')->group(function () {
             Route::prefix('vacation_request')->middleware(UseRequestLocale::class)->group(function () {
                 Route::patch('decide/{request_id}',[VacationRequestController::class, 'decide']);
                 Route::get('listForTrainer', [VacationRequestController::class, 'listForTrainer']);
+                Route::patch('{request_id}/cancel-approved', [VacationRequestController::class, 'cancelApproved'])->whereNumber('request_id');
             });
 
             Route::prefix('absence')->middleware(UseRequestLocale::class)->group(function () {
                 Route::get('eligible-trainees', [AbsenceController::class, 'eligibleTrainees']);
                 Route::post('recordAbsence/{trainee_id}', [AbsenceController::class, 'recordAbsence']);
+                Route::patch('{absence}', [AbsenceController::class, 'update'])->whereNumber('absence');
+                Route::delete('{absence}', [AbsenceController::class, 'delete'])->whereNumber('absence');
             });
             Route::prefix('announcement')->group(function () {
                 Route::post('trainerSendAnnouncement', [AnnoncementController::class, 'trainerSendAnnouncement']);

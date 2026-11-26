@@ -45,7 +45,7 @@ class TraineePrivacyTest extends TestCase
         $this->otherTrainee = $this->enroll($this->unassigned, $program);
     }
 
-    public function test_vacation_details_are_visible_only_to_the_owner_assigned_supervisor_and_hr(): void
+    public function test_vacation_detail_visibility_is_scoped_to_the_owner_assigned_supervisor_and_approved_only_for_hr(): void
     {
         $leave = VacationRequest::factory()->create([
             'trainee_id' => $this->trainee->id,
@@ -59,7 +59,7 @@ class TraineePrivacyTest extends TestCase
         foreach ([$this->unassigned->user, $this->otherTrainee->user] as $user) {
             $this->actingAs($user, 'api')->getJson($url)->assertForbidden();
         }
-        foreach ([$this->trainee->user, $this->assigned->user, $this->hr] as $user) {
+        foreach ([$this->trainee->user, $this->assigned->user] as $user) {
             $this->actingAs($user, 'api')->getJson($url)->assertOk()
                 ->assertJsonPath('data.reason', $leave->reason)
                 ->assertJsonPath('data.trainee.name', $this->trainee->user->name)
@@ -67,8 +67,16 @@ class TraineePrivacyTest extends TestCase
                 ->assertJsonMissingPath('data.trainee.phone_number');
         }
 
+        $this->actingAs($this->hr, 'api')->getJson($url)->assertNotFound();
+        $approved = VacationRequest::factory()->create([
+            'trainee_id' => $this->trainee->id, 'trainer_id' => $this->assigned->id, 'status' => 'accepted',
+            'start_date' => today()->addDays(2), 'end_date' => today()->addDays(2),
+        ]);
+        $this->getJson("/api/v1/vacation_request/find/{$approved->id}")->assertOk()
+            ->assertJsonMissingPath('data.trainee.email')->assertJsonMissingPath('data.trainee.phone_number');
+
         $this->actingAs($this->assigned->user, 'api')->getJson('/api/v1/vacation_request/listForTrainer')
-            ->assertOk()->assertJsonCount(1, 'data')->assertJsonMissingPath('data.0.trainee.email');
+            ->assertOk()->assertJsonCount(2, 'data')->assertJsonMissingPath('data.0.trainee.email');
         $this->actingAs($this->unassigned->user, 'api')->getJson('/api/v1/vacation_request/listForTrainer')
             ->assertOk()->assertJsonPath('data', []);
         $this->actingAs($this->otherTrainee->user, 'api')->getJson('/api/v1/vacation_request/listForTrainee')

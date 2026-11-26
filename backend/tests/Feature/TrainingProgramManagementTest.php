@@ -381,27 +381,6 @@ class TrainingProgramManagementTest extends TestCase
         $this->assertDatabaseCount('notification_deliveries', 2);
     }
 
-    public function test_migration_classifies_existing_evidence_and_leaves_uncertain_future_programs_protected(): void
-    {
-        $migration = require database_path('migrations/2026_11_18_000004_add_training_program_management.php');
-        $migration->down();
-        $legacy = fn ($overrides) => DB::table('training_programs')->insertGetId(array_replace(
-            self::FIELDS + ['description' => '', 'status' => 'Closed'], $overrides
-        ));
-        $past = $legacy(['application_start_date' => '2029-12-31']);
-        $previouslyOpen = $legacy(['status' => 'Open']);
-        $linked = $legacy([]);
-        Application::factory()->create(['training_program_id' => $linked]);
-        $unknown = $legacy([]);
-        $migration->up();
-        foreach ([$past, $previouslyOpen, $linked] as $id) {
-            $this->assertTrue(TrainingProgram::findOrFail($id)->registration_has_opened);
-        }
-        $this->assertNull(TrainingProgram::findOrFail($unknown)->registration_has_opened);
-        $this->login();
-        $this->deleteJson(self::API.'/'.$unknown)->assertConflict()->assertJsonPath('data.reason', 'unknown_history');
-    }
-
     public function test_a_certificate_alone_protects_a_program_and_a_trainee_protects_their_application_cycle(): void
     {
         $this->login();

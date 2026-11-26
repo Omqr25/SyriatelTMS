@@ -1,16 +1,16 @@
+import { Navigate } from "react-router-dom";
+import { TraineeAttendancePage } from "../../features/attendance/AttendancePage";
 import CertificatesPage from '../../features/certificates/CertificatesPage';
 import { accountRoutes } from '../../features/account/accountRoutes';
 import {
   BellRing,
-  Megaphone,CalendarCheck,CalendarOff,Star,CalendarX,LayoutDashboard
+  Megaphone,CalendarCheck,Star,CalendarX,LayoutDashboard
 } from 'lucide-react';
  
 import ProfilePage from"./pages/profile/ProfilePage";
 import AnnouncementPage from "./pages/announcement/AnnouncmentPage";
 import TrainingProgram from  "./pages/training_program/TrainingProgram"
-import VacationPage from "./pages/vacation/VacationPage";
 import EvaluationPage from "./pages/evaluation/EvaluationPage";
-import AbsencePage from "./pages/absence/AbsencePage"
 import Dashboard from "./pages/dashboard/DashboardPage";
 import TaskDetailsPage from "./pages/training_program/TrainingProgramTaskDetials";
 import NotificationsPage from "../../components/notification/NotificationsPage";
@@ -32,18 +32,14 @@ export const traineeModule = {
       icon: Megaphone, 
       labelKey: 'hr:nav.announcements', 
       Component: AnnouncementPage },
-    { path: 'vacations', 
-      icon: CalendarOff, 
-      labelKey: 'hr:nav.vacations', 
-      Component: VacationPage },
     { path: 'evaluation', 
       icon: Star, 
       labelKey: 'hr:nav.evaluation', 
       Component: EvaluationPage },
-    { path: 'absences', 
-      icon: CalendarX, 
-      labelKey: 'hr:nav.attendance', 
-      Component: AbsencePage },
+    { path: 'attendance',
+      icon: CalendarX,
+      labelKey: 'attendance:title',
+      Component: TraineeAttendancePage },
     {
       path: "notification",
       icon: BellRing,
@@ -56,6 +52,8 @@ export const traineeModule = {
   accountNav: accountRoutes(ProfilePage, 'trainee:profile.menuDescription'),
 
   extraRoutes:[
+    { path: "absences", Component: () => <Navigate to="/trainee/attendance" replace /> },
+    { path: "vacations", Component: () => <Navigate to="/trainee/attendance?tab=leave" replace /> },
         {
         path: "tasks/details/:taskId",
         Component: TaskDetailsPage,

@@ -30,7 +30,7 @@ class AttendanceMysqlConcurrencyTest extends TestCase
     public function test_two_concurrent_absence_requests_create_one_record(): void
     {
         $trainee = $this->attendanceTrainee();
-        $request = [$trainee->trainer->user_id, 'POST', "/api/v1/absence/recordAbsence/{$trainee->id}", []];
+        $request = [$trainee->trainer->user_id, 'POST', "/api/v1/absence/recordAbsence/{$trainee->id}", ['reason' => 'Absent today']];
 
         $this->assertSame([200, 400], $this->race($trainee, $request, $request));
         $this->assertSame(1, Absence::where('trainee_id', $trainee->id)->count());
@@ -65,9 +65,9 @@ class AttendanceMysqlConcurrencyTest extends TestCase
             [$trainee->trainer->user_id, 'PATCH', "/api/v1/vacation_request/decide/{$leave->id}", ['status' => 'accepted']],
         );
 
-        $this->assertContains($results, [[200, 403], [200, 404]]);
-        if ($leave->fresh()) {
-            $this->assertSame('accepted', $leave->fresh()->status->value);
+        $this->assertSame([200, 403], $results);
+        $this->assertContains($leave->fresh()->status->value, ['accepted', 'cancelled']);
+        if ($leave->fresh()->status->value === 'accepted') {
             $this->assertDatabaseHas('notifications', ['event_key' => $event]);
         } else {
             $this->assertDatabaseMissing('notifications', ['event_key' => $event]);
@@ -150,12 +150,23 @@ class AttendanceMysqlConcurrencyTest extends TestCase
             app(\App\Services\Organization\TraineeService::class)
                 ->fireTrainee($trainee->id, ['reason' => 'Test dismissal'], $hr);
         },
-            [$trainee->trainer->user_id, 'POST', "/api/v1/absence/recordAbsence/{$trainee->id}", []],
+            [$trainee->trainer->user_id, 'POST', "/api/v1/absence/recordAbsence/{$trainee->id}", ['reason' => 'Absent today']],
             [$trainee->trainer->user_id, 'PATCH', "/api/v1/vacation_request/decide/{$leave->id}", ['status' => 'accepted']],
         ));
 
         $this->assertSame('pending', $leave->fresh()->status->value);
         $this->assertDatabaseMissing('absences', ['trainee_id' => $trainee->id]);
+    }
+
+    public function test_concurrent_overlapping_requests_create_one_pending_leave(): void
+    {
+        $trainee = $this->attendanceTrainee();
+        $path = '/api/v1/vacation_request';
+        $this->assertSame([200, 422], $this->race($trainee,
+            [$trainee->user_id, 'POST', $path, ['start_date' => '2026-11-25', 'end_date' => '2026-11-27', 'reason' => 'First']],
+            [$trainee->user_id, 'POST', $path, ['start_date' => '2026-11-27', 'end_date' => '2026-11-29', 'reason' => 'Second']],
+        ));
+        $this->assertSame(1, $trainee->vacationRequests()->count());
     }
 
     private function race(Trainee $trainee, array ...$requests): array
