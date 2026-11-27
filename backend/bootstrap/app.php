@@ -19,6 +19,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Inline spaces are part of a certificate run's layout, including around placeholders.
+        $middleware->trimStrings(except: ['configuration.boxes.*.paragraphs.*.*.text']);
+
         $middleware->alias([
            'role'=>\App\Http\Middleware\EnsureUserHasRole::class,
         ]);

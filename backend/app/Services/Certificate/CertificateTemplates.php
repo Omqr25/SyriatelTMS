@@ -28,12 +28,19 @@ final class CertificateTemplates
         }, 3);
     }
 
-    public function addVersion(User $actor, CertificateTemplate $template, string $background, array $configuration): CertificateTemplateVersion
+    public function addVersion(User $actor, CertificateTemplate $template, string $background, array $configuration, ?int $baseVersion = null, ?string $name = null): CertificateTemplateVersion
     {
         Gate::forUser($actor)->authorize('manage', Certificate::class);
 
-        return DB::transaction(function () use ($actor, $template, $background, $configuration) {
+        return DB::transaction(function () use ($actor, $template, $background, $configuration, $baseVersion, $name) {
             $template = CertificateTemplate::lockForUpdate()->findOrFail($template->id);
+
+            if ($baseVersion !== null && $template->latestVersion()->first()?->id !== $baseVersion) {
+                throw ValidationException::withMessages(['template' => __('certificates.template_changed')]);
+            }
+            if ($name !== null) {
+                $template->update(['name' => Validator::validate(['name' => trim($name)], ['name' => 'required|string|max:255'])['name']]);
+            }
 
             return $this->append($actor, $template, $background, $configuration);
         }, 3);
@@ -70,7 +77,7 @@ final class CertificateTemplates
         ]);
     }
 
-    private function validateConfiguration(array $configuration): void
+    public function validateConfiguration(array $configuration): void
     {
         $configuration = Validator::validate(['config' => $configuration], [
             'config' => 'required|array:page,boxes',
@@ -100,6 +107,8 @@ final class CertificateTemplates
             'config.boxes.*.paragraphs.*.*.italic' => 'sometimes|boolean:strict',
         ])['config'];
 
+        $layout = new CertificateLayout;
+        $metrics = CertificateFontAssets::metrics();
         if (strlen(json_encode($configuration, JSON_THROW_ON_ERROR)) > 131072) {
             $this->invalidConfiguration();
         }
@@ -117,6 +126,12 @@ final class CertificateTemplates
                         $this->invalidConfiguration();
                     }
                 }
+            }
+            try {
+                // A template can be saved with an overflow warning. Unsupported glyphs cannot be saved.
+                $layout->box($box, CertificateFontAssets::SAMPLES['long'], $metrics);
+            } catch (\DomainException) {
+                $this->invalidConfiguration();
             }
         }
     }

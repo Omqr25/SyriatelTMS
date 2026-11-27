@@ -31,7 +31,9 @@ trait CertificateFixtures
 
     private function trainee(TrainingProgram $program, array $options = []): Trainee
     {
-        $department = Department::factory()->create(['name' => $options['department'] ?? 'Network Operations']);
+        $department = Department::firstOrCreate([
+            'name' => $options['department'] ?? 'Network Operations', 'location' => 'damascus',
+        ]);
         $trainer = Trainer::factory()->create(['user_id' => $this->member('SUPERVISOR')->id, 'department_id' => $department->id]);
         $application = Application::factory()->create([
             'training_program_id' => $program->id, 'full_name' => $options['application'] ?? 'Original North',

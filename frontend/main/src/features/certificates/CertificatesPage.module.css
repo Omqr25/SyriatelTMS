@@ -2,3 +2,6 @@
 .actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .form { display: grid; gap: 16px; }
 .preview { display: block; width: 100%; height: 60vh; border: 1px solid var(--ink-200); margin-block: 12px; }
+.tabs { display: flex; gap: 8px; flex-wrap: wrap; border-bottom: 1px solid var(--ink-200); margin-block: 16px; }
+.tabs button { background: transparent; color: var(--ink-700); border: 0; border-bottom: 2px solid transparent; padding: 10px 12px; font: inherit; cursor: pointer; }
+.tabs button[aria-selected=true] { color: var(--red-700); border-color: currentColor; font-weight: 700; }

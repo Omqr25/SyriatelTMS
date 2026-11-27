@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class CertificateTemplate extends Model
 {
@@ -12,6 +13,11 @@ class CertificateTemplate extends Model
     protected function casts(): array
     {
         return ['archived_at' => 'immutable_datetime'];
+    }
+
+    public function latestVersion(): HasOne
+    {
+        return $this->hasOne(CertificateTemplateVersion::class)->latestOfMany('version');
     }
 
     public function versions(): HasMany

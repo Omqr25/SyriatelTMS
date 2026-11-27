@@ -7,8 +7,11 @@ import Modal from '../../components/ui/Modal';
 import { Field, Input } from '../../components/ui/Field';
 import { getCertificates, getCertificateCandidates, issueCertificate, getCertificateFile } from '../../Api/certificateApi';
 import styles from './CertificatesPage.module.css';
+import CertificateTemplatesTab from './templates/CertificateTemplatesTab';
 
-export default function CertificatesPage({ manage = false }) {
+export default function CertificatesPage({ manage = false, section = 'both', embedded = false }) {
+  const showIssuance = manage && section !== 'archive';
+  const showArchive = section !== 'issuance';
   const { t } = useTranslation('certificates');
   const [certificates, setCertificates] = useState([]);
   const [candidates, setCandidates] = useState([]);
@@ -33,12 +36,12 @@ export default function CertificatesPage({ manage = false }) {
   async function load() {
     setLoading(true); setError('');
     try {
-      const [items, eligible] = await Promise.all([getCertificates(), manage ? getCertificateCandidates() : Promise.resolve([])]);
+      const [items, eligible] = await Promise.all([showArchive ? getCertificates() : Promise.resolve([]), showIssuance ? getCertificateCandidates() : Promise.resolve([])]);
       if (mounted.current) { setCertificates(items); setCandidates(eligible); }
     } catch (err) { if (mounted.current) setError(await message(err)); }
     finally { if (mounted.current) setLoading(false); }
   }
-  useEffect(() => { load(); }, [manage]);
+  useEffect(() => { load(); }, [showArchive, showIssuance]);
 
   async function openFile(certificate, download) {
     setBusy(true); setActionError('');
@@ -77,19 +80,21 @@ export default function CertificatesPage({ manage = false }) {
   ];
 
   return <section>
-    <h1>{t('title')}</h1>
-    <p className={styles.description}>{t(manage ? 'hrDescription' : 'description')}</p>
+    {!embedded && <h1>{t('title')}</h1>}
+    {(!embedded || showIssuance) && <p className={styles.description}>{t(manage ? 'hrDescription' : 'description')}</p>}
     {loading ? <Loading /> : error ? <div role="alert">{error} <Button onClick={load}>{t('retry')}</Button></div> : <>
-      {manage && <>
+      {showIssuance && <>
         <h2>{t('completedTrainees')}</h2>
         <Table columns={[
           { key: 'name', header: t('trainee') }, { key: 'program_name', header: t('program') },
           { key: 'actions', header: t('actions'), render: candidate => candidate.issued ? t('issued') :
             <Button disabled={busy} onClick={() => { setActionError(''); setUpload(candidate); }}>{t('upload')}</Button> },
         ]} rows={candidates} emptyText={t('noCompleted')} />
-        <h2>{t('issuedCertificates')}</h2>
       </>}
-      <Table columns={columns} rows={certificates} emptyText={t('empty')} />
+      {showArchive && <>
+        {manage && <h2>{t('issuedCertificates')}</h2>}
+        <Table columns={columns} rows={certificates} emptyText={t('empty')} />
+      </>}
     </>}
     {actionError && !upload && <p role="alert">{actionError}</p>}
     {upload && <Modal title={`${t('upload')} — ${upload.name}`} onClose={() => { if (!busy) setUpload(null); }}>
@@ -109,4 +114,40 @@ export default function CertificatesPage({ manage = false }) {
   </section>;
 }
 
-export function HrCertificatesPage() { return <CertificatesPage manage />; }
+const tabs = ['templates', 'issuance', 'archive'];
+
+export function HrCertificatesPage() {
+  const { t, i18n } = useTranslation('certificates');
+  const [tab, setTab] = useState('templates');
+  const guard = useRef(null);
+  const controls = useRef({});
+  function activate(next) {
+    if (next === tab || (guard.current && !guard.current())) return false;
+    setTab(next);
+    return true;
+  }
+  function key(event) {
+    const movement = i18n.dir() === 'rtl' ? -1 : 1;
+    const current = tabs.indexOf(tab);
+    const offset = { ArrowLeft: -movement, ArrowRight: movement }[event.key];
+    const next = event.key === 'Home' ? tabs[0] : event.key === 'End' ? tabs.at(-1)
+      : offset ? tabs[(current + offset + tabs.length) % tabs.length] : null;
+    if (next) {
+      event.preventDefault();
+      if (activate(next)) controls.current[next]?.focus();
+    }
+  }
+  return <section>
+    <h1>{t('title')}</h1>
+    <div role="tablist" aria-label={t('title')} onKeyDown={key} className={styles.tabs}>
+      {tabs.map(id => <button key={id} ref={element => { controls.current[id] = element; }}
+        type="button" role="tab" id={`certificates-tab-${id}`} aria-controls="certificates-panel"
+        aria-selected={tab === id} tabIndex={tab === id ? 0 : -1}
+        onClick={() => activate(id)}>{t(`tabs.${id}`)}</button>)}
+    </div>
+    <section id="certificates-panel" role="tabpanel" aria-labelledby={`certificates-tab-${tab}`}>
+      {tab === 'templates' ? <CertificateTemplatesTab guard={guard} />
+        : <CertificatesPage key={tab} manage section={tab} embedded />}
+    </section>
+  </section>;
+}

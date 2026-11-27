@@ -81,6 +81,21 @@ Route::prefix('v1')->group(function () {
         });
 
         Route::prefix('certificates')->middleware('role:HR,TRAINEE')->group(function () {
+            Route::prefix('templates')->middleware(['role:HR', UseRequestLocale::class])
+                ->controller(\App\Http\Controllers\Certificate\CertificateTemplateController::class)->group(function () {
+                    Route::get('/', 'index');
+                    Route::post('/', 'store');
+                    Route::get('assets', 'assets');
+                    Route::get('fonts/{family}/{style}', 'font');
+                    Route::post('backgrounds', 'upload')->middleware('throttle:12,1');
+                    Route::post('draft-background', 'draft');
+                    Route::get('versions/{version}/background', 'background')->whereNumber('version');
+                    Route::post('proof', 'proof')->middleware('throttle:12,1');
+                    Route::get('{template}', 'show')->whereNumber('template');
+                    Route::put('{template}', 'update')->whereNumber('template');
+                    Route::post('{template}/duplicate', 'duplicate')->whereNumber('template');
+                    Route::post('{template}/archive', 'archive')->whereNumber('template');
+                });
             Route::get('/', [\App\Http\Controllers\Certificate\CertificateController::class, 'index']);
             Route::get('candidates', [\App\Http\Controllers\Certificate\CertificateController::class, 'candidates'])->middleware('role:HR');
             Route::post('trainees/{trainee}', [\App\Http\Controllers\Certificate\CertificateController::class, 'store'])->middleware('role:HR');

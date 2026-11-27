@@ -21,4 +21,9 @@ return [
     'not_eligible' => 'Trainee :trainee is ineligible for this issuance action.',
     'english_name_required' => 'Provide a valid English certificate name for trainee :trainee before confirming issuance.',
     'reservation_conflict' => 'This confirmation key belongs to a different reservation.',
+    'template_changed' => 'This template changed. Reopen it before saving.',
+    'document_rejected' => 'This background could not be safely processed. Use a clean single-page PDF, PNG or JPG.',
+    'document_runtime_unavailable' => 'The certificate document runtime is unavailable. Contact your administrator.',
+    'document_timeout' => 'Certificate document processing timed out. Try a simpler background.',
+    'proof_overflow' => 'Text does not fit in box(es) :boxes for the selected sample.',
 ];
