@@ -6,21 +6,23 @@ use App\Jobs\PackageCertificates;
 use App\Models\Certificate;
 use App\Models\CertificatePackage;
 use App\Models\TrainingProgram;
+use App\Services\Certificate\CertificateBackgrounds;
 use App\Services\Certificate\CertificatePackages;
 use App\Services\Certificate\CertificatePdf;
+use App\Services\Certificate\CertificateStorage;
 use Illuminate\Queue\WorkerOptions;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Tests\Support\CertificateFixtures;
-use Tests\Support\UsesCertificateTestDatabase;
+use Tests\Support\UsesIsolatedForwardMigrations;
 use Tests\TestCase;
 use ZipArchive;
 
 final class CertificatePackagesTest extends TestCase
 {
-    use CertificateFixtures, UsesCertificateTestDatabase;
+    use CertificateFixtures, UsesIsolatedForwardMigrations;
 
     protected function setUp(): void
     {
@@ -105,11 +107,11 @@ final class CertificatePackagesTest extends TestCase
         $this->assertTrue($archive->open($temporaryZip, ZipArchive::CHECKCONS));
         $this->assertSame(79, $archive->numFiles);
         foreach (array_diff($ids, [$except]) as $id) {
-            $entry = 'program-'.$program->id.'-network-operations/certificate-'.$id.'.pdf';
+            $entry = 'program-'.$program->id.'-network-operations/Archive-Recipient-'.(array_search($id, $ids, true) + 1).'.pdf';
             $this->assertSame(ZipArchive::CM_STORE, $archive->statName($entry)['comp_method']);
             $this->assertSame($originals[$id], $archive->getFromName($entry));
         }
-        $this->assertFalse($archive->locateName('program-'.$program->id.'-network-operations/certificate-'.$except.'.pdf'));
+        $this->assertFalse($archive->locateName('program-'.$program->id.'-network-operations/Archive-Recipient-58.pdf'));
         $archive->close();
 
         $allZip = $this->postJson($path.'/packages', $this->payload('zip') + ['selection' => 'all'])
@@ -117,7 +119,7 @@ final class CertificatePackagesTest extends TestCase
         $allZipTime = $this->work();
         $this->assertTrue($archive->open($this->artifact($allZip), ZipArchive::CHECKCONS));
         $this->assertSame(80, $archive->numFiles);
-        $this->assertSame($originals[$except], $archive->getFromName('program-'.$program->id.'-network-operations/certificate-'.$except.'.pdf'));
+        $this->assertSame($originals[$except], $archive->getFromName('program-'.$program->id.'-network-operations/Archive-Recipient-58.pdf'));
         $archive->close();
 
         $pdf = $this->postJson($path.'/packages', $this->payload('pdf') + ['selection' => 'all'])
@@ -150,6 +152,42 @@ final class CertificatePackagesTest extends TestCase
         }
         fwrite(STDOUT, sprintf("\n80-source PDF: %.3fs, %d bytes; 80-source STORE ZIP: %.3fs, %d bytes; 79-source STORE ZIP: %.3fs\n",
             $pdfTime, filesize($temporaryPdf), $allZipTime, filesize($this->artifact($allZip)), $zipTime));
+    }
+
+    public function test_zip_filenames_use_frozen_names_and_only_add_identifiers_for_collisions(): void
+    {
+        $program = $this->program();
+        $program->update(['name' => 'Network Operations']);
+        $first = $this->stored($program, 1, 'Changed Account Name');
+        $duplicate = $this->stored($program, 2, 'Other Account Name');
+        $naturalSuffix = $this->stored($program, 3, 'Ada-Lovelace-'.$duplicate->id);
+        $legacy = $this->stored($program, 4, " ../نور/حسين\\ ");
+        $device = $this->stored($program, 5, 'COM¹');
+        $empty = $this->stored($program, 6, '  ...  ');
+        foreach ([$first->id => 'Ada Lovelace', $duplicate->id => 'ada-lovelace'] as $id => $name) {
+            DB::table('certificates')->where('id', $id)->update(['snapshot' => json_encode(['trainee_name' => $name])]);
+        }
+
+        $path = $this->endpoint($program).'/packages';
+        $id = $this->actingAs($this->member('HR'), 'api')
+            ->postJson($path, $this->payload('zip') + ['selection' => 'all'])->assertAccepted()->json('data.id');
+        $this->work();
+        $archive = new ZipArchive;
+        $this->assertTrue($archive->open($this->artifact($id), ZipArchive::CHECKCONS));
+        $this->assertSame(6, $archive->numFiles);
+        $folder = 'program-'.$program->id.'-network-operations/';
+        foreach ([
+            'Ada-Lovelace.pdf' => $first,
+            'ada-lovelace-'.$duplicate->id.'-2.pdf' => $duplicate,
+            'Ada-Lovelace-'.$duplicate->id.'.pdf' => $naturalSuffix,
+            'نور-حسين.pdf' => $legacy,
+            'COM¹-certificate.pdf' => $device,
+            'Certificate.pdf' => $empty,
+        ] as $filename => $certificate) {
+            $this->assertSame(ZipArchive::CM_STORE, $archive->statName($folder.$filename)['comp_method']);
+            $this->assertSame(Storage::disk('local')->get($certificate->path), $archive->getFromName($folder.$filename));
+        }
+        $archive->close();
     }
 
     public function test_failed_package_can_retry_and_expiration_cleanup_cannot_remove_certificates(): void
@@ -252,6 +290,38 @@ final class CertificatePackagesTest extends TestCase
         Storage::disk('local')->assertExists($record->path);
     }
 
+    public function test_scheduled_cleanup_preserves_fresh_work_and_published_files(): void
+    {
+        $disk = Storage::disk('private');
+        $oldDraft = CertificateBackgrounds::DRAFTS.Str::uuid().'.png';
+        $freshDraft = CertificateBackgrounds::DRAFTS.Str::uuid().'.png';
+        $oldScratch = CertificateStorage::SCRATCH.'/'.Str::uuid();
+        $freshScratch = CertificateStorage::SCRATCH.'/'.Str::uuid();
+        foreach ([$oldDraft, $freshDraft, $oldScratch.'/job.json', $freshScratch.'/job.json'] as $file) {
+            $disk->put($file, 'fixture');
+        }
+        touch($disk->path($oldDraft), time() - 4000);
+        touch($disk->path($oldScratch), time() - 7500);
+
+        $program = $this->program();
+        $legacy = $this->stored($program, 10);
+        $trainee = $this->trainee($program);
+        $token = (string) Str::uuid();
+        $failed = new Certificate;
+        $failed->forceFill(['trainee_id' => $trainee->id, 'training_program_id' => $program->id,
+            'state' => 'failed', 'attempt_token' => $token, 'issue_date' => '2026-12-01',
+            'updated_at' => now()->subHours(3)])->save();
+        $orphan = app(CertificateStorage::class)->issuedPath($failed->id, $token);
+        $disk->put($orphan, 'unpublished');
+        $disk->put($orphan.'.tmp', 'staged');
+
+        $this->artisan('certificates:clean-packages')->assertSuccessful();
+        $disk->assertMissing([$oldDraft, $oldScratch.'/job.json', $orphan, $orphan.'.tmp']);
+        $disk->assertExists([$freshDraft, $freshScratch.'/job.json']);
+        Storage::disk('local')->assertExists($legacy->path);
+        $this->assertDatabaseHas('certificates', ['id' => $failed->id, 'state' => 'failed', 'attempt_token' => null]);
+    }
+
     private function endpoint(TrainingProgram $program): string
     {
         return '/api/v1/certificates/archive/programs/'.$program->id;
@@ -278,9 +348,9 @@ final class CertificatePackagesTest extends TestCase
         return app(CertificatePackages::class)->directory($id, $item->attempt).'/artifact.'.$item->format;
     }
 
-    private function stored(TrainingProgram $program, int $index): Certificate
+    private function stored(TrainingProgram $program, int $index, ?string $name = null): Certificate
     {
-        $trainee = $this->trainee($program);
+        $trainee = $this->trainee($program, ['account' => $name ?? 'Archive Recipient '.$index]);
         $path = 'certificates/historical-'.$trainee->id.'.pdf';
         Storage::disk('local')->put($path, $this->pdf($index));
 

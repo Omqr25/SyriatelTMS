@@ -6,12 +6,12 @@ use App\Models\CertificateTemplateVersion;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Tests\Support\CertificateFixtures;
-use Tests\Support\UsesCertificateTestDatabase;
+use Tests\Support\UsesIsolatedForwardMigrations;
 use Tests\TestCase;
 
 class CertificateTemplatesTest extends TestCase
 {
-    use CertificateFixtures, UsesCertificateTestDatabase;
+    use CertificateFixtures, UsesIsolatedForwardMigrations;
 
     private const URI = '/api/v1/certificates/templates';
 

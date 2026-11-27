@@ -10,6 +10,16 @@ final class CertificateStorage
 {
     public const DISK = 'private';
 
+    public const SCRATCH = 'certificate-proof-work';
+
+    public function discardAttempt(int $id, string $token): bool
+    {
+        $path = Storage::disk(self::DISK)->path($this->issuedPath($id, $token));
+
+        return ((! file_exists($path.'.tmp') && ! is_link($path.'.tmp')) || @unlink($path.'.tmp'))
+            && ((! file_exists($path) && ! is_link($path)) || @unlink($path));
+    }
+
     public function backgroundPath(string $extension): string
     {
         if (! in_array($extension, ['pdf', 'png', 'jpg'], true)) {

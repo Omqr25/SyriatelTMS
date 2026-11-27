@@ -12,13 +12,14 @@ use App\Models\TrainingProgram;
 use App\Models\User;
 use App\Jobs\DeliverInboxPush;
 use App\Models\Notification;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Support\Facades\Queue;
+use Tests\Support\UsesIsolatedForwardMigrations;
 use Tests\TestCase;
 
 class InterviewSchedulingTest extends TestCase
 {
-    use DatabaseMigrations;
+    // Business assertions need isolation without rolling back the retained certificate archive.
+    use UsesIsolatedForwardMigrations;
 
     protected function setUp(): void
     {

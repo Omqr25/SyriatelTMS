@@ -105,20 +105,26 @@ final class CertificateNames
         }, 3);
     }
 
-    public function resolve(TrainingProgram $program, Trainee $trainee): ?array
+    public function entriesFor(TrainingProgram $program, array $traineeIds): array
+    {
+        return CertificateName::where('training_program_id', $program->id)->whereIn('trainee_id', $traineeIds)
+            ->get(['trainee_id', 'source', 'name'])->groupBy('trainee_id')
+            ->map(fn ($entries) => $entries->pluck('name', 'source')->all())->all();
+    }
+
+    public function resolve(TrainingProgram $program, Trainee $trainee, ?array $entries = null): ?array
     {
         if ((int) $trainee->application->training_program_id !== $program->id) {
             return null;
         }
-        $entries = CertificateName::where('training_program_id', $program->id)->where('trainee_id', $trainee->id)
-            ->pluck('name', 'source');
+        $entries ??= $this->entriesFor($program, [$trainee->id])[$trainee->id] ?? [];
 
         // Trainee has no name column. Activation copies applications.full_name to users.name.
         $candidates = [
-            CertificateName::TRAINEE => $entries->get(CertificateName::TRAINEE),
+            CertificateName::TRAINEE => $entries[CertificateName::TRAINEE] ?? null,
             'application' => $trainee->application->full_name,
             'account' => $trainee->user->name,
-            CertificateName::HR => $entries->get(CertificateName::HR),
+            CertificateName::HR => $entries[CertificateName::HR] ?? null,
         ];
         foreach ($candidates as $source => $name) {
             if (($valid = CertificateText::name($name)) !== null) {

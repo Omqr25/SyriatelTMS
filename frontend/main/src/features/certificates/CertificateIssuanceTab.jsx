@@ -52,7 +52,7 @@ export default function CertificateIssuanceTab() {
   }, [search, query]);
 
   useEffect(() => {
-    if (!program) return;
+    if (!program || search !== query) return;
     const controller = new AbortController();
     let timer;
     async function load(keepPolling = false) {
@@ -73,7 +73,7 @@ export default function CertificateIssuanceTab() {
     }
     load();
     return () => { controller.abort(); clearTimeout(timer); };
-  }, [program, query, status, page, refresh, t]);
+  }, [program, search, query, status, page, refresh, t]);
 
   const readyIds = roster?.ready_ids ?? [];
   const selection = useCertificateSelection(readyIds.length, readyIds);
@@ -178,6 +178,7 @@ export default function CertificateIssuanceTab() {
         <Button variant="soft" onClick={() => { setSearch(''); setQuery(''); setStatus(''); setPage(1); }}>{t('issuance.reset')}</Button>
       </div>
       <div className={styles.actions}>
+        <Button variant="soft" disabled={!selected} onClick={selection.clear}>{t('archive.deselectAll')}</Button>
         <Button disabled={!version || !selected} onClick={() => open('selected')}>{t('issuance.selected')} ({selected})</Button>
         <Button disabled={!version || !counts.ready} onClick={() => open('all')}>{t('issuance.all')}</Button>
         <Button variant="soft" disabled={!counts.failed} onClick={() => open('retryAll')}>{t('issuance.retryAll')}</Button>

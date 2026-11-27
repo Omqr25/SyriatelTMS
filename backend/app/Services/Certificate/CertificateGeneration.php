@@ -20,9 +20,7 @@ final class CertificateGeneration
         $disk = Storage::disk(CertificateStorage::DISK);
         if ($previous !== null) {
             // Claim fenced off the previous attempt before removing that attempt's private artifacts.
-            $abandoned = $disk->path($this->storage->issuedPath($certificate->id, $previous));
-            @unlink($abandoned.'.tmp');
-            @unlink($abandoned);
+            $this->storage->discardAttempt($certificate->id, $previous);
         }
         $version = $certificate->templateVersion;
         try {

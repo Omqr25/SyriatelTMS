@@ -16,9 +16,9 @@ final class CertificatePreparation
         private CertificateLayout $layout,
     ) {}
 
-    public function snapshot(TrainingProgram $program, Trainee $trainee, CertificateTemplateVersion $version, string $date, string $number): array
+    public function snapshot(TrainingProgram $program, Trainee $trainee, CertificateTemplateVersion $version, string $date, string $number, ?array $names = null): array
     {
-        $name = $this->names->resolve($program, $trainee);
+        $name = $this->names->resolve($program, $trainee, $names);
         if ($name === null) {
             throw ValidationException::withMessages(['issuance' => __('certificates.english_name_required', ['trainee' => $trainee->id])]);
         }

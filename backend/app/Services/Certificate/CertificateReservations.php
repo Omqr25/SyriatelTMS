@@ -19,6 +19,8 @@ use Illuminate\Validation\ValidationException;
 
 final class CertificateReservations
 {
+    public const MAX_BATCH_SIZE = 500;
+
     public function __construct(
         private CertificateRoster $roster,
         private CertificatePreparation $preparation,
@@ -31,7 +33,7 @@ final class CertificateReservations
     ): CertificateBatch {
         Gate::forUser($actor)->authorize('manage', Certificate::class);
         Validator::validate(['trainees' => $traineeIds, 'request' => $requestKey, 'confirmed' => $confirmed], [
-            'trainees' => 'required|array|list', 'trainees.*' => 'required|integer|min:1',
+            'trainees' => 'required|array|list|max:'.self::MAX_BATCH_SIZE, 'trainees.*' => 'required|integer|min:1',
             'request' => 'required|uuid', 'confirmed' => 'accepted',
         ]);
         $ids = array_values(array_unique(array_map('intval', $traineeIds)));

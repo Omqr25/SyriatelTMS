@@ -3,14 +3,14 @@
 namespace Tests\Feature;
 
 use App\Models\{User, Trainee, Trainer, Department, Application, TrainingProgram, Certificate, Role};
-use Tests\Support\UsesCertificateTestDatabase;
+use Tests\Support\UsesIsolatedForwardMigrations;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class CertificateTest extends TestCase
 {
-    use UsesCertificateTestDatabase;
+    use UsesIsolatedForwardMigrations;
 
     protected function setUp(): void
     {

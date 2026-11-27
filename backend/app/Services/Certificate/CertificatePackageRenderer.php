@@ -82,7 +82,7 @@ final class CertificatePackageRenderer
 
             if ($zip !== null) {
                 $pdf->cleanUp(true);
-                if (! $zip->addFile($path, $file['entry']) || ! $zip->setCompressionName($file['entry'], ZipArchive::CM_STORE)) {
+                if (! $zip->addFile($path, $file['entry'], flags: ZipArchive::FL_ENC_UTF_8) || ! $zip->setCompressionName($file['entry'], ZipArchive::CM_STORE)) {
                     return ['failure' => 'storage_failed', 'certificate' => $file['id']];
                 }
             }

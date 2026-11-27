@@ -15,7 +15,7 @@ use Throwable;
 
 final class CertificateBackgrounds
 {
-    private const DRAFTS = 'certificates/template-drafts/';
+    public const DRAFTS = 'certificates/template-drafts/';
 
     private const MIME = ['pdf' => 'application/pdf', 'png' => 'image/png', 'jpg' => 'image/jpeg'];
 
@@ -28,7 +28,6 @@ final class CertificateBackgrounds
             $this->invalid();
         }
 
-        $this->pruneDrafts();
         $result = $this->process->run('normalize', $upload->getRealPath(), ['extension' => $extension]);
         $draft = [
             'name' => Str::uuid().'.'.$extension, 'owner' => $actor->id,
@@ -121,25 +120,6 @@ final class CertificateBackgrounds
             }
 
             throw $error;
-        }
-    }
-
-    private function pruneDrafts(): void
-    {
-        $disk = Storage::disk(CertificateStorage::DISK);
-        $directory = $disk->path(self::DRAFTS);
-        if (! is_dir($directory)) {
-            return;
-        }
-        $checked = 0;
-        foreach (new \FilesystemIterator($directory) as $file) {
-            if (++$checked > 100) {
-                break;
-            }
-            if (! $file->isLink() && $file->isFile() && $file->getMTime() < time() - 3900
-                && preg_match('/\A[a-f0-9-]{36}\.(pdf|png|jpg)\z/D', $file->getFilename())) {
-                $disk->delete(self::DRAFTS.$file->getFilename());
-            }
         }
     }
 

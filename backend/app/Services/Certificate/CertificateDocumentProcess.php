@@ -4,6 +4,7 @@ namespace App\Services\Certificate;
 
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use JsonException;
@@ -16,7 +17,7 @@ final class CertificateDocumentProcess
     /** The child only receives a bounded, private copy and a validated configuration. */
     public function run(string $mode, string $source, array $job): array
     {
-        $scratch = storage_path('app/private/certificate-proof-work/'.Str::uuid());
+        $scratch = Storage::disk(CertificateStorage::DISK)->path(CertificateStorage::SCRATCH.'/'.Str::uuid());
         File::makeDirectory($scratch, 0700, true);
         try {
             if (! is_file($source) || filesize($source) > 5 * 1024 * 1024

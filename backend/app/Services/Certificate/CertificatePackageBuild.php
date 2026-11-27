@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Normalizer;
 use Symfony\Component\Process\Exception\ExceptionInterface;
 use Symfony\Component\Process\Exception\ProcessTimedOutException;
 
@@ -76,12 +77,13 @@ final class CertificatePackageBuild
 
     private function manifest(CertificatePackage $package): array
     {
-        $program = $package->training_program_id;
-        $name = $package->getConnection()->table('training_programs')->where('id', $program)->value('name');
-        $slug = substr(Str::slug($name ?? ''), 0, 65) ?: 'training-program';
-        $folder = 'program-'.$program.'-'.$slug;
-        $certificates = Certificate::issued()->where('training_program_id', $program)
-            ->whereKey($package->certificate_ids)->get(['id', 'path', 'certificate_batch_id', 'number'])->keyBy('id');
+        $query = Certificate::issued()->where('training_program_id', $package->training_program_id)
+            ->whereKey($package->certificate_ids)->select(['id', 'path', 'certificate_batch_id']);
+        if ($package->format === 'zip') {
+            $query->addSelect(['snapshot', 'trainee_id'])->with('trainee.user:id,name');
+        }
+        $certificates = $query->orderBy('id')->get()->keyBy('id');
+        $entries = $package->format === 'zip' ? $this->zipEntries($package, $certificates) : [];
         $files = [];
         foreach ($package->certificate_ids as $id) {
             $certificate = $certificates->get($id);
@@ -89,12 +91,51 @@ final class CertificatePackageBuild
             if ($path === null) {
                 return ['failure' => 'missing_source', 'certificate' => $id];
             }
-            $number = substr(Str::slug($certificate->number ?? ''), 0, 38);
-            $entry = $folder.'/certificate-'.$id.($number ? '-'.$number : '').'.pdf';
-            $files[] = ['id' => $id, 'path' => $path, 'entry' => $entry];
+            $files[] = ['id' => $id, 'path' => $path, 'entry' => $entries[$id] ?? null];
         }
 
         return ['format' => $package->format, 'files' => $files];
+    }
+
+    private function zipEntries(CertificatePackage $package, iterable $certificates): array
+    {
+        $program = $package->training_program_id;
+        $name = $package->getConnection()->table('training_programs')->where('id', $program)->value('name');
+        $slug = substr(Str::slug($name ?? ''), 0, 65) ?: 'training-program';
+        $folder = 'program-'.$program.'-'.$slug;
+        $stems = $reserved = $used = $entries = [];
+        foreach ($certificates as $certificate) {
+            $stem = $this->safeStem($certificate->snapshot['trainee_name'] ?? '')
+                ?: $this->safeStem($certificate->trainee?->user?->name ?? '') ?: 'Certificate';
+            $stems[$certificate->id] = $stem;
+            $reserved[mb_convert_case($stem, MB_CASE_FOLD, 'UTF-8')] = true;
+        }
+
+        foreach ($stems as $id => $stem) {
+            $key = mb_convert_case($stem, MB_CASE_FOLD, 'UTF-8');
+            if (isset($used[$key])) {
+                $base = $stem.'-'.$id;
+                $stem = $base;
+                $key = mb_convert_case($stem, MB_CASE_FOLD, 'UTF-8');
+                for ($suffix = 2; isset($reserved[$key]) || isset($used[$key]); $suffix++) {
+                    $stem = $base.'-'.$suffix;
+                    $key = mb_convert_case($stem, MB_CASE_FOLD, 'UTF-8');
+                }
+            }
+            $used[$key] = true;
+            $entries[$id] = $folder.'/'.$stem.'.pdf';
+        }
+
+        return $entries;
+    }
+
+    private function safeStem(string $name): string
+    {
+        $normalized = Normalizer::normalize($name, Normalizer::FORM_C) ?: '';
+        $stem = trim(mb_strcut(preg_replace('/[^\p{L}\p{M}\p{N}]+/u', '-', $normalized), 0, 120, 'UTF-8'), '-');
+
+        // These device names cannot be extracted as regular files on Windows.
+        return preg_match('/^(?:CON|PRN|AUX|NUL|COM[1-9¹²³]|LPT[1-9¹²³])$/iuD', $stem) ? $stem.'-certificate' : $stem;
     }
 
     private function sourcePath(Certificate $certificate): ?string

@@ -20,12 +20,12 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use LogicException;
 use Tests\Support\CertificateFixtures;
-use Tests\Support\UsesCertificateTestDatabase;
+use Tests\Support\UsesIsolatedForwardMigrations;
 use Tests\TestCase;
 
 final class CertificateIssuanceTest extends TestCase
 {
-    use CertificateFixtures, UsesCertificateTestDatabase;
+    use CertificateFixtures, UsesIsolatedForwardMigrations;
 
     protected function setUp(): void
     {
@@ -53,6 +53,10 @@ final class CertificateIssuanceTest extends TestCase
             ->assertJsonCount(80, 'data.ready_ids')->json('data.roster.data');
         $this->getJson($path.'/roster?search='.rawurlencode($first->user->email))
             ->assertOk()->assertJsonPath('data.roster.data.0.id', $first->id)->assertJsonPath('data.roster.total', 1);
+        $this->getJson($path.'/roster?search='.$first->id)->assertOk()
+            ->assertJsonPath('data.roster.data.0.id', $first->id)->assertJsonPath('data.roster.total', 1);
+        $this->postJson($path.'/confirm', $this->confirmation($version, range(1, 501)))
+            ->assertUnprocessable()->assertJsonValidationErrors('trainee_ids');
         $this->getJson($path.'/roster?status=failed')->assertOk()->assertJsonPath('data.roster.total', 0);
 
         $skipped = $lastPage[7]['id'];

@@ -34,4 +34,5 @@ return [
     'package_already_active' => 'You already have a certificate download in progress. Wait for it to finish.',
     'package_capacity' => 'You have reached the limit for pending and recent downloads. Wait for a download to expire.',
     'package_retry_failed_only' => 'Only failed packages that have not expired can be retried.',
+    'issuance_batch_limit' => 'Each issuance batch supports up to :max trainees. Select a smaller set.',
 ];

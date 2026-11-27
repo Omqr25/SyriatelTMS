@@ -4,7 +4,7 @@ namespace Tests\Support;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
-trait UsesCertificateTestDatabase
+trait UsesIsolatedForwardMigrations
 {
     use RefreshDatabase;
 

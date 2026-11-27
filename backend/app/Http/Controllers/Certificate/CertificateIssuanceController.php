@@ -47,9 +47,9 @@ final class CertificateIssuanceController extends Controller
         $selection = $request->validate([
             'template_version_id' => 'required|integer',
             'mode' => 'required|in:explicit,all',
-            'trainee_ids' => 'required_if:mode,explicit|prohibited_if:mode,all|array|list',
+            'trainee_ids' => 'required_if:mode,explicit|prohibited_if:mode,all|array|list|max:'.CertificateReservations::MAX_BATCH_SIZE,
             'trainee_ids.*' => 'integer|min:1',
-            'except_ids' => 'prohibited_if:mode,explicit|array|list', 'except_ids.*' => 'integer|min:1',
+            'except_ids' => 'prohibited_if:mode,explicit|array|list|max:'.CertificateReservations::MAX_BATCH_SIZE, 'except_ids.*' => 'integer|min:1',
             'override_reason' => 'prohibited_if:mode,all|string|max:2000',
         ]);
 
@@ -59,7 +59,7 @@ final class CertificateIssuanceController extends Controller
     public function confirm(Request $request, TrainingProgram $program, CertificateReservations $reservations)
     {
         $input = $request->validate([
-            'template_version_id' => 'required|integer', 'trainee_ids' => 'required|array|list',
+            'template_version_id' => 'required|integer', 'trainee_ids' => 'required|array|list|max:'.CertificateReservations::MAX_BATCH_SIZE,
             'trainee_ids.*' => 'required|integer|min:1', 'request_key' => 'required|uuid', 'confirmed' => 'accepted',
             'override_reason' => 'sometimes|required|string|max:2000',
         ]);

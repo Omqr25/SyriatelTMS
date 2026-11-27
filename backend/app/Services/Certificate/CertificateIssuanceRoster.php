@@ -24,10 +24,16 @@ final class CertificateIssuanceRoster
     public function page(TrainingProgram $program, array $filters): array
     {
         $base = $this->query($program);
+        $search = $filters['search'] ?? '';
         $counts = (clone $base)->selectRaw('status, COUNT(*) as total')->groupBy('status')->pluck('total', 'status');
         $rows = (clone $base)
             ->when($filters['status'] ?? null, fn (Builder $query, string $status) => $query->where('status', $status))
-            ->when($filters['search'] ?? null, function (Builder $query, string $search) {
+            ->when($search !== '', function (Builder $query) use ($search) {
+                if (ctype_digit($search) && (string) (int) $search === ltrim($search, '0')) {
+                    $query->where('id', (int) $search);
+
+                    return;
+                }
                 $like = '%'.str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $search).'%';
                 $query->where(fn (Builder $query) => $query
                     ->whereRaw("name LIKE ? ESCAPE '!'", [$like])->orWhereRaw("email LIKE ? ESCAPE '!'", [$like])
@@ -36,11 +42,12 @@ final class CertificateIssuanceRoster
             ->orderBy('id')->paginate(12);
         $trainees = Trainee::with(['user', 'application'])->whereIn('id', $rows->pluck('id'))->get()->keyBy('id');
         $frozen = Certificate::whereIn('id', $rows->pluck('certificate_id')->filter())->get()->keyBy('id');
-        $rows->through(function ($row) use ($program, $trainees, $frozen) {
+        $names = $this->names->entriesFor($program, $trainees->modelKeys());
+        $rows->through(function ($row) use ($program, $trainees, $frozen, $names) {
             $certificate = $frozen->get($row->certificate_id);
-            $row->certificate_name = $certificate
-                ? ($certificate->snapshot['trainee_name'] ?? $row->name)
-                : $this->names->resolve($program, $trainees->get($row->id))['name'] ?? null;
+            $trainee = $trainees->get($row->id);
+            $resolved = ! $certificate && $trainee ? $this->names->resolve($program, $trainee, $names[$row->id] ?? []) : null;
+            $row->certificate_name = $certificate ? ($certificate->snapshot['trainee_name'] ?? $row->name) : ($resolved['name'] ?? null);
 
             return $row;
         });
@@ -83,16 +90,26 @@ final class CertificateIssuanceRoster
         $ids = [];
         $blocked = [];
         $seen = [];
-        $query->chunkById(100, function ($rows) use ($program, $version, $override, $now, &$ids, &$blocked, &$seen) {
+        $max = CertificateReservations::MAX_BATCH_SIZE;
+        if ((clone $query)->limit($max + 1)->pluck('id')->count() > $max) {
+            throw ValidationException::withMessages(['issuance' => __('certificates.issuance_batch_limit', ['max' => $max])]);
+        }
+
+        $query->limit($max + 1)->chunkById(100, function ($rows) use ($program, $version, $override, $now, &$ids, &$blocked, &$seen) {
             $trainees = Trainee::with(['application', 'user', 'department'])->whereIn('id', $rows->pluck('id'))->get()->keyBy('id');
+            $names = $this->names->entriesFor($program, $trainees->modelKeys());
             foreach ($rows as $row) {
                 $seen[] = $row->id;
                 try {
                     if ($override ? ! in_array($row->status, ['excluded', 'fired'], true) : $row->status !== 'ready') {
                         throw ValidationException::withMessages(['issuance' => __('certificates.not_eligible', ['trainee' => $row->id])]);
                     }
+                    $trainee = $trainees->get($row->id);
+                    if (! $trainee) {
+                        throw ValidationException::withMessages(['issuance' => __('certificates.wrong_program')]);
+                    }
                     // Confirmation rechecks fit using the exact allocated number and issue date.
-                    $this->preparation->snapshot($program, $trainees->get($row->id), $version, $now->toDateString(), 'CERT-'.$now->year.'-888888');
+                    $this->preparation->snapshot($program, $trainee, $version, $now->toDateString(), 'CERT-'.$now->year.'-888888', $names[$row->id] ?? []);
                     $ids[] = $row->id;
                 } catch (ValidationException $failure) {
                     $blocked[] = ['id' => $row->id, 'name' => $row->name, 'reason' => $failure->validator->errors()->first()];
@@ -101,6 +118,10 @@ final class CertificateIssuanceRoster
         });
         foreach (array_diff($requested, $seen) as $missing) {
             $blocked[] = ['id' => $missing, 'name' => null, 'reason' => __('certificates.wrong_program')];
+        }
+
+        if (count($seen) > $max) {
+            throw ValidationException::withMessages(['issuance' => __('certificates.issuance_batch_limit', ['max' => $max])]);
         }
 
         return ['trainee_ids' => $ids, 'blocked' => $blocked];

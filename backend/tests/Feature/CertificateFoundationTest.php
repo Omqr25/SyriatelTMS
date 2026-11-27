@@ -23,12 +23,12 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use LogicException;
 use Tests\Support\CertificateFixtures;
-use Tests\Support\UsesCertificateTestDatabase;
+use Tests\Support\UsesIsolatedForwardMigrations;
 use Tests\TestCase;
 
 class CertificateFoundationTest extends TestCase
 {
-    use CertificateFixtures, UsesCertificateTestDatabase;
+    use CertificateFixtures, UsesIsolatedForwardMigrations;
 
     protected function setUp(): void
     {
