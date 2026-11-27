@@ -45,3 +45,16 @@ export const updateIssuanceTrainee = async (program, trainee, action, payload) =
   api.put(`${issuance}/programs/${program}/trainees/${trainee}/${action}`, payload, localized());
 export const getCertificateName = async signal => data(await api.get('certificates/name', localized({ signal })));
 export const saveCertificateName = async name => data(await api.put('certificates/name', { name }, localized()));
+
+const archive = 'certificates/archive/programs';
+export const getCertificateArchive = async signal => data(await api.get(archive, localized({ signal })));
+export const getArchiveCertificates = async (program, params, signal) =>
+  data(await api.get(`${archive}/${program}/certificates`, localized({ params, signal })));
+export const getCertificatePackages = async (program, signal) =>
+  data(await api.get(`${archive}/${program}/packages`, localized({ signal })));
+export const requestCertificatePackage = async (program, payload) =>
+  data(await api.post(`${archive}/${program}/packages`, payload, localized()));
+export const retryCertificatePackage = async (program, id) =>
+  data(await api.post(`${archive}/${program}/packages/${id}/retry`, {}, localized()));
+export const downloadCertificatePackage = async (program, id) =>
+  (await api.get(`${archive}/${program}/packages/${id}/download`, localized({ responseType: 'blob', timeout: 120000 }))).data;

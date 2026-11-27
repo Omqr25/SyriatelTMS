@@ -29,4 +29,9 @@ return [
     'manual_upload_retired' => 'Issue new certificates from the Issuance tab.',
     'retry_failed_only' => 'Only failed certificates for this program can be retried.',
     'issuance_layout_invalid' => 'The text for trainee :trainee does not fit the template or includes unsupported characters. Check the name, other values, or template.',
+    'package_invalid_selection' => 'Select issued certificates from this training program only.',
+    'package_too_many' => 'A bulk download accepts up to :max certificates. Select a smaller set.',
+    'package_already_active' => 'You already have a certificate download in progress. Wait for it to finish.',
+    'package_capacity' => 'You have reached the limit for pending and recent downloads. Wait for a download to expire.',
+    'package_retry_failed_only' => 'Only failed packages that have not expired can be retried.',
 ];

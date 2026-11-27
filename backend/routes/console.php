@@ -46,3 +46,9 @@ Schedule::command('training-programs:update-status')
     ->everyMinute();
 Schedule::command('app:update-overdue-tasks')
     ->everyMinute();
+
+
+Artisan::command('certificates:clean-packages', function (\App\Services\Certificate\CertificatePackages $packages) {
+    $this->info($packages->cleanup().' expired certificate packages removed.');
+})->purpose('Remove expired private certificate packages');
+Schedule::command('certificates:clean-packages')->hourly()->withoutOverlapping(10);

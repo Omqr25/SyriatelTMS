@@ -65,3 +65,11 @@ From `backend`, run `php artisan migrate` once and start the worker in a dedicat
 The certificate worker uses the dedicated database queue and private local storage. The web process and worker must share that storage and have permission to read the immutable backgrounds and write issued PDFs. Keep the same database and certificate configuration in both processes. On Windows/Laragon, run the command with the Laragon PHP CLI and retain the Phase 2 `CERTIFICATE_PHP_CLI` setting if PHP executable discovery requires it.
 
 Rendering has a 12-second subprocess timeout and a 128 MB child memory limit. On PHP builds with PCNTL, Laravel additionally enforces the full job timeout (120 seconds by default). The queue makes interrupted work visible after the job timeout plus 60 seconds. On Windows without PCNTL, the rendering timeout still applies. A stalled local database or filesystem call may require stopping and restarting the worker process.
+
+### Certificate archive bulk downloads
+
+Apply the Phase 4 migration with `php artisan migrate`, then restart `php artisan certificates:work`. ZIP uses PHP's existing `zip` extension in the worker CLI. Separate services and rendering tools are unnecessary.
+
+HR can prepare one package at a time. Each package accepts up to 250 certificates, at most 10 MiB per original, 64 MiB total, and 500 pages (at most 25 per original). Preparation uses private local storage and a PHP subprocess capped at 256 MiB and up to 90 seconds. Keep space for staged originals and the output. Combined PDF imports the visible page geometry and vector content. ZIP stores the exact original bytes. An unreadable, damaged, encrypted, active or unsupported PDF fails the entire package with its certificate record ID when available. Historical files remain available through their individual actions.
+
+Downloads are scoped to the HR requester and expire 24 hours after processing. The existing scheduler runs `certificates:clean-packages` hourly. For local maintenance, run `php artisan certificates:clean-packages` directly. Cleanup allows a ten-minute grace period for downloads already in progress and only removes files under `certificates/packages`.

@@ -154,5 +154,58 @@
       "storage_failed": "Private storage could not save the PDF.",
       "interrupted": "The worker was interrupted. Retry this certificate."
     }
+  },
+  "archive": {
+    "back": "Back to training programs",
+    "open": "View certificates",
+    "issuedCount_one": "{{count}} issued certificate",
+    "issuedCount_other": "{{count}} issued certificates",
+    "search": "Search by name, email, trainee ID, or certificate number",
+    "noResults": "No certificates match this search.",
+    "traineeId": "Trainee ID",
+    "number": "Certificate number",
+    "selectAll": "Select every issued certificate in this program",
+    "deselectAll": "Deselect All",
+    "selectedCount_one": "{{count}} certificate selected",
+    "selectedCount_other": "{{count}} certificates selected",
+    "packages": "Bulk downloads",
+    "packageHelp": "Your files will be available below when the certificate worker finishes. Downloads expire after 24 hours.",
+    "downloadSelected": {
+      "pdf": "Download Selected as Combined PDF",
+      "zip": "Download Selected as ZIP"
+    },
+    "downloadAll": {
+      "pdf": "Download All as Combined PDF",
+      "zip": "Download All as ZIP"
+    },
+    "format": {
+      "pdf": "Combined PDF",
+      "zip": "ZIP"
+    },
+    "download": {
+      "pdf": "Download Combined PDF",
+      "zip": "Download ZIP"
+    },
+    "status": {
+      "queued": "Queued",
+      "processing": "Processing",
+      "ready": "Ready",
+      "failed": "Failed"
+    },
+    "packageProgress": "{{processed}} of {{total}} checked",
+    "failedCertificate": "Certificate record #{{id}}.",
+    "expires": "Expires {{date}} (Damascus time)",
+    "failures": {
+      "missing_source": "A source PDF is missing or unreadable.",
+      "unsupported_source": "A source PDF is damaged or uses an unsupported format or feature.",
+      "limit_exceeded": "The selected PDFs exceed the bulk download size or page limit. Select a smaller set.",
+      "storage_failed": "The private download file could not be saved.",
+      "invalid_artifact": "The resulting file was invalid or exceeded its size limit.",
+      "runtime_unavailable": "The certificate worker is missing a required PHP capability.",
+      "timeout": "Packaging timed out. Retry or select a smaller set.",
+      "interrupted": "The certificate worker was interrupted.",
+      "authorization_revoked": "The requester no longer has permission.",
+      "processing_failed": "Processing failed. Contact support if the problem persists."
+    }
   }
 }

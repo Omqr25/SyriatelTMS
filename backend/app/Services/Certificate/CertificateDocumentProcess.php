@@ -9,7 +9,6 @@ use Illuminate\Validation\ValidationException;
 use JsonException;
 use Symfony\Component\Process\Exception\ExceptionInterface;
 use Symfony\Component\Process\Exception\ProcessTimedOutException;
-use Symfony\Component\Process\PhpExecutableFinder;
 use Symfony\Component\Process\Process;
 
 final class CertificateDocumentProcess
@@ -27,18 +26,10 @@ final class CertificateDocumentProcess
             if (file_put_contents($scratch.'/job.json', json_encode($job, JSON_THROW_ON_ERROR)) === false) {
                 $this->reject();
             }
-            $php = config('certificates.php_cli') ?: (new PhpExecutableFinder)->find(false);
-            if (! $php || ! function_exists('proc_open')) {
+            $process = CertificatePhpProcess::make('certificate-document.php', [$scratch, $mode], $scratch, 12, 128, $mode === 'issue');
+            if ($process === null) {
                 $this->reject('document_runtime_unavailable');
             }
-            // Array arguments only. No shell script, user-selected executable or web-request path is executed.
-            $process = new Process([
-                $php, '-d', 'memory_limit=128M', '-d', 'allow_url_fopen=0', '-d', 'display_errors=0',
-                // The short-lived CLI must not attach to the Windows web server's OPcache.
-                '-d', 'opcache.enable_cli=0',
-                ...($mode === 'issue' ? ['-d', 'max_execution_time=12'] : []),
-                base_path('scripts/certificate-document.php'), $scratch, $mode,
-            ], $scratch, PHP_OS_FAMILY === 'Windows' ? $this->windowsStartupEnvironment() : null, timeout: 12);
             if ($process->run() !== 0) {
                 $this->logFailure($process, $mode, 'exit');
                 $this->reject();
@@ -72,24 +63,6 @@ final class CertificateDocumentProcess
         } finally {
             File::deleteDirectory($scratch);
         }
-    }
-
-    private function windowsStartupEnvironment(): array
-    {
-        // Symfony may narrow the inherited environment to keys present in the request's
-        // $_SERVER. Read startup paths directly from the OS, not from the request.
-        $environment = [];
-        foreach ([
-            'SystemRoot', 'WINDIR', 'SystemDrive', 'ComSpec', 'PATH', 'PATHEXT',
-            'TEMP', 'TMP', 'USERPROFILE', 'APPDATA', 'LOCALAPPDATA', 'PHPRC', 'PHP_INI_SCAN_DIR',
-        ] as $name) {
-            $value = getenv($name, true);
-            if ($value !== false) {
-                $environment[$name] = $value;
-            }
-        }
-
-        return $environment;
     }
 
     private function logFailure(?Process $process, string $mode, string $stage): void

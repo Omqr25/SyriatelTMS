@@ -7,10 +7,10 @@ import Modal from '../../components/ui/Modal';
 import Pagination from '../../components/ui/Pagination';
 import Table from '../../components/ui/Table';
 import { getIssuanceOptions, getIssuanceRoster, postIssuance, updateIssuanceTrainee } from '../../Api/certificateApi';
+import useCertificateSelection from './useCertificateSelection';
 import styles from './CertificatesPage.module.css';
 
 const statuses = ['ready', 'excluded', 'fired', 'program_not_ended', 'queued', 'generating', 'issued', 'failed'];
-const clearSelection = () => ({ all: false, ids: new Set() });
 const errorMessage = (error, fallback) => {
   const data = error.response?.data;
   return data?.errors ? Object.values(data.errors).flat().join(' ') : data?.message ?? fallback;
@@ -26,7 +26,6 @@ export default function CertificateIssuanceTab() {
   const [query, setQuery] = useState('');
   const [status, setStatus] = useState('');
   const [page, setPage] = useState(1);
-  const [selection, setSelection] = useState(clearSelection);
   const [roster, setRoster] = useState(null);
   const [refresh, setRefresh] = useState(0);
   const [loadError, setLoadError] = useState('');
@@ -77,28 +76,18 @@ export default function CertificateIssuanceTab() {
   }, [program, query, status, page, refresh, t]);
 
   const readyIds = roster?.ready_ids ?? [];
-  const selected = selection.all ? readyIds.filter(id => !selection.ids.has(id)).length : selection.ids.size;
-  const allChecked = readyIds.length > 0 && selected === readyIds.length && readyIds.every(id => isSelected(id));
+  const selection = useCertificateSelection(readyIds.length, readyIds);
+  const { selected, allChecked, isSelected, toggle } = selection;
   const counts = roster?.counts ?? {};
   const rows = roster?.roster.data ?? [];
   const active = (counts.queued ?? 0) + (counts.generating ?? 0);
-  function isSelected(id) {
-    return selection.all ? !selection.ids.has(id) : selection.ids.has(id);
-  }
-  function toggle(id) {
-    setSelection(current => {
-      const ids = new Set(current.ids);
-      if (ids.has(id)) ids.delete(id); else ids.add(id);
-      return { all: current.all, ids };
-    });
-  }
   function changeProgram(event) {
     const id = event.target.value;
     setParams(current => {
       if (id) current.set('program', id); else current.delete('program');
       return current;
     }, { replace: true });
-    setSelection(clearSelection()); setRoster(null); setLoadError(''); setNotice('');
+    selection.clear(); setRoster(null); setLoadError(''); setNotice('');
     setStatus(''); setSearch(''); setQuery(''); setPage(1);
   }
   function open(kind, row) {
@@ -107,8 +96,8 @@ export default function CertificateIssuanceTab() {
   function decide() {
     if (dialog.kind === 'all') return { mode: 'all' };
     if (dialog.kind === 'selected') return selection.all
-      ? { mode: 'all', except_ids: [...selection.ids] }
-      : { mode: 'explicit', trainee_ids: [...selection.ids] };
+      ? { mode: 'all', except_ids: selection.ids }
+      : { mode: 'explicit', trainee_ids: selection.ids };
     return { mode: 'explicit', trainee_ids: [dialog.row.id],
       ...(dialog.kind === 'override' ? { override_reason: entry } : {}) };
   }
@@ -129,7 +118,7 @@ export default function CertificateIssuanceTab() {
           request_key: dialog.requestKey, confirmed: true,
         });
         setNotice(t('issuance.queuedNotice', { count: result.total }));
-        setSelection(clearSelection());
+        selection.clear();
       } else if (dialog.kind === 'retry' || dialog.kind === 'retryAll') {
         const result = await postIssuance(program, 'retry', dialog.row ? { certificate_id: dialog.row.certificate_id } : {});
         setNotice(t('issuance.queuedNotice', { count: result.total }));
@@ -197,7 +186,7 @@ export default function CertificateIssuanceTab() {
       {roster && <Table rows={rows} emptyText={t('issuance.noRows')} columns={[
         { key: 'select', header: <input type="checkbox" checked={allChecked} disabled={!readyIds.length}
           aria-label={t('issuance.selectAll')} ref={input => { if (input) input.indeterminate = selected > 0 && !allChecked; }}
-          onChange={() => setSelection({ all: !allChecked, ids: new Set() })} />,
+          onChange={selection.toggleAll} />,
         render: row => <input type="checkbox" checked={row.status === 'ready' && isSelected(row.id)}
           aria-label={t('issuance.selectTrainee', { name: row.name })}
           disabled={row.status !== 'ready'} onChange={() => toggle(row.id)} /> },

@@ -113,6 +113,16 @@ Route::prefix('v1')->group(function () {
                         Route::put('trainees/{trainee}/exclusion', 'exclusion');
                     });
                 });
+            Route::prefix('archive/programs')->middleware(['role:HR', UseRequestLocale::class])
+                ->can('manage', \App\Models\Certificate::class)
+                ->controller(\App\Http\Controllers\Certificate\CertificateArchiveController::class)->group(function () {
+                    Route::get('/', 'programs');
+                    Route::get('{program}/certificates', 'certificates')->whereNumber('program');
+                    Route::get('{program}/packages', 'packages')->whereNumber('program');
+                    Route::post('{program}/packages', 'build')->whereNumber('program');
+                    Route::post('{program}/packages/{package}/retry', 'retry')->whereNumber('program')->whereUuid('package');
+                    Route::get('{program}/packages/{package}/download', 'download')->whereNumber('program')->whereUuid('package');
+                });
             Route::post('trainees/{trainee}', [\App\Http\Controllers\Certificate\CertificateController::class, 'store'])->middleware(['role:HR', UseRequestLocale::class]);
             Route::get('{certificate}/preview', [\App\Http\Controllers\Certificate\CertificateController::class, 'preview']);
             Route::get('{certificate}/download', [\App\Http\Controllers\Certificate\CertificateController::class, 'download']);
