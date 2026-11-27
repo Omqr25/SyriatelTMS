@@ -37,7 +37,7 @@ final class CertificateDocumentProcess
                 // The short-lived CLI must not attach to the Windows web server's OPcache.
                 '-d', 'opcache.enable_cli=0',
                 base_path('scripts/certificate-document.php'), $scratch, $mode,
-            ], $scratch, timeout: 12);
+            ], $scratch, PHP_OS_FAMILY === 'Windows' ? $this->windowsStartupEnvironment() : null, timeout: 12);
             if ($process->run() !== 0) {
                 $this->logFailure($process, $mode, 'exit');
                 $this->reject();
@@ -73,6 +73,24 @@ final class CertificateDocumentProcess
         }
     }
 
+    private function windowsStartupEnvironment(): array
+    {
+        // Symfony may narrow the inherited environment to keys present in the request's
+        // $_SERVER. Read startup paths directly from the OS, not from the request.
+        $environment = [];
+        foreach ([
+            'SystemRoot', 'WINDIR', 'SystemDrive', 'ComSpec', 'PATH', 'PATHEXT',
+            'TEMP', 'TMP', 'USERPROFILE', 'APPDATA', 'LOCALAPPDATA', 'PHPRC', 'PHP_INI_SCAN_DIR',
+        ] as $name) {
+            $value = getenv($name, true);
+            if ($value !== false) {
+                $environment[$name] = $value;
+            }
+        }
+
+        return $environment;
+    }
+
     private function logFailure(?Process $process, string $mode, string $stage): void
     {
         $started = $process?->isStarted();
@@ -81,6 +99,7 @@ final class CertificateDocumentProcess
             'stage' => $stage,
             'platform' => PHP_OS_FAMILY,
             'parent_sapi' => PHP_SAPI,
+            'windows_system_root_available' => PHP_OS_FAMILY === 'Windows' ? (bool) getenv('SystemRoot', true) : null,
             'exit_code' => $started ? $process->getExitCode() : null,
             'stdout_bytes' => $started ? strlen($process->getOutput()) : 0,
             'stderr_bytes' => $started ? strlen($process->getErrorOutput()) : 0,
