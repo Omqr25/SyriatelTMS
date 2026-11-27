@@ -3,14 +3,14 @@
 namespace Tests\Feature;
 
 use App\Models\{User, Trainee, Trainer, Department, Application, TrainingProgram, Certificate, Role};
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Support\UsesCertificateTestDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class CertificateTest extends TestCase
 {
-    use RefreshDatabase;
+    use UsesCertificateTestDatabase;
 
     protected function setUp(): void
     {

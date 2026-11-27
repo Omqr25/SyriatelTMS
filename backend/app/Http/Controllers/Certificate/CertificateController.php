@@ -8,13 +8,14 @@ use App\Models\Certificate;
 use App\Models\Trainee;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 
 class CertificateController extends Controller
 {
     private function isHr(Request $request): bool
     {
-        return $request->user()->roles()->where('role', 'HR')->exists();
+        return Gate::forUser($request->user())->allows('manage', Certificate::class);
     }
 
     private function metadata(Certificate $certificate): array
@@ -30,7 +31,7 @@ class CertificateController extends Controller
 
     public function index(Request $request)
     {
-        $query = Certificate::with(['trainee.user', 'trainingProgram'])->orderByDesc('issue_date')->orderByDesc('id');
+        $query = Certificate::issued()->with(['trainee.user', 'trainingProgram'])->orderByDesc('issue_date')->orderByDesc('id');
         if (! $this->isHr($request)) {
             $query->whereHas('trainee', fn ($query) => $query->where('user_id', $request->user()->id));
         }
@@ -76,7 +77,7 @@ class CertificateController extends Controller
 
     private function file(Request $request, Certificate $certificate, bool $download)
     {
-        abort_unless($this->isHr($request) || $certificate->trainee->user_id === $request->user()->id, 403);
+        Gate::forUser($request->user())->authorize('view', $certificate);
         $disk = Storage::disk('local');
         abort_unless($disk->exists($certificate->path), 404, __('certificates.file_missing'));
         $headers = ['Content-Type' => 'application/pdf', 'Cache-Control' => 'private, no-store', 'X-Content-Type-Options' => 'nosniff'];
