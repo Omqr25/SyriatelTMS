@@ -13,7 +13,7 @@ class Certificate extends Model
 {
     use HasFactory;
 
-    // The existing manual-upload flow still produces issued legacy records.
+    // Historical certificates are issued records without a batch.
     protected $attributes = ['state' => 'issued', 'generation_attempts' => 0];
 
     protected $fillable = ['path', 'trainee_id', 'training_program_id', 'issue_date'];

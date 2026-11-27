@@ -1,6 +1,7 @@
 <?php
 
 use App\Services\Certificate\CertificateDocumentRenderer;
+use App\Services\Certificate\CertificateFontAssets;
 
 if (PHP_SAPI !== 'cli' || $argc !== 3 || ! is_dir($argv[1])) {
     exit(2);
@@ -15,7 +16,8 @@ try {
     $renderer = new CertificateDocumentRenderer($scratch.'/mpdf');
     $result = match ($argv[2]) {
         'normalize' => ['page' => $renderer->normalize($source, $job['extension'], $scratch.'/result')],
-        'proof' => $renderer->proof($source, $job['extension'], $job['configuration'], $job['sample'], $scratch.'/result'),
+        'proof' => $renderer->render($source, $job['extension'], $job['configuration'], CertificateFontAssets::SAMPLES[$job['sample']], $scratch.'/result'),
+        'issue' => $renderer->render($source, $job['extension'], $job['configuration'], $job['values'], $scratch.'/result'),
     };
     echo json_encode($result, JSON_THROW_ON_ERROR);
 } catch (Throwable) {

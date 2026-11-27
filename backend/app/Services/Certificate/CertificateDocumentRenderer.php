@@ -65,7 +65,7 @@ final class CertificateDocumentRenderer
         return $page;
     }
 
-    public function proof(string $source, string $extension, array $configuration, string $sample, string $output): array
+    public function render(string $source, string $extension, array $configuration, array $values, string $output): array
     {
         $page = $configuration['page'];
         $document = $this->pdf($page);
@@ -85,7 +85,7 @@ final class CertificateDocumentRenderer
         $metrics = CertificateFontAssets::metrics();
         $overflow = [];
         foreach ($configuration['boxes'] as $index => $box) {
-            $placed = $layout->box($box, CertificateFontAssets::SAMPLES[$sample], $metrics);
+            $placed = $layout->box($box, $values, $metrics);
             if (! $placed['fits']) {
                 $overflow[] = $index + 1;
 

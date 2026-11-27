@@ -57,3 +57,11 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+### Certificate issuance worker
+
+From `backend`, run `php artisan migrate` once and start the worker in a dedicated terminal with `php artisan certificates:work`. Stop it with Ctrl+C. HR can confirm issuance while the worker is stopped. The queued certificates resume when the worker starts. Keep the existing Core and Export worker commands as-is.
+
+The certificate worker uses the dedicated database queue and private local storage. The web process and worker must share that storage and have permission to read the immutable backgrounds and write issued PDFs. Keep the same database and certificate configuration in both processes. On Windows/Laragon, run the command with the Laragon PHP CLI and retain the Phase 2 `CERTIFICATE_PHP_CLI` setting if PHP executable discovery requires it.
+
+Rendering has a 12-second subprocess timeout and a 128 MB child memory limit. On PHP builds with PCNTL, Laravel additionally enforces the full job timeout (120 seconds by default). The queue makes interrupted work visible after the job timeout plus 60 seconds. On Windows without PCNTL, the rendering timeout still applies. A stalled local database or filesystem call may require stopping and restarting the worker process.

@@ -59,7 +59,7 @@ return [
             'connection' => null,
             'table' => 'certificate_jobs',
             'queue' => 'certificates',
-            'retry_after' => max(1, (int) env('CERTIFICATE_JOB_TIMEOUT', 120)) + 60,
+            'retry_after' => max(30, (int) env('CERTIFICATE_JOB_TIMEOUT', 120)) + 60,
             'after_commit' => true,
         ],
 

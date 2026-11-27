@@ -26,4 +26,7 @@ return [
     'document_runtime_unavailable' => 'The certificate document runtime is unavailable. Contact your administrator.',
     'document_timeout' => 'Certificate document processing timed out. Try a simpler background.',
     'proof_overflow' => 'Text does not fit in box(es) :boxes for the selected sample.',
+    'manual_upload_retired' => 'Issue new certificates from the Issuance tab.',
+    'retry_failed_only' => 'Only failed certificates for this program can be retried.',
+    'issuance_layout_invalid' => 'The text for trainee :trainee does not fit the template or includes unsupported characters. Check the name, other values, or template.',
 ];

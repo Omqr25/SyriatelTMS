@@ -8,6 +8,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Tests\Support\CertificateFixtures;
 use Tests\Support\IsolatedTestDatabase;
 use Tests\TestCase;
@@ -17,7 +18,7 @@ class CertificateNumberConcurrencyTest extends TestCase
 {
     use CertificateFixtures;
 
-    public function test_independent_mysql_transactions_allocate_distinct_numbers_in_the_same_year(): void
+    public function test_mysql_transactions_serialize_duplicate_reservations_and_allocate_distinct_numbers(): void
     {
         if (config('database.connections.'.config('database.default').'.driver') !== 'mysql' || ! function_exists('pcntl_fork')) {
             $this->markTestSkipped('Requires explicitly isolated MySQL and CLI PCNTL.');
@@ -32,10 +33,11 @@ class CertificateNumberConcurrencyTest extends TestCase
             $program = $this->program();
             $work[] = [$program, $this->trainee($program), $this->version($hr)];
         }
+        $jobsBefore = DB::table('certificate_jobs')->count();
         DB::disconnect();
         $start = microtime(true) + 0.5;
         $children = [];
-        foreach ($work as [$program, $trainee, $version]) {
+        foreach ([...$work, $work[0]] as [$program, $trainee, $version]) {
             $pid = pcntl_fork();
             $this->assertGreaterThanOrEqual(0, $pid);
             if ($pid === 0) {
@@ -45,6 +47,8 @@ class CertificateNumberConcurrencyTest extends TestCase
                         $hr, $program, $version, [$trainee->id], (string) Str::uuid(), true,
                     );
                     exit(0);
+                } catch (ValidationException $exception) {
+                    exit(array_key_exists('issuance', $exception->errors()) ? 2 : 3);
                 } catch (Throwable $exception) {
                     fwrite(STDERR, $exception->getMessage().PHP_EOL);
                     exit(1);
@@ -52,11 +56,15 @@ class CertificateNumberConcurrencyTest extends TestCase
             }
             $children[] = $pid;
         }
+        $exits = [];
         foreach ($children as $pid) {
             pcntl_waitpid($pid, $status);
             $this->assertTrue(pcntl_wifexited($status));
-            $this->assertSame(0, pcntl_wexitstatus($status));
+            $exits[] = pcntl_wexitstatus($status);
         }
+        sort($exits);
+        $this->assertSame([0, 0, 2], $exits);
+        $this->assertSame($jobsBefore + 2, DB::table('certificate_jobs')->count());
         $numbers = Certificate::whereIn('training_program_id', array_map(fn ($job) => $job[0]->id, $work))
             ->orderBy('number')->pluck('number');
         $this->assertCount(2, $numbers);

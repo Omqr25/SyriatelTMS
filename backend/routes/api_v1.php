@@ -97,8 +97,23 @@ Route::prefix('v1')->group(function () {
                     Route::post('{template}/archive', 'archive')->whereNumber('template');
                 });
             Route::get('/', [\App\Http\Controllers\Certificate\CertificateController::class, 'index']);
-            Route::get('candidates', [\App\Http\Controllers\Certificate\CertificateController::class, 'candidates'])->middleware('role:HR');
-            Route::post('trainees/{trainee}', [\App\Http\Controllers\Certificate\CertificateController::class, 'store'])->middleware('role:HR');
+            Route::match(['get', 'put'], 'name', [\App\Http\Controllers\Certificate\CertificateIssuanceController::class, 'ownName'])
+                ->middleware(['role:TRAINEE', UseRequestLocale::class]);
+            Route::prefix('issuance')->middleware(['role:HR', UseRequestLocale::class])
+                ->can('manage', \App\Models\Certificate::class)
+                ->controller(\App\Http\Controllers\Certificate\CertificateIssuanceController::class)->group(function () {
+                    Route::get('options', 'options');
+                    Route::prefix('programs/{program}')->group(function () {
+                        Route::get('roster', 'roster');
+                        Route::post('plan', 'plan');
+                        Route::post('confirm', 'confirm');
+                        Route::post('retry', 'retry');
+                        Route::post('name-window', 'open');
+                        Route::put('trainees/{trainee}/name', 'manualName');
+                        Route::put('trainees/{trainee}/exclusion', 'exclusion');
+                    });
+                });
+            Route::post('trainees/{trainee}', [\App\Http\Controllers\Certificate\CertificateController::class, 'store'])->middleware(['role:HR', UseRequestLocale::class]);
             Route::get('{certificate}/preview', [\App\Http\Controllers\Certificate\CertificateController::class, 'preview']);
             Route::get('{certificate}/download', [\App\Http\Controllers\Certificate\CertificateController::class, 'download']);
         });

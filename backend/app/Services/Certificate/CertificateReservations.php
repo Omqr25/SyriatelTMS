@@ -21,11 +21,10 @@ final class CertificateReservations
 {
     public function __construct(
         private CertificateRoster $roster,
-        private CertificateNames $names,
-        private CertificatePlaceholders $placeholders,
+        private CertificatePreparation $preparation,
+        private CertificateDispatch $dispatch,
     ) {}
 
-    /** Records confirmed durable reservations. Queue dispatch is a subsequent integration phase. */
     public function confirm(
         User $actor, TrainingProgram $program, CertificateTemplateVersion $version, array $traineeIds,
         string $requestKey, bool $confirmed, ?string $overrideReason = null,
@@ -74,15 +73,10 @@ final class CertificateReservations
                     'request_key' => $requestKey, 'request_hash' => $requestHash,
                 ]);
 
-                $used = $this->placeholders->used($version->configuration);
                 foreach ($trainees as $trainee) {
                     $status = $this->roster->status($program, $trainee, $confirmedAt);
                     if ($overrideReason === null ? $status !== 'ready' : ! in_array($status, ['excluded', 'fired'], true)) {
                         $this->reject('not_eligible', $trainee->id);
-                    }
-                    $resolved = $this->names->resolve($program, $trainee);
-                    if ($resolved === null) {
-                        $this->reject('english_name_required', $trainee->id);
                     }
                     $number = $this->nextNumber($confirmedAt->year);
                     $certificate = new Certificate;
@@ -90,11 +84,10 @@ final class CertificateReservations
                         'training_program_id' => $program->id, 'trainee_id' => $trainee->id,
                         'certificate_batch_id' => $batch->id, 'certificate_template_version_id' => $version->id,
                         'issue_date' => $issueDate, 'number' => $number, 'state' => CertificateState::Queued,
-                        'snapshot' => [
-                            'trainee_name' => $resolved['name'], 'name_source' => $resolved['source'],
-                            'values' => (object) $this->placeholders->resolve($used, $program, $trainee, $resolved['name'], $issueDate, $number),
-                        ],
+                        'snapshot' => $this->preparation->snapshot($program, $trainee, $version, $issueDate, $number),
                     ])->save();
+
+                    $this->dispatch->enqueue($certificate);
 
                     if ($overrideReason !== null) {
                         CertificateEvent::create([

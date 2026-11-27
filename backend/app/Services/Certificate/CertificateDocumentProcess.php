@@ -36,6 +36,7 @@ final class CertificateDocumentProcess
                 $php, '-d', 'memory_limit=128M', '-d', 'allow_url_fopen=0', '-d', 'display_errors=0',
                 // The short-lived CLI must not attach to the Windows web server's OPcache.
                 '-d', 'opcache.enable_cli=0',
+                ...($mode === 'issue' ? ['-d', 'max_execution_time=12'] : []),
                 base_path('scripts/certificate-document.php'), $scratch, $mode,
             ], $scratch, PHP_OS_FAMILY === 'Windows' ? $this->windowsStartupEnvironment() : null, timeout: 12);
             if ($process->run() !== 0) {
