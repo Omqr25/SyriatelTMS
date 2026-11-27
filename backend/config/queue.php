@@ -54,6 +54,15 @@ return [
             'after_commit' => false,
         ],
 
+        'certificates' => [
+            'driver' => 'database',
+            'connection' => null,
+            'table' => 'certificate_jobs',
+            'queue' => 'certificates',
+            'retry_after' => max(30, (int) env('CERTIFICATE_JOB_TIMEOUT', 120)) + 60,
+            'after_commit' => true,
+        ],
+
         'beanstalkd' => [
             'driver' => 'beanstalkd',
             'host' => env('BEANSTALKD_QUEUE_HOST', 'localhost'),

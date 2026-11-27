@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<meta charset="UTF-8">
+<style id="page-size"></style>
+<style>
+@font-face {font-family:Original; src:url(/fonts/Regular.ttf); font-weight:400}
+@font-face {font-family:Original; src:url(/fonts/Bold.ttf); font-weight:700}
+@font-face {font-family:Original; src:url(/fonts/Italic.ttf); font-weight:400; font-style:italic}
+@font-face {font-family:Original; src:url(/fonts/BoldItalic.ttf); font-weight:700; font-style:italic}
+* {box-sizing:border-box}
+body {margin:0}
+#sheet {position:relative; background:white}
+#background {position:absolute; inset:0; width:100%; height:100%; object-fit:contain}
+section {position:absolute; line-height:1.32; outline:.15mm solid #e717aa; color:#123ca2;
+  font-synthesis:none; font-kerning:normal; overflow-wrap:normal}
+p {margin:0}
+p + p {margin-top:1.5mm}
+.ruler {display:inline-block;width:0;height:0;padding:0;margin:0;vertical-align:baseline}
+@media print {section {-webkit-print-color-adjust:exact} #sheet {break-inside:avoid}}
+</style>
+<div id="root"></div>
+<script src="/browser.js"></script>
+</html>

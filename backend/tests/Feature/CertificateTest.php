@@ -3,14 +3,14 @@
 namespace Tests\Feature;
 
 use App\Models\{User, Trainee, Trainer, Department, Application, TrainingProgram, Certificate, Role};
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Support\UsesIsolatedForwardMigrations;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class CertificateTest extends TestCase
 {
-    use RefreshDatabase;
+    use UsesIsolatedForwardMigrations;
 
     protected function setUp(): void
     {
@@ -35,64 +35,63 @@ class CertificateTest extends TestCase
             'department_id' => $department->id, 'trainer_id' => $trainer->id, 'application_id' => $application->id]);
     }
 
-    private function issue(Trainee $trainee): int
+    private function legacy(Trainee $trainee): int
     {
-        return $this->actingAs($this->user('HR'), 'api')->postJson('/api/v1/certificates/trainees/' . $trainee->id, [
-            'file' => UploadedFile::fake()->create('official.pdf', 10, 'application/pdf'),
-        ])->assertCreated()->assertJsonMissingPath('data.path')->json('data.id');
+        $path = 'certificates/legacy-'.$trainee->id.'.pdf';
+        Storage::disk('local')->put($path, '%PDF historical certificate');
+
+        return Certificate::create([
+            'trainee_id' => $trainee->id, 'training_program_id' => $trainee->application->training_program_id,
+            'issue_date' => today(), 'path' => $path,
+        ])->id;
     }
 
-    public function test_hr_can_issue_and_trainee_can_list_preview_and_download(): void
+    public function test_hr_and_trainee_can_list_preview_and_download_historical_certificate(): void
     {
         $trainee = $this->trainee();
-        $id = $this->issue($trainee);
+        $trainee->user->update(['name' => '../نور حسين/']);
+        $id = $this->legacy($trainee);
         $certificate = Certificate::findOrFail($id);
         Storage::disk('local')->assertExists($certificate->path);
+        $this->actingAs($this->user('HR'), 'api')->getJson('/api/v1/certificates')
+            ->assertOk()->assertJsonPath('data.0.id', $id)->assertJsonMissingPath('data.0.path');
         $this->actingAs($trainee->user, 'api')->getJson('/api/v1/certificates')
             ->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('data.0.id', $id);
         $this->get('/api/v1/certificates/' . $id . '/preview')->assertOk()
             ->assertHeader('Content-Type', 'application/pdf')
             ->assertHeader('Content-Disposition', 'inline; filename=certificate-' . $id . '.pdf');
-        $this->get('/api/v1/certificates/' . $id . '/download')->assertOk()->assertDownload('certificate-' . $id . '.pdf');
+        $download = $this->get('/api/v1/certificates/' . $id . '/download', ['Origin' => 'http://frontend.test']);
+        $download->assertOk()->assertDownload()->assertHeader('Access-Control-Expose-Headers', 'Content-Disposition')
+            ->assertStreamedContent('%PDF historical certificate');
+        $this->assertStringContainsString("filename*=utf-8''".rawurlencode('نور-حسين.pdf'), $download->headers->get('Content-Disposition'));
     }
 
     public function test_other_trainees_cannot_list_or_open_someone_elses_certificate(): void
     {
-        $id = $this->issue($this->trainee());
+        $id = $this->legacy($this->trainee());
         $other = $this->trainee();
         $this->actingAs($other->user, 'api')->getJson('/api/v1/certificates')->assertOk()->assertJsonCount(0, 'data');
         foreach (['preview', 'download'] as $action) {
             $this->getJson('/api/v1/certificates/' . $id . '/' . $action)->assertForbidden();
         }
-        $this->getJson('/api/v1/certificates/candidates')->assertForbidden();
+        $this->getJson('/api/v1/certificates/issuance/options')->assertForbidden();
         $this->postJson('/api/v1/certificates/trainees/' . $other->id)->assertForbidden();
     }
 
-    public function test_only_completed_trainees_are_candidates_and_duplicates_are_rejected(): void
-    {
-        $completed = $this->trainee();
-        $active = $this->trainee('active');
-        $id = $this->issue($completed);
-        $this->getJson('/api/v1/certificates/candidates')->assertOk()->assertJsonCount(1, 'data')
-            ->assertJsonPath('data.0.issued', true);
-        foreach ([[$completed, 409], [$active, 422]] as [$trainee, $status]) {
-            $this->postJson('/api/v1/certificates/trainees/' . $trainee->id, [
-                'file' => UploadedFile::fake()->create('certificate.pdf', 10, 'application/pdf'),
-            ])->assertStatus($status);
-        }
-        $this->assertDatabaseCount('certificates', 1);
-        $this->assertCount(1, Storage::disk('local')->files('certificates'));
-    }
-
-    public function test_file_validation_and_missing_file_are_handled(): void
+    public function test_old_manual_upload_api_cannot_bypass_issuance(): void
     {
         $trainee = $this->trainee();
-        $this->actingAs($this->user('HR'), 'api');
-        foreach ([UploadedFile::fake()->create('bad.txt', 1, 'text/plain'), UploadedFile::fake()->create('large.pdf', 10241, 'application/pdf')] as $file) {
-            $this->postJson('/api/v1/certificates/trainees/' . $trainee->id, ['file' => $file])
-                ->assertUnprocessable()->assertJsonValidationErrors('file');
-        }
-        $id = $this->issue($trainee);
+        $this->actingAs($this->user('HR'), 'api')->postJson('/api/v1/certificates/trainees/'.$trainee->id, [
+            'file' => UploadedFile::fake()->create('certificate.pdf', 10, 'application/pdf'),
+        ])->assertGone();
+        $this->assertDatabaseCount('certificates', 0);
+        $this->assertSame([], Storage::disk('local')->allFiles('certificates'));
+    }
+
+    public function test_missing_historical_file_is_handled(): void
+    {
+        $trainee = $this->trainee();
+        $id = $this->legacy($trainee);
         Storage::disk('local')->delete(Certificate::find($id)->path);
         $this->actingAs($trainee->user, 'api')->getJson('/api/v1/certificates/' . $id . '/preview')->assertNotFound();
     }
@@ -102,11 +101,9 @@ class CertificateTest extends TestCase
         $trainee = $this->trainee('active');
         $trainee->application->update(['status' => 'active']);
         $trainee->application->trainingProgram->update(['end_date' => today()->subDay()]);
-        $this->actingAs($this->user('HR'), 'api')->getJson('/api/v1/certificates/candidates')
-            ->assertOk()->assertJsonCount(0, 'data');
         $this->artisan('training-programs:update-status')->assertSuccessful();
-        $this->getJson('/api/v1/certificates/candidates')->assertOk()
-            ->assertJsonCount(1, 'data')->assertJsonPath('data.0.issued', false);
+        $this->assertDatabaseCount('certificates', 0);
+        $this->assertDatabaseCount('certificate_jobs', 0);
         $this->actingAs($trainee->user, 'api')->getJson('/api/v1/certificates')
             ->assertOk()->assertJsonCount(0, 'data');
     }
