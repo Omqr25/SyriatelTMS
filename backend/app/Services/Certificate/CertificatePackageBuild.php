@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Normalizer;
 use Symfony\Component\Process\Exception\ExceptionInterface;
 use Symfony\Component\Process\Exception\ProcessTimedOutException;
 
@@ -105,8 +104,7 @@ final class CertificatePackageBuild
         $folder = 'program-'.$program.'-'.$slug;
         $stems = $reserved = $used = $entries = [];
         foreach ($certificates as $certificate) {
-            $stem = $this->safeStem($certificate->snapshot['trainee_name'] ?? '')
-                ?: $this->safeStem($certificate->trainee?->user?->name ?? '') ?: 'Certificate';
+            $stem = CertificateFilename::stem($certificate);
             $stems[$certificate->id] = $stem;
             $reserved[mb_convert_case($stem, MB_CASE_FOLD, 'UTF-8')] = true;
         }
@@ -127,15 +125,6 @@ final class CertificatePackageBuild
         }
 
         return $entries;
-    }
-
-    private function safeStem(string $name): string
-    {
-        $normalized = Normalizer::normalize($name, Normalizer::FORM_C) ?: '';
-        $stem = trim(mb_strcut(preg_replace('/[^\p{L}\p{M}\p{N}]+/u', '-', $normalized), 0, 120, 'UTF-8'), '-');
-
-        // These device names cannot be extracted as regular files on Windows.
-        return preg_match('/^(?:CON|PRN|AUX|NUL|COM[1-9¹²³]|LPT[1-9¹²³])$/iuD', $stem) ? $stem.'-certificate' : $stem;
     }
 
     private function sourcePath(Certificate $certificate): ?string

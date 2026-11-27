@@ -71,7 +71,7 @@ final class CertificatePackagesTest extends TestCase
         $this->getJson($path.'?search='.urlencode($certificate->trainee->user->email))->assertOk()
             ->assertJsonPath('data.results.data.0.number', null)->assertJsonMissingPath('data.results.data.0.path');
         $this->get('/api/v1/certificates/'.$certificate->id.'/preview')->assertOk();
-        $this->get('/api/v1/certificates/'.$certificate->id.'/download')->assertDownload('certificate-'.$certificate->id.'.pdf');
+        $this->get('/api/v1/certificates/'.$certificate->id.'/download')->assertDownload('Archive-Recipient-1.pdf');
     }
 
     public function test_eighty_sources_produce_exact_selected_and_all_packages_and_preserve_originals(): void

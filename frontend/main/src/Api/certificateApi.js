@@ -1,8 +1,20 @@
 import api from './axios';
 
 export const getCertificates = async () => (await api.get('certificates')).data.data;
-export const getCertificateFile = async (id, download = false) =>
-  (await api.get(`certificates/${id}/${download ? 'download' : 'preview'}`, { responseType: 'blob' })).data;
+export const getCertificateFile = async (id, download = false) => {
+  const { data: blob, headers } = await api.get(`certificates/${id}/${download ? 'download' : 'preview'}`, { responseType: 'blob' });
+  const disposition = headers['content-disposition'] ?? '';
+  const encoded = disposition.match(/(?:^|;)\s*filename\*=UTF-8''([^;]+)/i)?.[1];
+  if (encoded) {
+    try {
+      return { blob, filename: decodeURIComponent(encoded) };
+    } catch {
+      // A malformed extended name can fall back to the standard filename.
+    }
+  }
+  const plain = disposition.match(/(?:^|;)\s*filename=(?:"([^"]+)"|([^;]+))/i);
+  return { blob, filename: (plain?.[1] ?? plain?.[2])?.trim() };
+};
 
 const templates = 'certificates/templates';
 const data = response => response.data.data;

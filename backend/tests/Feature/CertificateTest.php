@@ -49,6 +49,7 @@ class CertificateTest extends TestCase
     public function test_hr_and_trainee_can_list_preview_and_download_historical_certificate(): void
     {
         $trainee = $this->trainee();
+        $trainee->user->update(['name' => '../نور حسين/']);
         $id = $this->legacy($trainee);
         $certificate = Certificate::findOrFail($id);
         Storage::disk('local')->assertExists($certificate->path);
@@ -59,7 +60,10 @@ class CertificateTest extends TestCase
         $this->get('/api/v1/certificates/' . $id . '/preview')->assertOk()
             ->assertHeader('Content-Type', 'application/pdf')
             ->assertHeader('Content-Disposition', 'inline; filename=certificate-' . $id . '.pdf');
-        $this->get('/api/v1/certificates/' . $id . '/download')->assertOk()->assertDownload('certificate-' . $id . '.pdf');
+        $download = $this->get('/api/v1/certificates/' . $id . '/download', ['Origin' => 'http://frontend.test']);
+        $download->assertOk()->assertDownload()->assertHeader('Access-Control-Expose-Headers', 'Content-Disposition')
+            ->assertStreamedContent('%PDF historical certificate');
+        $this->assertStringContainsString("filename*=utf-8''".rawurlencode('نور-حسين.pdf'), $download->headers->get('Content-Disposition'));
     }
 
     public function test_other_trainees_cannot_list_or_open_someone_elses_certificate(): void

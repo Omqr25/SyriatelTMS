@@ -27,12 +27,12 @@ export function CertificateFileProvider({ children }) {
   async function openFile(certificate, download) {
     setBusy(true); setActionError('');
     try {
-      const blob = await getCertificateFile(certificate.id, download);
+      const { blob, filename } = await getCertificateFile(certificate.id, download);
       if (!mounted.current) return;
       const url = URL.createObjectURL(blob);
       if (download) {
         const link = document.createElement('a'); link.href = url;
-        link.download = `certificate-${certificate.id}.pdf`;
+        link.download = filename || `certificate-${certificate.id}.pdf`;
         document.body.appendChild(link); link.click(); link.remove();
         setTimeout(() => URL.revokeObjectURL(url), 1000);
       } else setPreview({ url, certificate });

@@ -238,11 +238,15 @@ final class CertificateIssuanceTest extends TestCase
         $this->runDue(1);
         $this->assertSame(2, $issued->fresh()->generation_attempts);
         $this->getJson('/api/v1/certificates')->assertOk()->assertJsonPath('data.0.trainee_name', $values['trainee_name']);
-        $this->get('/api/v1/certificates/'.$issued->id.'/download')->assertOk();
+        $download = '/api/v1/certificates/'.$issued->id.'/download';
+        $this->get($download)->assertOk()->assertDownload('Nora-Alexandra-Valentina-Vale-Richardson.pdf')
+            ->assertStreamedContent($issuedBytes);
         $this->actingAs($this->member('TRAINEE'), 'api')->getJson('/api/v1/certificates/'.$issued->id.'/download')->assertForbidden();
         $archive = '/api/v1/certificates/archive/programs/'.$program->id;
         $this->actingAs($hr, 'api')->getJson($archive.'/certificates')->assertOk()
             ->assertJsonPath('data.results.data.0.number', $issued->number);
+        $this->get($download)->assertOk()->assertDownload('Nora-Alexandra-Valentina-Vale-Richardson.pdf')
+            ->assertStreamedContent($issuedBytes);
         $packageId = $this->postJson($archive.'/packages', ['format' => 'zip', 'selection' => 'all',
             'request_key' => (string) Str::uuid()])->assertAccepted()->json('data.id');
         $this->runDue(1);

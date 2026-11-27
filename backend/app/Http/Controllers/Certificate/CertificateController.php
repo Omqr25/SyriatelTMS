@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Certificate;
 
 use App\Http\Controllers\Controller;
 use App\Models\Certificate;
+use App\Services\Certificate\CertificateFilename;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
@@ -49,7 +50,9 @@ class CertificateController extends Controller
         $headers = ['Content-Type' => 'application/pdf', 'Cache-Control' => 'private, no-store', 'X-Content-Type-Options' => 'nosniff'];
         $filename = 'certificate-' . $certificate->id . '.pdf';
         return $download
-            ? $disk->download($certificate->path, $filename, $headers)
+            ? $disk->download($certificate->path, CertificateFilename::stem($certificate).'.pdf', $headers + [
+                'Access-Control-Expose-Headers' => 'Content-Disposition',
+            ])
             : $disk->response($certificate->path, $filename, $headers, 'inline');
     }
 
